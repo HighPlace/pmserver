@@ -6,11 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="apigw" />
         <module name="configserver" />
         <module name="registry" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="apigw" target="1.8" />
       <module name="configserver" target="1.8" />
       <module name="registry" target="1.8" />
     </bytecodeTargetLevel>
