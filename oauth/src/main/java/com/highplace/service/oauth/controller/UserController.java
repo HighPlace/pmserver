@@ -13,19 +13,21 @@ import javax.validation.Valid;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/reg")
+//@RequestMapping("/reg")
 public class UserController {
 
     @Autowired
     private UserMapper userMapper;
 
-    @RequestMapping(value = "/current", method = RequestMethod.GET)
+    //@RequestMapping(value = "/current", method = RequestMethod.GET)
+    @RequestMapping(path = "/current", method = RequestMethod.GET)
     public Principal getUser(Principal principal) {
         return principal;
     }
 
-    @PreAuthorize("#oauth2.hasScope('server')")
-    @RequestMapping(method = RequestMethod.POST)
+    //@PreAuthorize("#oauth2.hasScope('server')")
+    //@RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(path = "/reg", method = RequestMethod.POST)
     public void createUser(@Valid @RequestBody User user) {
 
         userMapper.insert(user.getUsername(),user.getPassword(),user.getAge());

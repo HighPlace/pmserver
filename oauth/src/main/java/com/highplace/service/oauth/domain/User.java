@@ -1,17 +1,30 @@
 package com.highplace.service.oauth.domain;
 
+import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
 public class User implements UserDetails {
 
     private Long id;
+
+    @NotNull
+    @Length(min = 3, max = 20)
     private String username;
+
+    @NotNull
+    @Length(min = 6, max = 40)
     private String password;
+
     private Integer age;
     private Collection<? extends GrantedAuthority> authorities;
+
+    public User() {
+        super();
+    }
 
     public User(String username, String password, Integer age) {
         super();

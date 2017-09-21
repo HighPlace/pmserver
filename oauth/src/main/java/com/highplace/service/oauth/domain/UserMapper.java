@@ -13,6 +13,6 @@ public interface UserMapper {
     User findByUsername(@Param("username") String username);
 
     @Insert("INSERT INTO user(username, password, age) VALUES(#{username}, #{password}, #{age})")
-    int insert(@Param("name") String username, @Param("password") String password, @Param("age") Integer age);
+    int insert(@Param("username") String username, @Param("password") String password, @Param("age") Integer age);
 
 }
