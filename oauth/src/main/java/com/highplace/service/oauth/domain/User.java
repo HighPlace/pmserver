@@ -13,6 +13,13 @@ public class User implements UserDetails {
     private Integer age;
     private Collection<? extends GrantedAuthority> authorities;
 
+    public User(String username, String password, Integer age) {
+        super();
+        this.username = username;
+        this.password = password;
+        this.age = age;
+    }
+
     public User(Long id, String username, String password, Integer age) {
         super();
         this.id = id;
