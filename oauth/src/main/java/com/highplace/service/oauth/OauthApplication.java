@@ -68,7 +68,7 @@ public class OauthApplication {
 
         @Override
         public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-            //oauthServer.checkTokenAccess("isAuthenticated()");
+            oauthServer.checkTokenAccess("isAuthenticated()");
             oauthServer.checkTokenAccess("permitAll()");
             oauthServer.allowFormAuthenticationForClients();
         }
