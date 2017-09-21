@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/apigw" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/configserver" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/oauth" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/registry" charset="UTF-8" />
   </component>
 </project>

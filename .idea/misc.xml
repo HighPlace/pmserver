@@ -6,6 +6,7 @@
         <option value="$PROJECT_DIR$/configserver/pom.xml" />
         <option value="$PROJECT_DIR$/registry/pom.xml" />
         <option value="$PROJECT_DIR$/apigw/pom.xml" />
+        <option value="$PROJECT_DIR$/oauth/pom.xml" />
       </list>
     </option>
   </component>
