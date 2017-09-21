@@ -4,6 +4,8 @@ import com.highplace.service.oauth.domain.User;
 import com.highplace.service.oauth.domain.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,6 +21,8 @@ public class UserController {
     @Autowired
     private UserMapper userMapper;
 
+    private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     //@RequestMapping(value = "/current", method = RequestMethod.GET)
     @RequestMapping(path = "/current", method = RequestMethod.GET)
     public Principal getUser(Principal principal) {
@@ -28,8 +32,15 @@ public class UserController {
     //@PreAuthorize("#oauth2.hasScope('server')")
     //@RequestMapping(method = RequestMethod.POST)
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
-    public void createUser(@Valid @RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
 
+        User existing = userMapper.findByUsername(user.getUsername());
+        Assert.isNull(existing, "user already exists: " + user.getUsername());
+
+        String hash = encoder.encode(user.getPassword());
+        user.setPassword(hash);
         userMapper.insert(user.getUsername(),user.getPassword(),user.getAge());
+
+        return user;
     }
 }
