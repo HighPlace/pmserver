@@ -53,7 +53,8 @@ function getCurrentAccount() {
 
 	var token = getOauthTokenFromStorage();
 	var account = null;
-
+	alert("token:" + token);
+	/*
 	if (token) {
 		$.ajax({
 			url: 'accounts/current',
@@ -69,7 +70,7 @@ function getCurrentAccount() {
 			}
 		});
 	}
-
+	*/
 	return account;
 }
 
