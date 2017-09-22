@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @EnableDiscoveryClient
 @RefreshScope
+@EnableGlobalMethodSecurity(prePostEnabled = true)  //该注解可以开启prePostEnabled，securedEnabled，jsr250Enabled的支持
 public class OauthApplication {
 
 	public static void main(String[] args) {
@@ -48,11 +50,17 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http
-                    .authorizeRequests().antMatchers("/" , "/reg").permitAll()
-                                        .anyRequest().authenticated()
-                    .and()
-                    .csrf().disable();
+            http.authorizeRequests()   //配置安全策略
+                     .antMatchers("/" , "/reg").permitAll()  //不需要验证
+                     .anyRequest().authenticated() //其余请求都需要验证
+                     .and()
+                 .logout()
+                     .permitAll() //logout不需要验证
+                     .and()
+                 .formLogin()     //使用form表单登录
+                     .and()
+                 .csrf()          //禁用csrf
+                    .disable();
             // @formatter:on
         }
 

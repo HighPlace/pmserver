@@ -20,10 +20,27 @@ public class User implements UserDetails {
     private String password;
 
     private Integer age;
-    private Collection<? extends GrantedAuthority> authorities;
+    //private Collection<? extends GrantedAuthority> authorities;
+    private Collection<UserRole> authorities;
+
+
+    private class UserRole implements GrantedAuthority {
+
+        private String role;
+
+        public UserRole(String role){
+            super();
+            this.role = role;
+
+        }
+        public String getAuthority(){
+            return role;
+        }
+    }
 
     public User() {
         super();
+        authorities.add(new UserRole("ADMIN"));
     }
 
     public User(String username, String password, Integer age) {
@@ -31,6 +48,7 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
+        authorities.add(new UserRole("ADMIN"));
     }
 
     public User(Long id, String username, String password, Integer age) {
@@ -39,10 +57,11 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
+        authorities.add(new UserRole("ADMIN"));
     }
 
     public User(Long id, String username, String password, Integer age,
-                Collection<? extends GrantedAuthority> authorities) {
+                Collection<UserRole> authorities) {
         super();
         this.id = id;
         this.username = username;
@@ -76,7 +95,8 @@ public class User implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    //public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<UserRole> getAuthorities() {
         return authorities;
     }
 
