@@ -50,7 +50,9 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
-        //authorities.add(new UserRole("ADMIN"));
+        authorities.add(new UserRole("ADMIN"));
+
+        log.info("TEST user info:" + this.toString());
     }
 
     public User(Long id, String username, String password, Integer age,
