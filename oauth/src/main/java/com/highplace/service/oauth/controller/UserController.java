@@ -42,8 +42,8 @@ public class UserController {
         return user;
     }
 
-    //@PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
