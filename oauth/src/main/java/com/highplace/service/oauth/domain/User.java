@@ -7,9 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 public class User implements UserDetails {
 
@@ -28,15 +26,10 @@ public class User implements UserDetails {
     private Integer age;
 
     //private Collection<? extends GrantedAuthority> authorities;
-    private Collection<UserRole> authorities = new ArrayList();
+    private UserRole role;
 
     public User() {
         super();
-        //authorities.add(new UserRole("ADMIN"));
-
-        //authorities.add(new UserRole("ADMIN"));
-        authorities.add(new UserRole("ADMIN"));
-
     }
 
     public User(String username, String password, Integer age) {
@@ -53,7 +46,6 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
-
     }
 
     public User(Long id, String username, String password, Integer age,
@@ -63,7 +55,6 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
-        this.authorities = authorities;
     }
 
     public Long getId() {
@@ -91,9 +82,15 @@ public class User implements UserDetails {
     }
 
     @Override
-    //public Collection<? extends GrantedAuthority> getAuthorities() {
-    public Collection<UserRole> getAuthorities() {
-        return authorities;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        //public Collection<UserRole> getAuthorities() {
+
+        List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
+        role = new UserRole();
+        role.setName("ADMIN");
+        list.add(role);
+
+        return list;
     }
 
     @Override
@@ -129,7 +126,26 @@ public class User implements UserDetails {
     @Override
     public String toString() {
         return "MyUserDetails [id=" + id + ", username=" + username
-                + ", password=" + password + ", age=" + age
-                + ", authorities=" + authorities + "]";
+                + ", password=" + password + ", age=" + age + "]";
+              //  + ", authorities=" + authorities + "]";
+    }
+
+}
+/*
+class GrantedAuthorityComparators implements Comparator<GrantedAuthority> {
+
+    public static final Comparator<GrantedAuthority> DEFAULT = new GrantedAuthorityComparators();
+
+    public static final Comparator<GrantedAuthority> REVERSE = new Comparator<GrantedAuthority>() {
+        public int compare(GrantedAuthority o1, GrantedAuthority o2) {
+            return - DEFAULT.compare(o1, o2);
+        }
+    };
+
+    private GrantedAuthorityComparators() { super(); }
+
+    public int compare(GrantedAuthority g1, GrantedAuthority g2) {
+        return g1.getAuthority().compareTo(g2.getAuthority());
     }
 }
+*/

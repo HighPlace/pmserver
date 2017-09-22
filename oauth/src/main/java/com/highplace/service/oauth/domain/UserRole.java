@@ -2,16 +2,21 @@ package com.highplace.service.oauth.domain;
 
 import org.springframework.security.core.GrantedAuthority;
 
-public class UserRole implements GrantedAuthority {
+import java.io.Serializable;
 
-    private String role;
+public class UserRole implements Serializable, GrantedAuthority {
 
-    public UserRole(String role){
-        super();
-        this.role = role;
+    private String name;
 
+    public void setName(String name) {
+        this.name = name;
     }
+
+    public String getName() {
+        return name;
+    }
+
     public String getAuthority(){
-        return role;
+        return getName();
     }
 }
