@@ -32,7 +32,7 @@ public class User implements UserDetails {
         super();
         //authorities.add(new UserRole("ADMIN"));
 
-        authorities.add(new UserRole("ADMIN"));
+        //authorities.add(new UserRole("ADMIN"));
 
     }
 
@@ -77,6 +77,7 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+        authorities.add(new UserRole("ADMIN"));
     }
 
     public Integer getAge() {
