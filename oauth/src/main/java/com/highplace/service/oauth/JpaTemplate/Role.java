@@ -3,6 +3,7 @@ package com.highplace.service.oauth.JpaTemplate;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ class Role implements GrantedAuthority {
     @Id
     private String name;
 
-    @OneToMany
-    private final List<Operation> allowedOperations = new ArrayList<>();
+    @OneToMany(fetch = FetchType.EAGER)
+    private List<Operation> allowedOperations = new ArrayList<>();
 
     @Override
     public String getAuthority() {
@@ -23,6 +24,9 @@ class Role implements GrantedAuthority {
     }
 
     public Role(){}
+
+    public void setAllowedOperations( List<Operation> allowedOperations ) { this.allowedOperations = allowedOperations; }
+
 
     public Role(String name) {
         this.name = name;
