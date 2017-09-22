@@ -1,5 +1,6 @@
 package com.highplace.service.oauth;
 
+import com.highplace.service.oauth.JpaTemplate.JpaUserDetailsService;
 import com.highplace.service.oauth.security.MysqlUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -43,9 +44,13 @@ public class OauthApplication {
     @Configuration
     @EnableWebSecurity
     protected static class webSecurityConfig extends WebSecurityConfigurerAdapter {
-
+        /*
         @Autowired
         private MysqlUserDetailsService userDetailsService;
+        */
+
+        @Autowired
+        private JpaUserDetailsService userDetailsService;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

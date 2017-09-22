@@ -1,8 +1,11 @@
 package com.highplace.service.oauth.controller;
 
+import com.highplace.service.oauth.JpaTemplate.JpaUser;
+import com.highplace.service.oauth.JpaTemplate.UserRepository;
 import com.highplace.service.oauth.domain.User;
 import com.highplace.service.oauth.domain.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.Assert;
@@ -17,8 +20,7 @@ import java.security.Principal;
 @RestController
 public class UserController {
 
-    @Autowired
-    private UserMapper userMapper;
+
 
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -27,6 +29,10 @@ public class UserController {
     public Principal getUser(Principal principal) {
         return principal;
     }
+
+    /*
+    @Autowired
+    private UserMapper userMapper;
 
     //@PreAuthorize("#oauth2.hasScope('server')")
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
@@ -41,9 +47,27 @@ public class UserController {
 
         return user;
     }
+    */
 
-    @PreAuthorize("hasRole('ADMIN')")
-    //@PreAuthorize("hasAuthority('ADMIN')")
+    @Autowired
+    private UserRepository repository;
+    //@PreAuthorize("#oauth2.hasScope('server')")
+    @RequestMapping(path = "/reg", method = RequestMethod.POST)
+    public JpaUser createUser(@Valid @RequestBody JpaUser jpauser) {
+
+        JpaUser existing = repository.findByUsername(jpauser.getUsername());
+        Assert.isNull(existing, "user already exists: " + jpauser.getUsername());
+
+        String hash = encoder.encode(jpauser.getPassword());
+        jpauser.setPassword(hash);
+        repository.save(jpauser);
+
+        return jpauser;
+    }
+
+
+    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
