@@ -31,8 +31,8 @@ public class JpaUser implements UserDetails {
     private boolean credential_expired = false;
 
     @OneToMany
-    //private final List<Role> roles = new ArrayList<>();
-    private List<Role> roles = new ArrayList<>();
+    private final List<Role> roles = new ArrayList<>();
+    //private List<Role> roles = new ArrayList<>();
 
     public JpaUser(){}
 
@@ -41,9 +41,9 @@ public class JpaUser implements UserDetails {
         this.password = password;
     }
 
-    public List<Role> getRoles() {return this.roles; }
+    //public List<Role> getRoles() {return this.roles; }
 
-    public void setRoles( List<Role> roles ) { this.roles = roles; }
+    //public void setRoles( List<Role> roles ) { this.roles = roles; }
 
     public Long getId() {
         return id;
