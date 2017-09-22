@@ -4,6 +4,7 @@ import org.hibernate.validator.constraints.Length;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.constraints.NotNull;
@@ -26,7 +27,6 @@ public class User implements UserDetails {
     private Integer age;
 
     //private Collection<? extends GrantedAuthority> authorities;
-    private UserRole role;
 
     public User() {
         super();
@@ -86,9 +86,8 @@ public class User implements UserDetails {
         //public Collection<UserRole> getAuthorities() {
 
         List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
-        role = new UserRole();
-        role.setName("ADMIN");
-        list.add(role);
+        SimpleGrantedAuthority a  = new SimpleGrantedAuthority("ADMIN");
+        list.add(a);
 
         return list;
     }
