@@ -15,7 +15,6 @@ import javax.validation.Valid;
 import java.security.Principal;
 
 @RestController
-//@RequestMapping("/reg")
 public class UserController {
 
     @Autowired
@@ -30,7 +29,6 @@ public class UserController {
     }
 
     //@PreAuthorize("#oauth2.hasScope('server')")
-    //@RequestMapping(method = RequestMethod.POST)
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
     public User createUser(@Valid @RequestBody User user) {
 
@@ -44,7 +42,8 @@ public class UserController {
         return user;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    //@PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
