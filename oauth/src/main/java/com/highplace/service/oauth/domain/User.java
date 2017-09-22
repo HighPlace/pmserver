@@ -1,6 +1,8 @@
 package com.highplace.service.oauth.domain;
 
 import org.hibernate.validator.constraints.Length;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -8,6 +10,8 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
 public class User implements UserDetails {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Long id;
 
@@ -35,6 +39,9 @@ public class User implements UserDetails {
         this.password = password;
         this.age = age;
         authorities.add(new UserRole("ADMIN"));
+
+        log.info("TEST user info:" + this.toString());
+
     }
 
     public User(Long id, String username, String password, Integer age) {
