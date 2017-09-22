@@ -7,7 +7,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 public class User implements UserDetails {
 
@@ -26,13 +28,14 @@ public class User implements UserDetails {
     private Integer age;
 
     //private Collection<? extends GrantedAuthority> authorities;
-    private Collection<UserRole> authorities;
+    private Collection<UserRole> authorities = new ArrayList();
 
     public User() {
         super();
         //authorities.add(new UserRole("ADMIN"));
 
         //authorities.add(new UserRole("ADMIN"));
+        authorities.add(new UserRole("ADMIN"));
 
     }
 
@@ -77,7 +80,6 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
-        authorities.add(new UserRole("ADMIN"));
     }
 
     public Integer getAge() {
