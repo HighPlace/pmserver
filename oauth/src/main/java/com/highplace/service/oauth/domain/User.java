@@ -31,6 +31,9 @@ public class User implements UserDetails {
     public User() {
         super();
         //authorities.add(new UserRole("ADMIN"));
+
+        authorities.add(new UserRole("ADMIN"));
+
     }
 
     public User(String username, String password, Integer age) {
@@ -38,9 +41,6 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
-        authorities.add(new UserRole("ADMIN"));
-
-        log.info("TEST user info:" + this.toString());
 
     }
 
@@ -50,9 +50,7 @@ public class User implements UserDetails {
         this.username = username;
         this.password = password;
         this.age = age;
-        authorities.add(new UserRole("ADMIN"));
 
-        log.info("TEST user info:" + this.toString());
     }
 
     public User(Long id, String username, String password, Integer age,
