@@ -38,7 +38,7 @@ public class User implements UserDetails {
 
     private ReqType req_type; //注册用户类型,对应UserType枚举,注册用户时需要用到
     private String tenant_id;  //租户ID
-    private String instance_id; //实例ID
+    private String instance_id = ""; //实例ID,默认为空
 
     //private Collection<? extends GrantedAuthority> authorities;
     private List<Role> roles = new ArrayList<>();
