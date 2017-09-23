@@ -52,6 +52,8 @@ public class UserController {
         user.setPassword(hash);
         userMapper.insertUser(user);
 
+        user = userMapper.findByUsername(user.getUsername());
+
         Role role = new Role();
         role.setInstance_id(user.getInstance_id());
         role.setTenant_id(user.getTenant_id());
@@ -78,6 +80,9 @@ public class UserController {
                 break;
         }
         userMapper.insertRole(role);
+
+        role = userMapper.findByRole(role);
+
         userMapper.insertUserRoles(user.getId(),role.getId());
 
         return user;

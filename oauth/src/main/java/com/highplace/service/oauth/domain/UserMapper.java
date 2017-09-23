@@ -11,6 +11,9 @@ public interface UserMapper {
     @Select("SELECT * FROM t_user WHERE username = #{username}")
     User findByUsername(@Param("username") String username);
 
+    @Select("SELECT * FROM t_role WHERE tenant_id = #{tenant_id} and instance_id = #{instance_id} and name = #{name}")
+    Role findByRole(Role role);
+
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "name", column = "name"),
