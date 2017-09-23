@@ -49,8 +49,11 @@ public class OauthApplication {
         private MysqlUserDetailsService userDetailsService;
         */
 
+        //@Autowired
+        //private JpaUserDetailsService userDetailsService;
+
         @Autowired
-        private JpaUserDetailsService userDetailsService;
+        private MysqlUserDetailsService userDetailsService;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

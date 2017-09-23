@@ -7,6 +7,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -14,47 +16,55 @@ public class User implements UserDetails {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Id
+    @GeneratedValue
     private Long id;
 
     @NotNull
-    @Length(min = 3, max = 20)
+    @Length(min = 6, max = 30)
     private String username;
 
     @NotNull
     @Length(min = 6, max = 40)
     private String password;
 
-    private Integer age;
+    private String mobile_no;
+    private String email;
+    private String wx_openid;
+
+    private boolean account_expired;
+    private boolean account_locked;
+    private boolean credential_expired;
+    private boolean enabled;
+
+    private ReqType req_type; //注册用户类型,对应UserType枚举,注册用户时需要用到
+    private String tenant_id;  //租户ID
+    private String instance_id; //实例ID
 
     //private Collection<? extends GrantedAuthority> authorities;
+    private List<Role> roles = new ArrayList<>();
 
     public User() {
         super();
     }
 
-    public User(String username, String password, Integer age) {
-        super();
-        this.username = username;
-        this.password = password;
-        this.age = age;
-
+    public ReqType getReq_type() { return req_type;    }
+    public void setReq_type(ReqType req_type) {
+        this.req_type = req_type;
     }
 
-    public User(Long id, String username, String password, Integer age) {
-        super();
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.age = age;
+    public String getTenant_id() {
+        return tenant_id;
+    }
+    public void setTenant_id(String tenant_id) {
+        this.tenant_id = tenant_id;
     }
 
-    public User(Long id, String username, String password, Integer age,
-                Collection<UserRole> authorities) {
-        super();
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.age = age;
+    public String getInstance_id() {
+        return instance_id;
+    }
+    public void setInstance_id(String instance_id) {
+        this.instance_id = instance_id;
     }
 
     public Long getId() {
@@ -65,31 +75,13 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        //public Collection<UserRole> getAuthorities() {
-
-        List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
-        SimpleGrantedAuthority a  = new SimpleGrantedAuthority("ADMIN");
-        list.add(a);
-
-        return list;
     }
 
     @Override
@@ -97,37 +89,101 @@ public class User implements UserDetails {
         return password;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getMobile_no() {
+        return mobile_no;
+    }
+
+    public void setMobile_no(String mobile_no) {
+        this.mobile_no = mobile_no;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getWx_openid() {
+        return wx_openid;
+    }
+
+    public void setWx_openid(String wx_openid) {
+        this.wx_openid = wx_openid;
+    }
+
+    private boolean getAccount_expired() {return account_expired; }
+    public void setAccount_expired(boolean account_expired) {
+        this.account_expired = account_expired;
+    }
+
+    private boolean getAccount_locked() {return account_locked; }
+    public void setAccount_locked(boolean account_locked) {
+        this.account_locked = account_locked;
+    }
+
+    private boolean getCredential_expired() {return credential_expired; }
+    public void setCredential_expired(boolean credential_expired) {
+        this.credential_expired = credential_expired;
+    }
+
+    private boolean getEnabled() {return enabled; }
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    private List<Role> getRoles() {return roles; }
+    public void setRoles(List<Role> roles) {this.roles = roles; }
+
     @Override
-    public String getUsername() {
-        return username;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+        /*
+        List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
+        for ( Role role : roles ) {
+            list.add(role);
+
+            for ( Operation operation : role.getAllowedOperations()) {
+                list.add(operation);
+            }
+        }
+        return list;
+        */
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return !account_expired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !account_expired;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return !credential_expired;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
+    /*
     @Override
     public String toString() {
         return "MyUserDetails [id=" + id + ", username=" + username
                 + ", password=" + password + ", age=" + age + "]";
               //  + ", authorities=" + authorities + "]";
     }
+    */
 
 }
 /*

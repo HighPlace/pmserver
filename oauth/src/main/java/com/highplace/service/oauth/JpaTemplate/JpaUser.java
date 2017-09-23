@@ -1,5 +1,6 @@
 package com.highplace.service.oauth.JpaTemplate;
 
+import com.highplace.service.oauth.domain.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -81,10 +82,12 @@ public class JpaUser implements UserDetails {
         for ( Role role : roles ) {
 
             list.add(role);
+            /*
             for ( Operation operation : role.getAllowedOperations()) {
 
                 list.add(operation);
             }
+            */
         }
         return list;
     }
