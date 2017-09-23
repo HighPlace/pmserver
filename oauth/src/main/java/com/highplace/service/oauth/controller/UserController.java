@@ -41,7 +41,7 @@ public class UserController {
     private UserMapper userMapper;
 
     //@PreAuthorize("#oauth2.hasScope('server')")
-    @Transactional
+    //@Transactional
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
     public User createUser(@Valid @RequestBody User user) {
 
@@ -51,8 +51,6 @@ public class UserController {
         String hash = encoder.encode(user.getPassword());
         user.setPassword(hash);
         userMapper.insertUser(user);
-
-        user = userMapper.findByUsername(user.getUsername());
 
         Role role = new Role();
         role.setInstance_id(user.getInstance_id());
@@ -81,8 +79,9 @@ public class UserController {
         }
         userMapper.insertRole(role);
 
+        //写入user和role关系表
         role = userMapper.findByRole(role);
-
+        user = userMapper.findByUsername(user.getUsername());
         userMapper.insertUserRoles(user.getId(),role.getId());
 
         return user;
