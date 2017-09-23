@@ -34,7 +34,11 @@ public class JpaUser implements UserDetails {
     private List<Role> roles = new ArrayList<>();
     //private List<Role> roles = new ArrayList<>();
 
-    public JpaUser(){}
+    public JpaUser(){
+        this.expired = false;
+        this.locked = false;
+        this.credential_expired =false;
+    }
 
     public JpaUser(String username, String password) {
         this.username = username;
