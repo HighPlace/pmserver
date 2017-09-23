@@ -1,6 +1,5 @@
 package com.highplace.service.oauth;
 
-import com.highplace.service.oauth.JpaTemplate.JpaUserDetailsService;
 import com.highplace.service.oauth.security.MysqlUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;

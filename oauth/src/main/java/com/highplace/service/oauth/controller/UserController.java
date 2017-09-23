@@ -1,13 +1,9 @@
 package com.highplace.service.oauth.controller;
 
-import com.highplace.service.oauth.JpaTemplate.JpaUser;
-import com.highplace.service.oauth.JpaTemplate.UserRepository;
-import com.highplace.service.oauth.domain.ReqType;
 import com.highplace.service.oauth.domain.Role;
 import com.highplace.service.oauth.domain.User;
 import com.highplace.service.oauth.domain.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;

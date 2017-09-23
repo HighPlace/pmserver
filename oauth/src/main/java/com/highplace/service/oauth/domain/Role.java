@@ -1,12 +1,8 @@
 package com.highplace.service.oauth.domain;
 
-import com.highplace.service.oauth.JpaTemplate.Operation;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public class Role implements GrantedAuthority {
 
