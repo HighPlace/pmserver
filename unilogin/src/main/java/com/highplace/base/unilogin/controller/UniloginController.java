@@ -35,17 +35,20 @@ public class UniloginController {
     @Autowired
     UserDao userRepository;
 
-    final String secretState = "secret" + new Random().nextInt(999_999);
-
-    final OAuth20Service service = new ServiceBuilder(gitHubConfig.getClientid())
-            .apiSecret(gitHubConfig.getClientsecret())
-            .state(secretState)
-            .callback(gitHubConfig.getCallback())
-            .build(GitHubApi.instance());
+    private String secretState = "secret12345";
 
     //重定向第三方登录
     @RequestMapping(value = {"", "/github"}, method= RequestMethod.GET)
     public String showLogin(){
+
+        //final String secretState = "secret" + new Random().nextInt(999_999);
+
+        final OAuth20Service service = new ServiceBuilder(gitHubConfig.getClientid())
+                .apiSecret(gitHubConfig.getClientsecret())
+                .state(secretState)
+                .callback(gitHubConfig.getCallback())
+                .build(GitHubApi.instance());
+
         return "redirect:" + service.getAuthorizationUrl();
     }
 
@@ -55,7 +58,15 @@ public class UniloginController {
                            @RequestParam(value = "secretState", required = true) String secretState,
                            HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
 
-        if (secretState.equals(this.secretState)) {
+        //final String secretState = "secret" + new Random().nextInt(999_999);
+
+        final OAuth20Service service = new ServiceBuilder(gitHubConfig.getClientid())
+                .apiSecret(gitHubConfig.getClientsecret())
+                .state(secretState)
+                .callback(gitHubConfig.getCallback())
+                .build(GitHubApi.instance());
+
+        if (secretState.equals(secretState)) {
             System.out.println("State value does match!");
             return "error";
         }
