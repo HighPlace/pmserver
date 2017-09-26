@@ -54,7 +54,7 @@ public class UniloginController {
     //第三方登录完成,返回callback页面
     @RequestMapping(value = "/github/callback", method=RequestMethod.GET)
     public String callback(@RequestParam(value = "code", required = true) String code,
-                           @RequestParam(value = "secretState", required = true) String secretState,
+                           @RequestParam(value = "state", required = true) String secretState,
                            HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
 
         //final String secretState = "secret" + new Random().nextInt(999_999);
