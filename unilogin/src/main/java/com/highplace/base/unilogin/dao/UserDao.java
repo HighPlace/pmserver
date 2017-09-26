@@ -19,5 +19,5 @@ public interface UserDao {
     int setGithubOpenid(User user);
 
     @Insert("INSERT INTO user(username, github_openid) VALUES(#{username}, #{github_openid})")
-    int insertUserWithGithubOpenid(User user);
+    User insertUserWithGithubOpenid(User user);
 }
