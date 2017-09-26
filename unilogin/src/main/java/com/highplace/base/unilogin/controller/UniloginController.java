@@ -90,8 +90,8 @@ public class UniloginController {
             isExists = new User();
             isExists.setGithub_openid(github_openid);
             isExists.setUsername(github_login + new Random().nextInt(999_999));
-            User thisUser = userRepository.insertUserWithGithubOpenid(isExists);
-            logger.info("id:" + thisUser.getId());
+            userRepository.insertUserWithGithubOpenid(isExists);
+            logger.info("id:" + isExists.getId());
         }
 
         request.getSession().setAttribute("user", isExists);

@@ -13,11 +13,13 @@ public interface UserDao {
     User findByGithubOpenid(@Param("github_openid") String github_openid);
 
     @Insert("INSERT INTO user(username, password) VALUES(#{username}, #{password})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     int insertUser(User user);
 
     @Update("UPDATE user set github_openid= #{github_openid} where username = #{username}")
     int setGithubOpenid(User user);
 
     @Insert("INSERT INTO user(username, github_openid) VALUES(#{username}, #{github_openid})")
-    User insertUserWithGithubOpenid(User user);
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int insertUserWithGithubOpenid(User user);
 }
