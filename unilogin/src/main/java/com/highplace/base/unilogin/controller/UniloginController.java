@@ -24,7 +24,6 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 @Controller
-@RequestMapping("/unilogin")
 public class UniloginController {
 
     public static final Logger logger = LoggerFactory.getLogger(UniloginController.class);
@@ -67,8 +66,8 @@ public class UniloginController {
                 .build(GitHubApi.instance());
 
         if (secretState.equals(secretState)) {
-            System.out.println("State value does match!");
-            return "error";
+            logger.info("State value does match!");
+            return "errorstate";
         }
 
         final OAuth2AccessToken accessToken = service.getAccessToken(code);
