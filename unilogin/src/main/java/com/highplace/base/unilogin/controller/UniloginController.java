@@ -65,8 +65,8 @@ public class UniloginController {
                 .callback(gitHubConfig.getCallback())
                 .build(GitHubApi.instance());
 
-        if (secretState.equals(secretState)) {
-            logger.info("State value does match!");
+        if (!secretState.equals(secretState)) {
+            logger.info("State value do not match!");
             return "errorstate";
         }
 
