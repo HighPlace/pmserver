@@ -53,7 +53,7 @@ public class UniloginController {
 
     //第三方登录完成,返回callback页面
     @RequestMapping(value = "/github/callback", method=RequestMethod.GET)
-    public String callback(@RequestParam(value = "code", required = true) String code,
+    public Object callback(@RequestParam(value = "code", required = true) String code,
                            @RequestParam(value = "state", required = true) String secretState,
                            HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
 
@@ -82,14 +82,18 @@ public class UniloginController {
         Object result = JSON.parse(response.getBody());
 
         String github_openid = JSONPath.eval(result, "$.id").toString();
-        //user.setUsername(JSONPath.eval(result, "$.login").toString());
+        String github_login = JSONPath.eval(result, "$.login").toString();
 
+        //通过openid检查用户是否已经存在
         User isExists = userRepository.findByGithubOpenid(github_openid);
         if(isExists == null) {
-            return "register:" + github_openid;
+            isExists = new User();
+            isExists.setGithub_openid(github_openid);
+            isExists.setUsername(github_login + new Random().nextInt(999_999));
+            userRepository.insertUserWithGithubOpenid(isExists);
         }
         request.getSession().setAttribute("user", isExists);
-        return "redirect:/success";
+        return isExists;
     }
 
     @RequestMapping(value = "/register", method=RequestMethod.POST)

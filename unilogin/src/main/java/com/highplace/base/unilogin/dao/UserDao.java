@@ -18,6 +18,6 @@ public interface UserDao {
     @Update("UPDATE user set github_openid= #{github_openid} where username = #{username}")
     int setGithubOpenid(User user);
 
-    @Insert("INSERT INTO user(username, password, github_openid) VALUES(#{username}, #{password}, #{github_openid})")
+    @Insert("INSERT INTO user(username, github_openid) VALUES(#{username}, #{github_openid})")
     int insertUserWithGithubOpenid(User user);
 }
