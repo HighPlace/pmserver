@@ -5,16 +5,22 @@ import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.Action;
 import com.highplace.service.oauth.domain.MyGrantedAuthority;
 import com.highplace.service.oauth.domain.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class ProductUserService implements UserDetailsService {
+
+    public static final Logger logger = LoggerFactory.getLogger(ProductUserService.class);
 
     @Autowired
     UserDao userDao;
@@ -37,6 +43,7 @@ public class ProductUserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
+        logger.info("XXXXXXXXXXXXX  username:" + username);
         User user = userDao.findByUsername(username);
         if (user != null) {
             List<Action> actions = actionDao.findByUserId(user.getUserId());
@@ -48,6 +55,8 @@ public class ProductUserService implements UserDetailsService {
                     grantedAuthorities.add(grantedAuthority);
                 }
             }
+
+            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), grantedAuthorities);
         } else {
             throw new UsernameNotFoundException("admin: " + username + " do not exist!");
