@@ -1,8 +1,8 @@
 package com.highplace.service.oauth.security;
 
-import com.highplace.service.oauth.domain.Role;
-import com.highplace.service.oauth.domain.User;
-import com.highplace.service.oauth.domain.UserMapper;
+import com.highplace.service.oauth.domain.OldRole;
+import com.highplace.service.oauth.domain.OldUser;
+import com.highplace.service.oauth.domain.OldUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,20 +15,20 @@ import java.util.List;
 public class MysqlUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserMapper userMapper;
+    private OldUserMapper oldUserMapper;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userMapper.findByUsername(username);
+        OldUser oldUser = oldUserMapper.findByUsername(username);
 
-        if (user == null) {
+        if (oldUser == null) {
             throw new UsernameNotFoundException(username);
         }
 
-        List<Role> roles = userMapper.findAllByUserid(user.getId());
-        user.setRoles(roles);
+        List<OldRole> oldRoles = oldUserMapper.findAllByUserid(oldUser.getId());
+        oldUser.setOldRoles(oldRoles);
 
-        return user;
+        return oldUser;
     }
 }

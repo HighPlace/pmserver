@@ -1,103 +1,90 @@
 package com.highplace.service.oauth.domain;
 
 import org.hibernate.validator.constraints.Length;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
-public class User implements UserDetails {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
+public class User {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Long userId;
 
     @NotNull
-    @Length(min = 6, max = 30)
+    private String productInstId;  //用户一定属于某个产品实例
+
+    @NotNull
+    @Length(min = 3, max = 30)
     private String username;
 
-    @NotNull
-    @Length(min = 6, max = 40)
+    private String mobileNo;
+
+    private String email;
+
+    private String wxOpenId;
+
     private String password;
 
-    private String mobile_no;
-    private String email;
-    private String wx_openid;
+    private Boolean credentialExpired;
 
-    private boolean account_expired;
-    private boolean account_locked;
-    private boolean credential_expired;
-    private boolean enabled;
+    private Boolean accountExpired;
 
-    private ReqType req_type; //注册用户类型,对应UserType枚举,注册用户时需要用到
-    private String tenant_id;  //租户ID
-    private String instance_id = ""; //实例ID,默认为空
+    private Boolean accountLocked;
 
-    //private Collection<? extends GrantedAuthority> authorities;
-    private List<Role> roles = new ArrayList<>();
+    private Boolean enabled;
 
-    public User() {
-        super();
+    private Boolean superUserFlag;
+
+    private Date createTime;
+
+    private Date modifyTime;
+
+    private String remark;
+
+    private List<Role> roles;   //用户下的所有角色
+
+    public List<Role> getRoles() {
+        return roles;
     }
 
-    public ReqType getReq_type() { return req_type;    }
-    public void setReq_type(ReqType req_type) {
-        this.req_type = req_type;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
-    public String getTenant_id() {
-        return tenant_id;
-    }
-    public void setTenant_id(String tenant_id) {
-        this.tenant_id = tenant_id;
+    public Long getUserId() {
+        return userId;
     }
 
-    public String getInstance_id() {
-        return instance_id;
-    }
-    public void setInstance_id(String instance_id) {
-        this.instance_id = instance_id;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public Long getId() {
-        return id;
+    public String getProductInstId() {
+        return productInstId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setProductInstId(String productInstId) {
+        this.productInstId = productInstId == null ? null : productInstId.trim();
     }
 
-    @Override
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.username = username == null ? null : username.trim();
     }
 
-    @Override
-    public String getPassword() {
-        return password;
+    public String getMobileNo() {
+        return mobileNo;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getMobile_no() {
-        return mobile_no;
-    }
-
-    public void setMobile_no(String mobile_no) {
-        this.mobile_no = mobile_no;
+    public void setMobileNo(String mobileNo) {
+        this.mobileNo = mobileNo == null ? null : mobileNo.trim();
     }
 
     public String getEmail() {
@@ -105,101 +92,86 @@ public class User implements UserDetails {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email == null ? null : email.trim();
     }
 
-    public String getWx_openid() {
-        return wx_openid;
+    public String getWxOpenId() {
+        return wxOpenId;
     }
 
-    public void setWx_openid(String wx_openid) {
-        this.wx_openid = wx_openid;
+    public void setWxOpenId(String wxOpenId) {
+        this.wxOpenId = wxOpenId == null ? null : wxOpenId.trim();
     }
 
-    private boolean getAccount_expired() {return account_expired; }
-    public void setAccount_expired(boolean account_expired) {
-        this.account_expired = account_expired;
+    public String getPassword() {
+        return password;
     }
 
-    private boolean getAccount_locked() {return account_locked; }
-    public void setAccount_locked(boolean account_locked) {
-        this.account_locked = account_locked;
+    public void setPassword(String password) {
+        this.password = password == null ? null : password.trim();
     }
 
-    private boolean getCredential_expired() {return credential_expired; }
-    public void setCredential_expired(boolean credential_expired) {
-        this.credential_expired = credential_expired;
+    public Boolean getCredentialExpired() {
+        return credentialExpired;
     }
 
-    private boolean getEnabled() {return enabled; }
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setCredentialExpired(Boolean credentialExpired) {
+        this.credentialExpired = credentialExpired;
     }
 
-    private List<Role> getRoles() {return roles; }
-    public void setRoles(List<Role> roles) {this.roles = roles; }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
-        /*
-        List<GrantedAuthority> list = new ArrayList<GrantedAuthority>();
-        for ( Role role : roles ) {
-            list.add(role);
-
-            for ( Operation operation : role.getAllowedOperations()) {
-                list.add(operation);
-            }
-        }
-        return list;
-        */
+    public Boolean getAccountExpired() {
+        return accountExpired;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return !account_expired;
+    public void setAccountExpired(Boolean accountExpired) {
+        this.accountExpired = accountExpired;
     }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return !account_expired;
+    public Boolean getAccountLocked() {
+        return accountLocked;
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return !credential_expired;
+    public void setAccountLocked(Boolean accountLocked) {
+        this.accountLocked = accountLocked;
     }
 
-    @Override
-    public boolean isEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    /*
-    @Override
-    public String toString() {
-        return "MyUserDetails [id=" + id + ", username=" + username
-                + ", password=" + password + ", age=" + age + "]";
-              //  + ", authorities=" + authorities + "]";
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
-    */
 
-}
-/*
-class GrantedAuthorityComparators implements Comparator<GrantedAuthority> {
+    public Boolean getSuperUserFlag() {
+        return superUserFlag;
+    }
 
-    public static final Comparator<GrantedAuthority> DEFAULT = new GrantedAuthorityComparators();
+    public void setSuperUserFlag(Boolean superUserFlag) {
+        this.superUserFlag = superUserFlag;
+    }
 
-    public static final Comparator<GrantedAuthority> REVERSE = new Comparator<GrantedAuthority>() {
-        public int compare(GrantedAuthority o1, GrantedAuthority o2) {
-            return - DEFAULT.compare(o1, o2);
-        }
-    };
+    public Date getCreateTime() {
+        return createTime;
+    }
 
-    private GrantedAuthorityComparators() { super(); }
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 
-    public int compare(GrantedAuthority g1, GrantedAuthority g2) {
-        return g1.getAuthority().compareTo(g2.getAuthority());
+    public Date getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(Date modifyTime) {
+        this.modifyTime = modifyTime;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark == null ? null : remark.trim();
     }
 }
-*/

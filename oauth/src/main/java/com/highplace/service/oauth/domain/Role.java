@@ -1,63 +1,91 @@
 package com.highplace.service.oauth.domain;
 
-import org.springframework.security.core.GrantedAuthority;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import java.util.Date;
+import java.util.List;
 
-import javax.persistence.*;
-
-public class Role implements GrantedAuthority {
+public class Role {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private Long roleId;
 
-    private String name;
-    private String tenant_id;
-    private String instance_id;
+    private String productInstId;
 
-    public Role(){}
+    private String roleName;
 
-    public Long getId() {
-        return id;
+    private Date createTime;
+
+    private Date modifyTime;
+
+    private Boolean superRoleFlag;
+
+    private String remark;
+
+    private List<Action> actions;   //角色下的所有操作
+
+    public List<Action> getActions() {
+        return actions;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
-    public String getName() {
-        return name;
+    public Long getRoleId() {
+        return roleId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setRoleId(Long roleId) {
+        this.roleId = roleId;
     }
 
-    public String getTenant_id() {
-        return tenant_id;
+    public String getProductInstId() {
+        return productInstId;
     }
 
-    public void setTenant_id(String tenant_id) {
-        this.tenant_id = tenant_id;
+    public void setProductInstId(String productInstId) {
+        this.productInstId = productInstId == null ? null : productInstId.trim();
     }
 
-    public String getInstance_id() {
-        return instance_id;
+    public String getRoleName() {
+        return roleName;
     }
 
-    public void setInstance_id(String instance_id) {
-        this.instance_id = instance_id;
+    public void setRoleName(String roleName) {
+        this.roleName = roleName == null ? null : roleName.trim();
     }
 
-    @Override
-    public String getAuthority() {
-        return name;
+    public Date getCreateTime() {
+        return createTime;
     }
 
-    /*
-    @OneToMany(fetch = FetchType.EAGER)
-    private List<Operation> allowedOperations = new ArrayList<>();
-    */
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
 
-    //public void setAllowedOperations( List<Operation> allowedOperations ) { this.allowedOperations = allowedOperations; }
-    //public List<Operation> getAllowedOperations() {        return allowedOperations;    }
+    public Date getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(Date modifyTime) {
+        this.modifyTime = modifyTime;
+    }
+
+    public Boolean getSuperRoleFlag() {
+        return superRoleFlag;
+    }
+
+    public void setSuperRoleFlag(Boolean superRoleFlag) {
+        this.superRoleFlag = superRoleFlag;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark == null ? null : remark.trim();
+    }
 }
