@@ -2,6 +2,7 @@ package com.highplace.service.oauth.domain;
 
 import org.hibernate.validator.constraints.Length;
 
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
@@ -12,37 +13,52 @@ public class User {
 
     @Id
     @GeneratedValue
+    @Column(name = "user_id" )
     private Long userId;
 
     @NotNull
+    @Column(name = "product_inst_id" )
     private String productInstId;  //用户一定属于某个产品实例
 
     @NotNull
     @Length(min = 3, max = 30)
+    @Column(name = "username" )
     private String username;
 
+    @Column(name = "mobile_no" )
     private String mobileNo;
 
+    @Column(name = "email" )
     private String email;
 
+    @Column(name = "wx_open_id" )
     private String wxOpenId;
 
+    @Column(name = "password" )
     private String password;
 
+    @Column(name = "credential_expired" )
     private Boolean credentialExpired;
 
+    @Column(name = "account_expired" )
     private Boolean accountExpired;
 
+    @Column(name = "account_locked" )
     private Boolean accountLocked;
 
+    @Column(name = "enabled" )
     private Boolean enabled;
 
+    @Column(name = "super_user_flag" )
     private Boolean superUserFlag;
 
+    @Column(name = "create_time" )
     private Date createTime;
 
+    @Column(name = "modify_time" )
     private Date modifyTime;
 
+    @Column(name = "remark" )
     private String remark;
 
     private List<Role> roles;   //用户下的所有角色

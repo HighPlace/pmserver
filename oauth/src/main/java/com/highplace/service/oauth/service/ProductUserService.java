@@ -45,7 +45,13 @@ public class ProductUserService implements UserDetailsService {
 
         logger.info("XXXXXXXXXXXXX  username:" + username);
         User user = userDao.findByUsername(username);
+
         if (user != null) {
+
+            logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
+            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
+            logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
+            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             List<Action> actions = actionDao.findByUserId(user.getUserId());
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
             for (Action action : actions) {
@@ -56,7 +62,6 @@ public class ProductUserService implements UserDetailsService {
                 }
             }
 
-            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), grantedAuthorities);
         } else {
             throw new UsernameNotFoundException("admin: " + username + " do not exist!");

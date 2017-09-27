@@ -1,5 +1,6 @@
 package com.highplace.service.oauth.domain;
 
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Date;
@@ -8,20 +9,28 @@ public class Action {
 
     @Id
     @GeneratedValue
+    @Column(name = "action_id" )
     private Long actionId;
 
+    @Column(name = "module_id" )
     private Long moduleId;
 
+    @Column(name = "action_name" )
     private String actionName;
 
+    @Column(name = "resource_url" )
     private String resourceUrl;
 
+    @Column(name = "http_method" )
     private String httpMethod;
 
-    private Long remark;
+    @Column(name = "remark" )
+    private String remark;
 
+    @Column(name = "create_time" )
     private Date createTime;
 
+    @Column(name = "modify_time" )
     private Date modifyTime;
 
     public Long getActionId() {
@@ -64,11 +73,11 @@ public class Action {
         this.httpMethod = httpMethod == null ? null : httpMethod.trim();
     }
 
-    public Long getRemark() {
+    public String getRemark() {
         return remark;
     }
 
-    public void setRemark(Long remark) {
+    public void setRemark(String remark) {
         this.remark = remark;
     }
 

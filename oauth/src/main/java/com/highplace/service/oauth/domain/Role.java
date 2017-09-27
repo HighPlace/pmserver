@@ -1,5 +1,6 @@
 package com.highplace.service.oauth.domain;
 
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Date;
@@ -9,18 +10,25 @@ public class Role {
 
     @Id
     @GeneratedValue
+    @Column(name = "role_id" )
     private Long roleId;
 
+    @Column(name = "product_inst_id" )
     private String productInstId;
 
+    @Column(name = "role_name" )
     private String roleName;
 
+    @Column(name = "create_time" )
     private Date createTime;
 
+    @Column(name = "modify_time" )
     private Date modifyTime;
 
+    @Column(name = "super_role_flag" )
     private Boolean superRoleFlag;
 
+    @Column(name = "remark" )
     private String remark;
 
     private List<Action> actions;   //角色下的所有操作
