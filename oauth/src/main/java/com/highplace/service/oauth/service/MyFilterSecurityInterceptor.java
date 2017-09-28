@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.servlet.*;
 import java.io.IOException;
 
-@Service
+//@Service
 public class MyFilterSecurityInterceptor extends AbstractSecurityInterceptor implements Filter {
 
     @Autowired
