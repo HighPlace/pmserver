@@ -34,6 +34,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+                .antMatchers("/" , "/reg" ).permitAll()  //不需要验证
                 .anyRequest().authenticated() //任何请求,登录后可以访问
                 .and()
                 .formLogin()
@@ -42,8 +43,8 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
                 .permitAll() //登录页面用户任意访问
                 .and()
                 .logout().permitAll(); //注销行为任意访问
-        http.addFilterBefore(myFilterSecurityInterceptor, FilterSecurityInterceptor.class)
-                .csrf().disable();
+        //http.addFilterBefore(myFilterSecurityInterceptor, FilterSecurityInterceptor.class)
+                http.csrf().disable();
 
 
     }
