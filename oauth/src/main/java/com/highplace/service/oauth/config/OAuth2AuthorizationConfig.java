@@ -2,9 +2,12 @@ package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -24,7 +27,11 @@ import java.util.concurrent.TimeUnit;
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
+    @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private ProductInstanceUserService userDetailsService;
 
     @Autowired
     private DataSource dataSource;
@@ -38,10 +45,6 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     public ClientDetailsService clientDetails() {
         return new JdbcClientDetailsService(dataSource);
     }
-
-    @Autowired
-    private ProductInstanceUserService userDetailsService;
-
 
     @Override // 配置框架应用上述实现
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
