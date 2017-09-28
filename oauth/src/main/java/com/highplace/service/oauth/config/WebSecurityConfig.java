@@ -1,8 +1,6 @@
 package com.highplace.service.oauth.config;
 
-import com.highplace.service.oauth.service.MyFilterSecurityInterceptor;
-import com.highplace.service.oauth.service.ProductUserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -22,7 +20,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
 */
     @Bean
     UserDetailsService productUserService() { //注册UserDetailsService 的bean
-        return new ProductUserService();
+        return new ProductInstanceUserService();
     }
 
     @Override

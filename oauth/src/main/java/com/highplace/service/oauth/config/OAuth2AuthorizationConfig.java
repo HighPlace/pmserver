@@ -1,5 +1,6 @@
 package com.highplace.service.oauth.config;
 
+import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,9 +39,15 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         return new JdbcClientDetailsService(dataSource);
     }
 
+    @Autowired
+    private ProductInstanceUserService userDetailsService;
+
+
     @Override // 配置框架应用上述实现
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-        endpoints.authenticationManager(authenticationManager);
+
+        endpoints.authenticationManager(authenticationManager).userDetailsService(userDetailsService);
+
         endpoints.tokenStore(tokenStore());
 
         // 配置TokenServices参数

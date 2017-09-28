@@ -1,6 +1,5 @@
 package com.highplace.service.oauth.service;
 
-import com.highplace.service.oauth.dao.ActionDao;
 import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.Action;
 import com.highplace.service.oauth.domain.MyGrantedAuthority;
@@ -20,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ProductUserService implements UserDetailsService {
+public class ProductInstanceUserService implements UserDetailsService {
 
-    public static final Logger logger = LoggerFactory.getLogger(ProductUserService.class);
+    public static final Logger logger = LoggerFactory.getLogger(ProductInstanceUserService.class);
 
     @Autowired
     UserDao userDao;
