@@ -46,9 +46,11 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Override // 配置框架应用上述实现
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 
-        endpoints.authenticationManager(authenticationManager).userDetailsService(userDetailsService);
+        endpoints
+                .tokenStore(tokenStore())
+                .authenticationManager(authenticationManager)
+                .userDetailsService(userDetailsService);
 
-        endpoints.tokenStore(tokenStore());
 
         // 配置TokenServices参数
         DefaultTokenServices tokenServices = new DefaultTokenServices();
