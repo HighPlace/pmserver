@@ -220,9 +220,14 @@ public class User  implements UserDetails {
         this.accountLocked = accountLocked;
     }
 
+    //mybatis内部在进行Java反射的时候出现报错:Illegal overloaded getter method with ambiguous type for property
+    //因为Java会把Boolean类型的getter方法默认为is打头的或者是get打头的,Java都会认为是bean的属性封装，
+    //那么在反射的时候，如果两个方法都有,Java就不知道该get哪个了,去掉其中一个即可
+    /*
     public Boolean getEnabled() {
         return enabled;
     }
+    */
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
