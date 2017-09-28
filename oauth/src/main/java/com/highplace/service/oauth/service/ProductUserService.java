@@ -49,9 +49,8 @@ public class ProductUserService implements UserDetailsService {
         if (user != null) {
 
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
-            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
+            //logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
-            logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             List<Action> actions = actionDao.findByUserId(user.getUserId());
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
             for (Action action : actions) {
