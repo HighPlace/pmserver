@@ -4,11 +4,13 @@ import com.highplace.service.oauth.dao.ActionDao;
 import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.Action;
 import com.highplace.service.oauth.domain.MyGrantedAuthority;
+import com.highplace.service.oauth.domain.Role;
 import com.highplace.service.oauth.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,8 +27,8 @@ public class ProductUserService implements UserDetailsService {
     @Autowired
     UserDao userDao;
 
-    @Autowired
-    ActionDao actionDao;
+    //@Autowired
+    //ActionDao actionDao;
 
     /**
      * Locates the user based on the username. In the actual implementation, the search
@@ -49,9 +51,9 @@ public class ProductUserService implements UserDetailsService {
         if (user != null) {
 
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
-            //logger.info("XXXXXXXXXXXXX  password:" + user.getPassword());
             logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
-            List<Action> actions = actionDao.findByUserId(user.getUserId());
+            //List<Action> actions = actionDao.findByUserId(user.getUserId());
+            List<Action> actions = user.getActions();
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
             for (Action action : actions) {
                 if (action != null && action.getActionName() != null) {
@@ -61,9 +63,22 @@ public class ProductUserService implements UserDetailsService {
                 }
             }
 
-            return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), grantedAuthorities);
+            List<Role> roles = user.getRoles();
+            for (Role role : roles) {
+                //如果角色是超级管理员,直接写入ADMIN
+                if (role != null && role.getRoleName() != null && role.getSuperRoleFlag()) {
+                    GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("ADMIN");
+                    grantedAuthorities.add(grantedAuthority);
+                    break;
+                }
+            }
+
+            return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+                    user.isEnabled(), user.isAccountNonExpired(), user.isCredentialsNonExpired(),
+                    user.isAccountNonLocked(), grantedAuthorities);
         } else {
-            throw new UsernameNotFoundException("admin: " + username + " do not exist!");
+
+            throw new UsernameNotFoundException("Username: " + username + " do not exist!");
         }
     }
 }

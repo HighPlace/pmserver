@@ -24,7 +24,9 @@ public interface UserDao {
             @Result(column="enabled", property="enabled"),
             @Result(column="super_user_flag", property="superUserFlag"),
             @Result(column="create_time", property="createTime"),
-            @Result(column="modify_time", property="modifyTime")
+            @Result(column="modify_time", property="modifyTime"),
+            @Result(column="user_id", property="roles", many=@Many(select="com.highplace.service.oauth.dao.RoleDao.findByUserId")),
+            @Result(column="user_id", property="actions", many=@Many(select="com.highplace.service.oauth.dao.ActionDao.findByUserId"))
     })
     public User findByUsername(@Param("username") String username);
 
