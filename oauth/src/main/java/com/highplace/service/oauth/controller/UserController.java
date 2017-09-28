@@ -63,6 +63,11 @@ public class UserController {
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
             userDao.insertUserRole(user.getUserId(), 1L); //hard code...
             return new UserView(user.getProductInstId(),user.getUserId(),user.getUsername());
+            /*
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("name", principal.getName());
+            return map;
+            */
         }
         return null;
     }
@@ -90,5 +95,11 @@ public class UserController {
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
+    }
+
+
+    @RequestMapping("/user")
+    public Principal user(Principal user) {
+        return user;
     }
 }
