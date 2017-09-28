@@ -1,11 +1,10 @@
 package com.highplace.service.oauth.controller;
 
-import com.highplace.service.oauth.domain.OldRole;
-import com.highplace.service.oauth.domain.OldUser;
-import com.highplace.service.oauth.domain.OldUserMapper;
+import com.highplace.service.oauth.dao.UserDao;
+import com.highplace.service.oauth.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +16,9 @@ import java.security.Principal;
 
 import static com.highplace.service.oauth.domain.RegType.*;
 
-//@RestController
+@RestController
 public class UserController {
-
+    /*
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     public static final String ROLE_TENANT_ADMIN = "TENANT_ADMIN";
@@ -28,6 +27,10 @@ public class UserController {
     public static final String ROLE_OWNER = "OWNER";
     public static final String ROLE_RENTER = "RENTER";
     public static final String ROLE_FOLLOWER = "FOLLOWER";
+    */
+
+    @Autowired
+    private UserDao userDao;
 
     //@RequestMapping(value = "/current", method = RequestMethod.GET)
     @RequestMapping(path = "/current", method = RequestMethod.GET)
@@ -35,60 +38,27 @@ public class UserController {
         return principal;
     }
 
-    @Autowired
-    private OldUserMapper oldUserMapper;
-
     //@PreAuthorize("#oauth2.hasScope('server')")
-    //@Transactional
-    @RequestMapping(path = "/reg", method = RequestMethod.POST)
     //@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     //(@PathVariable("id") int id, @RequestParam(value = "name", required = true) String name,
     //  @RequestParam(value = "money", required = true) double money)
-    //注册时一定传入租户ID和实例ID regType为0,设置实例ID为空，表示是租户
-    public OldUser createUser(@Valid @RequestBody OldUser oldUser) {
+    //注册时一定传入实例ID regType为0,设置实例ID为空，表示是租户
+    @Transactional
+    @RequestMapping(path = "/reg", method = RequestMethod.POST)
+    public User createUser(@Valid @RequestBody User user) {
 
-        OldUser existing = oldUserMapper.findByUsername(oldUser.getUsername());
-        Assert.isNull(existing, "oldUser already exists: " + oldUser.getUsername());
+        User existing = userDao.findByUsername(user.getUsername());
+        Assert.isNull(existing, "user already exists: " + user.getUsername());
 
-        String hash = encoder.encode(oldUser.getPassword());
-        oldUser.setPassword(hash);
-        oldUserMapper.insertUser(oldUser);
-
-        OldRole oldRole = new OldRole();
-        oldRole.setInstance_id(oldUser.getInstance_id());
-        oldRole.setTenant_id(oldUser.getTenant_id());
-        switch (oldUser.getReg_type()) {
-            case TENANT_ADMIN:
-                oldRole.setName(this.ROLE_TENANT_ADMIN);
-                break;
-            case ADMIN:
-                oldRole.setName(this.ROLE_ADMIN);
-                break;
-            case STAFF:
-                oldRole.setName(this.ROLE_STAFF);
-                break;
-            case OWNER:
-                oldRole.setName(this.ROLE_OWNER);
-                break;
-            case RENTER:
-                oldRole.setName(this.ROLE_RENTER);
-                break;
-            case FOLLOWER:
-                oldRole.setName(this.ROLE_FOLLOWER);
-                break;
-            default:
-                break;
+        if(existing != null) {
+            //String hash = encoder.encode(oldUser.getPassword());
+            //user.setPassword(hash);
+            user.setProductInstId("550E8400-E29B-11D4-A716-446655440000");//hard code...
+            userDao.insertUser(user);
+            userDao.insertUserRole(user.getUserId(), 1L); //hard code...
         }
-        oldUserMapper.insertRole(oldRole);
-
-        //写入user和role关系表
-        oldRole = oldUserMapper.findByRole(oldRole);
-        oldUser = oldUserMapper.findByUsername(oldUser.getUsername());
-        oldUserMapper.insertUserRoles(oldUser.getId(), oldRole.getId());
-
-        return oldUser;
+        return user;
     }
-
 
     /*
     @Autowired
@@ -108,9 +78,8 @@ public class UserController {
     }
     */
 
-    String instanceid="111";
     //@PreAuthorize("hasRole('ADMIN')")
-    @PreAuthorize("hasAuthority(instanceid)")
+    @PreAuthorize("hasAuthority('/property;POST')")
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";

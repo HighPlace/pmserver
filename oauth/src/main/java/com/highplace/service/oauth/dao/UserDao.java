@@ -30,4 +30,11 @@ public interface UserDao {
     })
     public User findByUsername(@Param("username") String username);
 
+    @Insert("INSERT INTO user(product_inst_id, username, password, create_time) VALUES(#{productInstId}, #{username}, #{password}, now())")
+    @Options(useGeneratedKeys = true, keyProperty = "userId", keyColumn = "user_id")
+    int insertUser(User user);
+
+    @Insert("INSERT INTO t_user_role(user_id, role_id, create_time) VALUES(#{userId}, #{roleId}, now())")
+    int insertUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
+
 }
