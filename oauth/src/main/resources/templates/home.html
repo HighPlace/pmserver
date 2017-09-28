@@ -39,7 +39,7 @@
     <p class="bg-primary" th:text="${msg.content}"></p>
 
     <div sec:authorize="hasAuthority('/property;GET')"> <!-- 用户类型为ROLE_ADMIN 显示 -->
-      <p class="bg-info" th:text="${msg.etraInfo}"></p>
+      <p class="bg-info" th:text="${msg.extraInfo}"></p>
     </div>
     <div sec:authorize="hasAuthority('/property;POST')"> <!-- 用户类型为ROLE_ADMIN 显示 -->
       <p class="bg-info">恭喜您,您有 /property:POST 权限 </p>
