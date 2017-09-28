@@ -108,7 +108,7 @@ public class UserController {
     }
     */
 
-String instanceid="111";
+    String instanceid="111";
     //@PreAuthorize("hasRole('ADMIN')")
     @PreAuthorize("hasAuthority(instanceid)")
     @RequestMapping("/testauthor")
