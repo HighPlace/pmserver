@@ -1,10 +1,8 @@
 package com.highplace.service.examplers;
 
-import com.highplace.service.examplers.service.CustomUserInfoTokenServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
@@ -17,7 +15,6 @@ import org.springframework.cloud.security.oauth2.client.feign.OAuth2FeignRequest
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
@@ -26,8 +23,6 @@ import org.springframework.security.oauth2.client.token.grant.client.ClientCrede
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,20 +34,20 @@ import java.security.Principal;
 @SpringBootApplication
 @RestController
 @EnableResourceServer
-@EnableDiscoveryClient
+//@EnableDiscoveryClient
 @RefreshScope
-@EnableGlobalMethodSecurity(prePostEnabled=true)
-@EnableOAuth2Client
+//@EnableGlobalMethodSecurity(prePostEnabled=true)
+//@EnableOAuth2Client
 @EnableConfigurationProperties
 @Configuration
-@EnableFeignClients
+//@EnableFeignClients
 
-public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
+public class ExamplersApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
 
-    @Autowired
-    private ResourceServerProperties sso;
+    //@Autowired
+    //private ResourceServerProperties sso;
 
 	public static void main(String[] args) {
 		SpringApplication.run(ExamplersApplication.class, args);
@@ -65,7 +60,7 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
         logger.info("XXXXXXXXXX:" + principal.getName());
         return principal;
     }
-
+/*
     @Bean
     @ConfigurationProperties(prefix = "security.oauth2.client")
     public ClientCredentialsResourceDetails clientCredentialsResourceDetails() {
@@ -94,6 +89,6 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
                 .antMatchers("/" , "/demo").permitAll()
                 .anyRequest().authenticated();
     }
-
+*/
 
 }
