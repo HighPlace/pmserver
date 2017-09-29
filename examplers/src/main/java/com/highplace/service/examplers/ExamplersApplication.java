@@ -1,5 +1,7 @@
 package com.highplace.service.examplers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -26,12 +28,17 @@ import java.security.Principal;
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
 
+    public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
+
 	public static void main(String[] args) {
 		SpringApplication.run(ExamplersApplication.class, args);
 	}
 
     @RequestMapping(path = "/current", method = RequestMethod.GET)
     public Principal getCurrentAccount(Principal principal) {
+
+        logger.info("XXXXXXXXXX:" + principal.toString());
+        logger.info("XXXXXXXXXX:" + principal.getName());
         return principal;
     }
 
