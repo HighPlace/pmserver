@@ -1,3 +1,4 @@
+/*
 package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
@@ -15,10 +16,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
-/*
-    @Autowired
-    private MyFilterSecurityInterceptor myFilterSecurityInterceptor;
-*/
+
+    //@Autowired
+    //private MyFilterSecurityInterceptor myFilterSecurityInterceptor;
+
     @Bean
     UserDetailsService productUserService() { //注册UserDetailsService 的bean
         return new ProductInstanceUserService();
@@ -54,3 +55,4 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
     }
 
 }
+*/

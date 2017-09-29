@@ -1,3 +1,4 @@
+/*
 package com.highplace.service.oauth.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -12,5 +13,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         registry.addViewController("/login").setViewName("login");
     }
 }
+*/
 
 

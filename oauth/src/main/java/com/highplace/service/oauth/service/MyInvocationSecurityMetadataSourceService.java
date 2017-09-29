@@ -1,3 +1,4 @@
+/*
 package com.highplace.service.oauth.service;
 
 import org.springframework.security.access.ConfigAttribute;
@@ -34,3 +35,4 @@ public class MyInvocationSecurityMetadataSourceService implements FilterInvocati
     }
 
 }
+*/

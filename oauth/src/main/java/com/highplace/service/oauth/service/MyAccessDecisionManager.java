@@ -1,3 +1,4 @@
+/*
 package com.highplace.service.oauth.service;
 
 import com.highplace.service.oauth.domain.MyGrantedAuthority;
@@ -59,3 +60,4 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
         return true;
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package com.highplace.service.oauth.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,3 +65,4 @@ public class MyFilterSecurityInterceptor extends AbstractSecurityInterceptor imp
     }
 
 }
+*/
