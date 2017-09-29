@@ -91,7 +91,7 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/" , "/demo").permitAll()
+                .antMatchers("/" , "/current").permitAll()
                 .anyRequest().authenticated();
     }
 

@@ -3,6 +3,7 @@ package com.highplace.service.oauth.config;
 import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,9 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private Environment env;
+
     @Bean // 声明TokenStore实现
     public TokenStore tokenStore() {
         return new JdbcTokenStore(dataSource);
@@ -72,10 +76,12 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         oauthServer.checkTokenAccess("isAuthenticated()");
         oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
+        oauthServer.tokenKeyAccess("permitAll()");
     }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetails());
     }
+
 }
