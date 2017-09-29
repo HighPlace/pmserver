@@ -15,8 +15,10 @@ import org.springframework.cloud.security.oauth2.client.feign.OAuth2FeignRequest
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
@@ -40,6 +42,7 @@ import java.security.Principal;
 //@EnableOAuth2Client
 @EnableConfigurationProperties
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 //@EnableFeignClients
 
 public class ExamplersApplication {
@@ -58,7 +61,27 @@ public class ExamplersApplication {
 
         logger.info("XXXXXXXXXX:" + principal.toString());
         logger.info("XXXXXXXXXX:" + principal.getName());
+
+        User user = null;
+        if (principal instanceof User) {
+
+            user = (User) principal;
+            logger.info("XXXXXXXXXX:" + user.toString());
+        }
+
         return principal;
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @RequestMapping("/testadmin")
+    public String testadmin() {
+        return "有权限访问";
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', '/testinfo;ALL', '/testinfo;GET')")
+    @RequestMapping("/testinfo")
+    public String testinfo() {
+        return "有权限访问";
     }
 /*
     @Bean
