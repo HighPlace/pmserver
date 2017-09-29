@@ -16,6 +16,7 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.cloud.security.oauth2.client.feign.OAuth2FeignRequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -82,7 +83,7 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
     }
 
     @Bean
-    @Qualifier
+    @Primary
     public ResourceServerTokenServices tokenServices() {
         return new CustomUserInfoTokenServices(sso.getUserInfoUri(), sso.getClientId());
     }
