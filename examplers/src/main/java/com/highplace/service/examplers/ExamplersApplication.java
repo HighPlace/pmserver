@@ -2,6 +2,8 @@ package com.highplace.service.examplers;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +14,8 @@ import java.security.Principal;
 @SpringBootApplication
 @RestController
 @EnableResourceServer
+@EnableDiscoveryClient
+@RefreshScope
 public class ExamplersApplication {
 
 	public static void main(String[] args) {
