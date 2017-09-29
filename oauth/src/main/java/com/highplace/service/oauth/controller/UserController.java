@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.security.Principal;
 
-import static com.highplace.service.oauth.domain.RegType.*;
-
 @RestController
 public class UserController {
 

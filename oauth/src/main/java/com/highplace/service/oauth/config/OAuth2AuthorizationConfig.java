@@ -2,14 +2,9 @@ package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -27,10 +22,11 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAuthorizationServer
+@EnableResourceServer
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
-    @Autowired
     //@Qualifier("authenticationManagerBean")
+    @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
@@ -39,8 +35,8 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private DataSource dataSource;
 
-    @Autowired
-    private Environment env;
+    //@Autowired
+    //private Environment env;
 
     @Bean // 声明TokenStore实现
     public TokenStore tokenStore() {
@@ -74,9 +70,9 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         //oauthServer.checkTokenAccess("isAuthenticated()");
-        //oauthServer.checkTokenAccess("permitAll()");
+        oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
-        //oauthServer.tokenKeyAccess("permitAll()");
+        oauthServer.tokenKeyAccess("permitAll()");
     }
 
     @Override
