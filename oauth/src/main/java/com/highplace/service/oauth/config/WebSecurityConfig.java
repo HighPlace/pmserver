@@ -1,4 +1,4 @@
-
+/*
 package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
@@ -25,7 +25,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
     }
-    /*
+
 
     @Bean
     UserDetailsService productUserService() { //注册UserDetailsService 的bean
@@ -56,6 +56,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
 
 
     }
-    */
+
 
 }
+        */

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
-    @Qualifier("authenticationManagerBean")
+    //@Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
 
     @Autowired
