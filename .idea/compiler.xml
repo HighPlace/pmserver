@@ -8,15 +8,19 @@
         <outputRelativeToContentRoot value="true" />
         <module name="apigw" />
         <module name="configserver" />
+        <module name="examplers" />
         <module name="oauth" />
         <module name="registry" />
+        <module name="unilogin" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="apigw" target="1.8" />
       <module name="configserver" target="1.8" />
+      <module name="examplers" target="1.8" />
       <module name="oauth" target="1.8" />
       <module name="registry" target="1.8" />
+      <module name="unilogin" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

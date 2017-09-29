@@ -38,7 +38,7 @@ public class UserController {
     private UserDao userDao;
 
     //@RequestMapping(value = "/current", method = RequestMethod.GET)
-    @RequestMapping(path = "/current", method = RequestMethod.GET)
+    @RequestMapping(path = "/users/current", method = RequestMethod.GET)
     public Principal getUser(Principal principal) {
         return principal;
     }
