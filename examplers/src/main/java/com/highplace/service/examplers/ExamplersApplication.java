@@ -4,6 +4,7 @@ import com.highplace.service.examplers.service.CustomUserInfoTokenServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
@@ -81,6 +82,7 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
     }
 
     @Bean
+    @Qualifier
     public ResourceServerTokenServices tokenServices() {
         return new CustomUserInfoTokenServices(sso.getUserInfoUri(), sso.getClientId());
     }
