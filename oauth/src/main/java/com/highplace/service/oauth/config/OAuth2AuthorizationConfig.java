@@ -90,6 +90,7 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
         oauthServer.tokenKeyAccess("permitAll()");
+
     }
 
     @Override
