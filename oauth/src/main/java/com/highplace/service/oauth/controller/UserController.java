@@ -38,9 +38,9 @@ public class UserController {
     private UserDao userDao;
 
     //@RequestMapping(value = "/current", method = RequestMethod.GET)
-    @RequestMapping(path = "/users/current", method = RequestMethod.GET)
-    public Principal getUser(Principal principal) {
-        return principal;
+    @RequestMapping(path = "/user", method = RequestMethod.GET)
+    public Principal user(Principal user) {
+        return user;
     }
 
     //@PreAuthorize("#oauth2.hasScope('server')")
@@ -95,11 +95,5 @@ public class UserController {
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
-    }
-
-
-    @RequestMapping("/user")
-    public Principal user(Principal user) {
-        return user;
     }
 }

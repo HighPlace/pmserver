@@ -1,4 +1,4 @@
-/*
+
 package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
@@ -20,6 +20,13 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
     //@Autowired
     //private MyFilterSecurityInterceptor myFilterSecurityInterceptor;
 
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+    /*
+
     @Bean
     UserDetailsService productUserService() { //注册UserDetailsService 的bean
         return new ProductInstanceUserService();
@@ -30,11 +37,7 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(productUserService()); //user Details Service验证
     }
 
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -53,6 +56,6 @@ public class WebSecurityConfig  extends WebSecurityConfigurerAdapter {
 
 
     }
+    */
 
 }
-*/

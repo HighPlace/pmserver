@@ -27,11 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAuthorizationServer
-
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
-    //@Qualifier("authenticationManagerBean")
+    @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
 
     @Autowired
@@ -75,9 +74,9 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
         //oauthServer.checkTokenAccess("isAuthenticated()");
-        oauthServer.checkTokenAccess("permitAll()");
+        //oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
-        oauthServer.tokenKeyAccess("permitAll()");
+        //oauthServer.tokenKeyAccess("permitAll()");
     }
 
     @Override
