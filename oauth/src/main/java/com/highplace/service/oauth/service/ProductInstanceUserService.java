@@ -53,7 +53,7 @@ public class ProductInstanceUserService implements UserDetailsService {
 
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
             logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
-            //List<Action> actions = actionDao.findByUserId(user.getUserId());
+            logger.info("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
 
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
