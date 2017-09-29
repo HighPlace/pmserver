@@ -50,7 +50,7 @@ public class ExamplersApplication  extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers(HttpMethod.GET, "/current").authenticated();
+        http.authorizeRequests().antMatchers(HttpMethod.GET, "/current").permitAll();
         //.antMatchers(HttpMethod.POST, "/foo").hasAuthority("FOO_WRITE");
         //you can implement it like this, but I show method invocation security on write
     }
