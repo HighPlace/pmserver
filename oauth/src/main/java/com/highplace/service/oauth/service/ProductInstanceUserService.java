@@ -54,36 +54,43 @@ public class ProductInstanceUserService implements UserDetailsService {
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
             logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
             //List<Action> actions = actionDao.findByUserId(user.getUserId());
-            List<Action> actions = user.getActions();
-            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-            for (Action action : actions) {
-                if (action != null && action.getActionName() != null) {
 
-                    GrantedAuthority grantedAuthority = new MyGrantedAuthority(action.getResourceUrl(), action.getHttpMethod());
-                    grantedAuthorities.add(grantedAuthority);
-                }
-            }
+            List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
             //超级用户直接写ADMIN角色
             if(user.getSuperUserFlag()){
+
                 GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(ADMIN_ROLE);
                 grantedAuthorities.add(grantedAuthority);
-            }
-            /*
-            List<Role> roles = user.getRoles();
-            for (Role role : roles) {
-                //如果角色是超级管理员,直接写入ADMIN
-                if (role != null && role.getRoleName() != null && role.getSuperRoleFlag()) {
-                    GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(ADMIN_ROLE);
-                    grantedAuthorities.add(grantedAuthority);
-                    break;
+
+            } else {
+
+                List<Action> actions = user.getActions();
+                for (Action action : actions) {
+                    if (action != null && action.getActionName() != null) {
+
+                        GrantedAuthority grantedAuthority = new MyGrantedAuthority(action.getResourceUrl(), action.getHttpMethod());
+                        grantedAuthorities.add(grantedAuthority);
+                    }
                 }
+
+                /*
+                List<Role> roles = user.getRoles();
+                for (Role role : roles) {
+                    //如果角色是超级管理员,直接写入ADMIN
+                    if (role != null && role.getRoleName() != null && role.getSuperRoleFlag()) {
+                        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(ADMIN_ROLE);
+                        grantedAuthorities.add(grantedAuthority);
+                        break;
+                    }
+                }
+                */
             }
-            */
 
             return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
                     user.isEnabled(), user.isAccountNonExpired(), user.isCredentialsNonExpired(),
                     user.isAccountNonLocked(), grantedAuthorities);
+
         } else {
 
             throw new UsernameNotFoundException("Username: " + username + " do not exist!");
