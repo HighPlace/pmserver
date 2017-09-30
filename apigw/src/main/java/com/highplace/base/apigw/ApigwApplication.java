@@ -1,4 +1,3 @@
-/*
 package com.highplace.base.apigw;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -10,8 +9,6 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -20,24 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
-@EnableDiscoveryClient
 @EnableZuulProxy
+@EnableOAuth2Sso
+@EnableDiscoveryClient
 @RestController
 @RefreshScope
-@EnableOAuth2Sso
 public class ApigwApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ApigwApplication.class, args);
 	}
-
-    @Value("${hello.str}")
-    private String hello;
-
-    @RequestMapping(value = "/hello")
-    public String hello(){
-        return hello;
-    }
 
     @Bean
     protected OAuth2RestTemplate OAuth2RestTemplate(
@@ -58,5 +47,12 @@ public class ApigwApplication {
         // @formatter:on
     }
 
+    @Value("${hello.str}")
+    private String hello;
+
+    @RequestMapping(value = "/hello")
+    public String hello(){
+        return hello;
+    }
+
 }
-*/
