@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableOAuth2Sso
 @EnableDiscoveryClient
 @RestController
-@RefreshScope
+//@RefreshScope
 public class GatewayApplication extends WebSecurityConfigurerAdapter {
 
 	public static void main(String[] args) {
@@ -47,13 +47,13 @@ public class GatewayApplication extends WebSecurityConfigurerAdapter {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
         // @formatter:on
     }
-    /*
+
     @Value("${hello.str}")
     private String hello;
-    */
+
     @RequestMapping(value = "/hello")
     public String hello(){
-        return "hello";
+        return this.hello;
     }
 
 }
