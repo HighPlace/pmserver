@@ -6,7 +6,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 @Configuration
-@EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
@@ -14,7 +13,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // @formatter:off
         http.authorizeRequests()   //配置安全策略
                 .antMatchers("/" , "/reg").permitAll()  //不需要验证
-                .anyRequest().authenticated() //其余请求都需要验证
+                //.anyRequest().authenticated() //其余请求都需要验证
                 .and()
                 .logout()
                 .permitAll() //logout不需要验证
