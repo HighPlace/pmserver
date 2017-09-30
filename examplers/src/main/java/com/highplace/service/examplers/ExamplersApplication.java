@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
@@ -38,6 +39,7 @@ import java.security.Principal;
 @RestController
 @EnableResourceServer
 @EnableOAuth2Sso
+@EnableAutoConfiguration
 @EnableDiscoveryClient
 @RefreshScope
 //@EnableGlobalMethodSecurity(prePostEnabled=true)
