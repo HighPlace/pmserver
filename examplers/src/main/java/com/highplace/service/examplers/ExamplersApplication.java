@@ -43,16 +43,15 @@ import java.security.Principal;
 @RestController
 @EnableResourceServer
 @EnableOAuth2Sso
-@EnableAutoConfiguration
+//@EnableAutoConfiguration
 @EnableDiscoveryClient
 @RefreshScope
 //@EnableGlobalMethodSecurity(prePostEnabled=true)
 //@EnableOAuth2Client
-@EnableConfigurationProperties
-@Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+//@EnableConfigurationProperties
+//@Configuration
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
 //@EnableFeignClients
-
 public class ExamplersApplication  extends WebSecurityConfigurerAdapter {
 
     public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
