@@ -38,13 +38,13 @@ public class ApigwApplication extends WebSecurityConfigurerAdapter {
     public String hello(){
         return hello;
     }
-
+/*
     @Bean
     protected OAuth2RestTemplate OAuth2RestTemplate(
             OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
         return new OAuth2RestTemplate(resource, context);
     }
-
+*/
     @Override
     public void configure(HttpSecurity http) throws Exception {
         // @formatter:off
