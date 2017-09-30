@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RefreshScope
 @EnableOAuth2Sso
-public class ApigwApplication extends WebSecurityConfigurerAdapter {
+public class ApigwApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ApigwApplication.class, args);
