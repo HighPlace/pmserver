@@ -2,57 +2,29 @@ package com.highplace.service.examplers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
-import org.springframework.cloud.netflix.feign.EnableFeignClients;
-import org.springframework.cloud.security.oauth2.client.feign.OAuth2FeignRequestInterceptor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import feign.RequestInterceptor;
-
 import java.security.Principal;
 
 @SpringBootApplication
 @RestController
 @EnableResourceServer
-@EnableOAuth2Sso
-//@EnableAutoConfiguration
 @EnableDiscoveryClient
 @RefreshScope
 //@EnableGlobalMethodSecurity(prePostEnabled=true)
 //@EnableOAuth2Client
 //@EnableConfigurationProperties
 //@Configuration
-//@EnableGlobalMethodSecurity(prePostEnabled = true)
 //@EnableFeignClients
-public class ExamplersApplication  extends WebSecurityConfigurerAdapter {
+public class ExamplersApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
 
@@ -62,25 +34,6 @@ public class ExamplersApplication  extends WebSecurityConfigurerAdapter {
 	public static void main(String[] args) {
 		SpringApplication.run(ExamplersApplication.class, args);
 	}
-
-    @Bean
-    protected OAuth2RestTemplate OAuth2RestTemplate(
-            OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
-        return new OAuth2RestTemplate(resource, context);
-    }
-
-    @Override
-    public void configure(HttpSecurity http) throws Exception {
-        // @formatter:off
-        http
-                .authorizeRequests()
-                .antMatchers("/index.html", "/home.html", "/").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-        // @formatter:on
-    }
 
 	@RequestMapping(path = "/current", method = RequestMethod.GET)
     public Principal getCurrentAccount(Principal principal) {
