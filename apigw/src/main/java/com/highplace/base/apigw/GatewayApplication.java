@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableZuulProxy
 @EnableDiscoveryClient
 @RestController
-//@RefreshScope
+@RefreshScope
 public class GatewayApplication{
 
 	public static void main(String[] args) {

@@ -20,11 +20,7 @@ import java.security.Principal;
 @EnableResourceServer
 @EnableDiscoveryClient
 @RefreshScope
-@EnableGlobalMethodSecurity(prePostEnabled=true)
-//@EnableOAuth2Client
-//@EnableConfigurationProperties
-//@Configuration
-//@EnableFeignClients
+@EnableGlobalMethodSecurity(prePostEnabled=true)   //PreAuthorize时必须开启
 public class ExamplersApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
