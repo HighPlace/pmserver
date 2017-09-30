@@ -89,7 +89,7 @@ public class UserController {
     */
 
     //@PreAuthorize("hasRole('ADMIN')")
-    @PreAuthorize("hasAuthority('/property;POST')")
+    @PreAuthorize("hasAnyAuthority('/property;POST','ADMIN')")
     @RequestMapping("/testauthor")
     public String author() {
         return "有权限访问";
