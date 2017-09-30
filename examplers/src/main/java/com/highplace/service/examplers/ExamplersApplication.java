@@ -20,14 +20,18 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,7 +53,7 @@ import java.security.Principal;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 //@EnableFeignClients
 
-public class ExamplersApplication {
+public class ExamplersApplication  extends WebSecurityConfigurerAdapter {
 
     public static final Logger logger = LoggerFactory.getLogger(ExamplersApplication.class);
 
@@ -60,7 +64,26 @@ public class ExamplersApplication {
 		SpringApplication.run(ExamplersApplication.class, args);
 	}
 
-    @RequestMapping(path = "/current", method = RequestMethod.GET)
+    @Bean
+    protected OAuth2RestTemplate OAuth2RestTemplate(
+            OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
+        return new OAuth2RestTemplate(resource, context);
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        // @formatter:off
+        http
+                .authorizeRequests()
+                .antMatchers("/index.html", "/home.html", "/").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+        // @formatter:on
+    }
+
+	@RequestMapping(path = "/current", method = RequestMethod.GET)
     public Principal getCurrentAccount(Principal principal) {
 
         logger.info("XXXXXXXXXX:" + principal.toString());
