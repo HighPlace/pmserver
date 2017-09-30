@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @EnableDiscoveryClient
 @RestController
 @RefreshScope
-public class ApigwApplication  extends WebSecurityConfigurerAdapter {
+public class GatewayApplication extends WebSecurityConfigurerAdapter {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ApigwApplication.class, args);
+		SpringApplication.run(GatewayApplication.class, args);
 	}
 
     @Bean
@@ -47,13 +47,13 @@ public class ApigwApplication  extends WebSecurityConfigurerAdapter {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
         // @formatter:on
     }
-
+    /*
     @Value("${hello.str}")
     private String hello;
-
+    */
     @RequestMapping(value = "/hello")
     public String hello(){
-        return hello;
+        return "hello";
     }
 
 }
