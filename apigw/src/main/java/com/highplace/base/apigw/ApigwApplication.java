@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RefreshScope
 @EnableOAuth2Sso
-@EnableWebSecurity
 public class ApigwApplication extends WebSecurityConfigurerAdapter {
 
 	public static void main(String[] args) {
@@ -44,7 +43,7 @@ public class ApigwApplication extends WebSecurityConfigurerAdapter {
             OAuth2ProtectedResourceDetails resource, OAuth2ClientContext context) {
         return new OAuth2RestTemplate(resource, context);
     }
-*/
+
     @Override
     public void configure(HttpSecurity http) throws Exception {
         // @formatter:off
@@ -57,4 +56,5 @@ public class ApigwApplication extends WebSecurityConfigurerAdapter {
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
         // @formatter:on
     }
+    */
 }
