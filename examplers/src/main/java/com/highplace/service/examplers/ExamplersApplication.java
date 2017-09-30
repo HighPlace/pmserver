@@ -38,7 +38,7 @@ import java.security.Principal;
 @RestController
 @EnableResourceServer
 @EnableOAuth2Sso
-//@EnableDiscoveryClient
+@EnableDiscoveryClient
 @RefreshScope
 //@EnableGlobalMethodSecurity(prePostEnabled=true)
 //@EnableOAuth2Client
