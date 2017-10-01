@@ -21,12 +21,13 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 @EnableDiscoveryClient
 @RefreshScope
 @EnableGlobalMethodSecurity(prePostEnabled=true)
+@EnableResourceServer
 public class OauthApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(OauthApplication.class, args);
     }
-
+/*
     @Configuration
     @EnableResourceServer
     protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
@@ -40,7 +41,7 @@ public class OauthApplication {
             // @formatter:on
         }
     }
-
+*/
     @Configuration
     protected static class webSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -63,8 +64,8 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http
-                    .authorizeRequests().antMatchers("/**").permitAll();
+            http.authorizeRequests().antMatchers("/reg").permitAll()
+                    .anyRequest().authenticated();
             // @formatter:on
         }
     }

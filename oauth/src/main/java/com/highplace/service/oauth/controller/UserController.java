@@ -36,7 +36,7 @@ public class UserController {
     @Autowired
     private UserDao userDao;
 
-    @PreAuthorize("#oauth2.hasScope('server')")
+    //@PreAuthorize("#oauth2.hasScope('server')")
     @RequestMapping(path = "/user", method = RequestMethod.GET)
     public Principal user(Principal user) {
         return user;
