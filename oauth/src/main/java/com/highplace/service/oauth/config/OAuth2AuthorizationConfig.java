@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -25,11 +27,15 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAuthorizationServer
+@EnableWebSecurity
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
     @Autowired
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
+
+    //@Autowired
+    //private AuthenticationManagerBuilder authenticationManagerBuilder;
 
     @Autowired
     private ProductInstanceUserService userDetailsService;
@@ -82,8 +88,8 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
 
-        //oauthServer.checkTokenAccess("isAuthenticated()");
-        oauthServer.checkTokenAccess("permitAll()");
+        oauthServer.checkTokenAccess("isAuthenticated()");
+        //oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
         oauthServer.tokenKeyAccess("permitAll()");
     }

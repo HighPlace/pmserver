@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
@@ -27,22 +28,20 @@ public class OauthApplication {
     public static void main(String[] args) {
         SpringApplication.run(OauthApplication.class, args);
     }
-/*
+
     @Configuration
     @EnableResourceServer
     protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
         @Override
         public void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            //http.antMatcher("/user").authorizeRequests().anyRequest().authenticated();
-
-            http.authorizeRequests().antMatchers("/reg").permitAll()
-                                    .anyRequest().authenticated();
+            http.antMatcher("/user").authorizeRequests().anyRequest().authenticated();
             // @formatter:on
         }
     }
-*/
+
     @Configuration
+    @EnableWebSecurity
     protected static class webSecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Autowired
@@ -64,8 +63,7 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http.authorizeRequests().antMatchers("/user","/reg").permitAll()
-                    .anyRequest().authenticated();
+            http.authorizeRequests().antMatchers("/reg").permitAll().anyRequest().authenticated();
             // @formatter:on
         }
     }
