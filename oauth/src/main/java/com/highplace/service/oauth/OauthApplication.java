@@ -29,16 +29,6 @@ public class OauthApplication {
         SpringApplication.run(OauthApplication.class, args);
     }
 
-    @Configuration
-    @EnableResourceServer
-    protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
-        @Override
-        public void configure(HttpSecurity http) throws Exception {
-            // @formatter:off
-            http.antMatcher("/user").authorizeRequests().anyRequest().authenticated();
-            // @formatter:on
-        }
-    }
 
     @Configuration
     @EnableWebSecurity
@@ -63,9 +53,26 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http.authorizeRequests().antMatchers("/reg","/user").permitAll().anyRequest().authenticated();
+            http
+                    .authorizeRequests().anyRequest().authenticated()
+                    .and()
+                    .csrf().disable();
             // @formatter:on
         }
     }
+
+/*
+    @Configuration
+    @EnableResourceServer
+    protected static class ResourceServerConfiguration extends ResourceServerConfigurerAdapter {
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
+            http.antMatcher("/user").authorizeRequests().anyRequest().authenticated();
+            // @formatter:on
+        }
+    }
+*/
+
 }
 
