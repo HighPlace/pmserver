@@ -64,7 +64,7 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http.authorizeRequests().antMatchers("/reg").permitAll()
+            http.antMatcher("/user").authorizeRequests().antMatchers("/reg").permitAll()
                     .anyRequest().authenticated();
             // @formatter:on
         }
