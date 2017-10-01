@@ -86,7 +86,6 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         oauthServer.checkTokenAccess("permitAll()");
         oauthServer.allowFormAuthenticationForClients();
         oauthServer.tokenKeyAccess("permitAll()");
-        oauthServer.passwordEncoder(new BCryptPasswordEncoder());
     }
 
     @Override
