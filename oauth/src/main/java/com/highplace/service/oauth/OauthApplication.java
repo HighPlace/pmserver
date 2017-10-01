@@ -53,7 +53,7 @@ public class OauthApplication {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
-            http
+            http.antMatcher("/user")
                     .authorizeRequests().anyRequest().authenticated()
                     .and()
                     .csrf().disable();
