@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -27,19 +25,17 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableAuthorizationServer
-@EnableWebSecurity
 public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
+    @Qualifier("userDetailsService")
     @Autowired
+    private UserDetailsService userDetailsService; // 引入security中提供的 UserDetailsService
+
     @Qualifier("authenticationManagerBean")
-    private AuthenticationManager authenticationManager;
-
-    //@Autowired
-    //private AuthenticationManagerBuilder authenticationManagerBuilder;
-
     @Autowired
-    private ProductInstanceUserService userDetailsService;
+    private AuthenticationManager authenticationManager; // 引入security中提供的 AuthenticationManager
 
+    //使用mysql存储clientDetails和token信息
     @Autowired
     private DataSource dataSource;
 
@@ -52,6 +48,56 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     public ClientDetailsService clientDetails() {
         return new JdbcClientDetailsService(dataSource);
     }
+
+    /*
+    //使用redis存储token信息
+    @Autowired
+    private RedisConnectionFactory connectionFactory;
+    @Bean
+    public RedisTokenStore tokenStore() {
+        return new RedisTokenStore(connectionFactory);
+    }
+    */
+
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+
+        endpoints
+                .tokenStore(tokenStore())
+                .authenticationManager(authenticationManager)
+                .userDetailsService(userDetailsService);
+
+        endpoints.tokenServices(tokenServices());
+    }
+
+    @Override
+    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+
+        security
+                .checkTokenAccess("isAuthenticated()")
+                .allowFormAuthenticationForClients()
+                .tokenKeyAccess("permitAll()");
+    }
+
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.withClientDetails(clientDetails());
+    }
+
+    /*  client信息
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients.inMemory()
+                .withClient("android")
+                .scopes("xx")
+                .secret("android")
+                .authorizedGrantTypes("password", "authorization_code", "refresh_token")
+                .and()
+                .withClient("webapp")
+                .scopes("xx")
+                .authorizedGrantTypes("implicit");
+    }
+    */
 
     @Primary
     @Bean
@@ -73,30 +119,4 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
         //tokenServices.setTokenEnhancer(endpoints.getTokenEnhancer());
 
     }
-
-    @Override // 配置框架应用上述实现
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
-
-        endpoints
-                .tokenStore(tokenStore())
-                .authenticationManager(authenticationManager)
-                .userDetailsService(userDetailsService);
-
-        endpoints.tokenServices(tokenServices());
-    }
-
-    @Override
-    public void configure(AuthorizationServerSecurityConfigurer oauthServer) throws Exception {
-
-        //oauthServer.checkTokenAccess("isAuthenticated()");
-        oauthServer.checkTokenAccess("permitAll()");
-        oauthServer.allowFormAuthenticationForClients();
-        oauthServer.tokenKeyAccess("permitAll()");
-    }
-
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.withClientDetails(clientDetails());
-    }
-
 }
