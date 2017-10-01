@@ -59,6 +59,14 @@ public class OauthApplication {
         public AuthenticationManager authenticationManagerBean() throws Exception {
             return super.authenticationManagerBean();
         }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            // @formatter:off
+            http
+                    .authorizeRequests().antMatchers("/**").permitAll();
+            // @formatter:on
+        }
     }
 }
 
