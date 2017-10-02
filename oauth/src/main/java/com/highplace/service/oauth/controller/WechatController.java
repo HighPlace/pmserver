@@ -63,7 +63,8 @@ public class WechatController {
         String secretState = "secret" + new Random().nextInt(999_999);
         request.getSession().setAttribute("state", secretState);
 
-        String loginUrl = WEB_LOGIN_BASE_URL
+        //String loginUrl = WEB_LOGIN_BASE_URL
+        String loginUrl = MOBILE_LOGIN_BASE_URL
                             + "?appid=" + wechatConfig.getClientid()
                             + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback())
                             + "&response_type=code&scope=snsapi_login"
@@ -80,12 +81,14 @@ public class WechatController {
                            @RequestParam(value = "state", required = true) String secretState,
                            HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
 
+
         //检查传回的state跟session中的是否一致
         final String secretStateFromSession = (String) request.getSession().getAttribute("state");
         if (!secretStateFromSession.equals(secretState)) {
             logger.info("State value do not match!");
             return "errorstate";
         }
+
 
         //获取accesstoken
         String accessTokenUrl = ACCESS_TOKEN_BASE_URL
