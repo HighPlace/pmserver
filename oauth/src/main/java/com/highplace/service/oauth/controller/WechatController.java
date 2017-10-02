@@ -103,7 +103,9 @@ public class WechatController {
         WechatAccessToken wechatAccessToken = restTemplate.getForObject(accessTokenUrl, WechatAccessToken.class);
 
         logger.info(wechatAccessToken.toString());
-        if(true) return null;
+
+        return "test";
+        /*
 
         //获取用户信息
         // https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
@@ -127,6 +129,7 @@ public class WechatController {
         }
         request.getSession().setAttribute("user", isExists);
         return isExists;
+        */
     }
 
     // 检查签名
