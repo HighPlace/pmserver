@@ -67,7 +67,8 @@ public class WechatController {
                             + "?appid=" + wechatConfig.getClientid()
                             + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback())
                             + "&response_type=code&scope=snsapi_login"
-                            + "&state=" + secretState;
+                            + "&state=" + secretState
+                            + "#wechat_redirect";
 
         return "redirect:" + loginUrl;
     }
