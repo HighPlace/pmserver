@@ -100,12 +100,13 @@ public class WechatController {
                         + "&grant_type=authorization_code";
         logger.info("XXXXXXXXXXXXX accesstoken: " + accessTokenUrl);
 
+        return "test"  ;
+        /*
         WechatAccessToken wechatAccessToken = restTemplate.getForObject(accessTokenUrl, WechatAccessToken.class);
 
         logger.info(wechatAccessToken.toString());
 
-        return "test"  ;
-        /*
+
 
         //获取用户信息
         // https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
