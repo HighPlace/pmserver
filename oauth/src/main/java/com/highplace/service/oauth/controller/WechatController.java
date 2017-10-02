@@ -67,7 +67,8 @@ public class WechatController {
         String loginUrl = MOBILE_LOGIN_BASE_URL
                             + "?appid=" + wechatConfig.getClientid()
                             + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback())
-                            + "&response_type=code&scope=snsapi_login"
+                            //+ "&response_type=code&scope=snsapi_login"
+                            + "&response_type=code&scope=snsapi_base"
                             + "&state=" + secretState
                             + "#wechat_redirect";
 
@@ -97,6 +98,7 @@ public class WechatController {
                         + "&secret=" + wechatConfig.getClientsecret()
                         + "&code=" + code
                         + "&grant_type=authorization_code";
+        logger.info("XXXXXXXXXXXXX accesstoken: " + accessTokenUrl);
         WechatAccessToken wechatAccessToken = restTemplate.getForObject(accessTokenUrl, WechatAccessToken.class);
         logger.info(wechatAccessToken.toString());
 
