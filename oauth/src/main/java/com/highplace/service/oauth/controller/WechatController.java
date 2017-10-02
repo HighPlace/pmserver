@@ -104,7 +104,7 @@ public class WechatController {
 
         logger.info(wechatAccessToken.toString());
 
-        return "test";
+        return "test"  ;
         /*
 
         //获取用户信息
