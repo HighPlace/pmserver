@@ -25,7 +25,7 @@ public class WechatAccessToken extends WechatError {
                 ", refresh_token='" + refresh_token + '\'' +
                 ", openid='" + openid + '\'' +
                 ", scope='" + scope + '\'' +
-                '}';
+                '}' + "  " + super.toString();
     }
 
     public String getAccess_token() {

@@ -109,6 +109,6 @@ public class WechatUserInfo extends WechatError {
                 ", headimgurl='" + headimgurl + '\'' +
                 ", privilege=" + privilege +
                 ", unionid='" + unionid + '\'' +
-                '}';
+                '}' + "  " + super.toString();
     }
 }
