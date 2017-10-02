@@ -264,4 +264,27 @@ public class User  implements UserDetails {
     public void setRemark(String remark) {
         this.remark = remark == null ? null : remark.trim();
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", productInstId='" + productInstId + '\'' +
+                ", username='" + username + '\'' +
+                ", mobileNo='" + mobileNo + '\'' +
+                ", email='" + email + '\'' +
+                ", wxOpenId='" + wxOpenId + '\'' +
+                ", password='" + password + '\'' +
+                ", credentialExpired=" + credentialExpired +
+                ", accountExpired=" + accountExpired +
+                ", accountLocked=" + accountLocked +
+                ", enabled=" + enabled +
+                ", superUserFlag=" + superUserFlag +
+                ", createTime=" + createTime +
+                ", modifyTime=" + modifyTime +
+                ", remark='" + remark + '\'' +
+                ", roles=" + roles +
+                ", actions=" + actions +
+                '}';
+    }
 }
