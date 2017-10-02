@@ -81,13 +81,14 @@ public class WechatController {
                            @RequestParam(value = "state", required = true) String secretState,
                            HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
 
-
+        /*
         //检查传回的state跟session中的是否一致
         final String secretStateFromSession = (String) request.getSession().getAttribute("state");
         if (!secretStateFromSession.equals(secretState)) {
             logger.info("State value do not match!");
             return "errorstate";
         }
+        */
 
 
         //获取accesstoken
