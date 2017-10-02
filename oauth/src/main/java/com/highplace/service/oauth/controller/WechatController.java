@@ -37,8 +37,7 @@ public class WechatController {
     @Autowired
     private UserDao userDao;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private RestTemplate restTemplate = new RestTemplate();
 
     //验证微信服务器后台请求token
     @RequestMapping(value ="/wechat/checktoken", produces = "application/json; charset=utf-8")
