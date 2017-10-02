@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -64,7 +65,7 @@ public class WechatController {
 
         String loginUrl = WEB_LOGIN_BASE_URL
                             + "?appid=" + wechatConfig.getClientid()
-                            + "&redirect_uri=" + wechatConfig.getCallback()
+                            + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback())
                             + "&response_type=code&scope=snsapi_login"
                             + "&state=" + secretState;
 
