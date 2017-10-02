@@ -1,5 +1,7 @@
 package com.highplace.service.oauth.domain;
 
+import java.util.List;
+
 /*
 openid	用户的唯一标识
 nickname	用户昵称
@@ -11,7 +13,7 @@ headimgurl	用户头像，最后一个数值代表正方形头像大小（有0�
 privilege	用户特权信息，json 数组，如微信沃卡用户为（chinaunicom）
 unionid	只有在用户将公众号绑定到微信开放平台帐号后，才会出现该字段
  */
-public class WechatUserInfo {
+public class WechatUserInfo extends WechatError {
 
     private String openid;
     private String nickname;
@@ -20,31 +22,8 @@ public class WechatUserInfo {
     private String city;
     private String country;
     private String headimgurl;
-
-    public String getUnionid() {
-        return unionid;
-    }
-
-    public void setUnionid(String unionid) {
-        this.unionid = unionid;
-    }
-
-    //private String privilege;
+    private List<String> privilege;
     private String unionid;
-
-    @Override
-    public String toString() {
-        return "WechatUserInfo{" +
-                "openid='" + openid + '\'' +
-                ", nickname='" + nickname + '\'' +
-                ", sex=" + sex +
-                ", province='" + province + '\'' +
-                ", city='" + city + '\'' +
-                ", country='" + country + '\'' +
-                ", headimgurl='" + headimgurl + '\'' +
-                ", unionid='" + unionid + '\'' +
-                '}';
-    }
 
     public String getOpenid() {
         return openid;
@@ -100,5 +79,36 @@ public class WechatUserInfo {
 
     public void setHeadimgurl(String headimgurl) {
         this.headimgurl = headimgurl;
+    }
+
+    public List<String> getPrivilege() {
+        return privilege;
+    }
+
+    public void setPrivilege(List<String> privilege) {
+        this.privilege = privilege;
+    }
+
+    public String getUnionid() {
+        return unionid;
+    }
+
+    public void setUnionid(String unionid) {
+        this.unionid = unionid;
+    }
+
+    @Override
+    public String toString() {
+        return "WechatUserInfo{" +
+                "openid='" + openid + '\'' +
+                ", nickname='" + nickname + '\'' +
+                ", sex=" + sex +
+                ", province='" + province + '\'' +
+                ", city='" + city + '\'' +
+                ", country='" + country + '\'' +
+                ", headimgurl='" + headimgurl + '\'' +
+                ", privilege=" + privilege +
+                ", unionid='" + unionid + '\'' +
+                '}';
     }
 }

@@ -8,6 +8,9 @@ import com.highplace.service.oauth.config.WechatConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.*;
@@ -38,7 +42,13 @@ public class WechatController {
     @Autowired
     private UserDao userDao;
 
-    private RestTemplate restTemplate = new RestTemplate();
+    //针对微信的特殊处理,参考http://blog.csdn.net/kinginblue/article/details/52706155
+    @Bean
+    RestTemplate restTemplate(){
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(new WxMappingJackson2HttpMessageConverter());
+        return restTemplate;
+    }
 
     //验证微信服务器后台请求token
     @RequestMapping(value ="/wechat/checktoken", produces = "application/json; charset=utf-8")
@@ -57,7 +67,7 @@ public class WechatController {
     // &redirect_uri=CALLBACK&response_type=code&scope=snsapi_login
     // &state=State
     @RequestMapping(value = "/wechat/login", method= RequestMethod.GET)
-    public String showLogin(HttpServletRequest request){
+    public String showLogin(HttpServletRequest request) throws UnsupportedEncodingException{
 
         //生成state放入session
         String secretState = "secret" + new Random().nextInt(999_999);
@@ -66,7 +76,7 @@ public class WechatController {
         //String loginUrl = WEB_LOGIN_BASE_URL
         String loginUrl = MOBILE_LOGIN_BASE_URL
                             + "?appid=" + wechatConfig.getClientid()
-                            + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback())
+                            + "&redirect_uri=" + URLEncoder.encode(wechatConfig.getCallback(), "utf-8")
                             //+ "&response_type=code&scope=snsapi_login"
                             + "&response_type=code&scope=snsapi_base"
                             + "&state=" + secretState
@@ -91,29 +101,31 @@ public class WechatController {
         }
         */
 
-
         //获取accesstoken
         String accessTokenUrl = ACCESS_TOKEN_BASE_URL
                         + "?appid=" + wechatConfig.getClientid()
                         + "&secret=" + wechatConfig.getClientsecret()
                         + "&code=" + code
                         + "&grant_type=authorization_code";
-        logger.info("XXXXXXXXXXXXX accesstoken: " + accessTokenUrl);
+        logger.info("XXXXXXXXXXXXX accesstokenUrl: " + accessTokenUrl);
 
-        return "test"  ;
-        /*
-        WechatAccessToken wechatAccessToken = restTemplate.getForObject(accessTokenUrl, WechatAccessToken.class);
-
+        WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
         logger.info(wechatAccessToken.toString());
-
-
 
         //获取用户信息
         // https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
         String userinfoUrl = GET_USERINFO_URL
                         + "?access_token=" + wechatAccessToken.getAccess_token()
                         + "&openid=" + wechatAccessToken.getOpenid();
-        WechatUserInfo wechatUserInfo =  restTemplate.getForObject(userinfoUrl, WechatUserInfo.class);
+        logger.info("XXXXXXXXXXXXX getUserinfoUrl: " + userinfoUrl);
+
+        WechatUserInfo wechatUserInfo =  restTemplate().getForObject(userinfoUrl, WechatUserInfo.class);
+
+        if (null == wechatUserInfo || !wechatUserInfo.valid()){
+            logger.error("getWechatUserInfo invalid: " + wechatUserInfo);
+            wechatUserInfo = null;
+            return null;
+        }
         logger.info(wechatUserInfo.toString());
 
         //通过openid检查用户是否已经存在
@@ -130,7 +142,6 @@ public class WechatController {
         }
         request.getSession().setAttribute("user", isExists);
         return isExists;
-        */
     }
 
     // 检查签名
@@ -165,5 +176,14 @@ public class WechatController {
             sb.append(sTemp.toUpperCase());
         }
         return sb.toString().toLowerCase();
+    }
+
+
+    protected class WxMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+        public WxMappingJackson2HttpMessageConverter(){
+            List<MediaType> mediaTypes = new ArrayList<>();
+            mediaTypes.add(MediaType.TEXT_PLAIN);
+            setSupportedMediaTypes(mediaTypes);
+        }
     }
 }
