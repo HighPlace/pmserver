@@ -17,8 +17,6 @@
 package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.domain.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,16 +32,11 @@ import org.springframework.util.Assert;
 @Component
 public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
-    @Qualifier("userDetailsService")
-    @Autowired
     private UserDetailsService userDetailsService;
 
-    @Qualifier("passwordEncoder")
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public MyDaoAuthenticationProvider() {
-
     }
 
     protected void additionalAuthenticationChecks(UserDetails userDetails,
@@ -125,6 +118,10 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
                     "UserDetailsService returned null, which is an interface contract violation");
         }
         return loadedUser;
+    }
+
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     protected PasswordEncoder getPasswordEncoder() {

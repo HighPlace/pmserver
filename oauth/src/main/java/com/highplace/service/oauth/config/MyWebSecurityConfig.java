@@ -37,6 +37,8 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
         //auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+        myDaoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
         auth.authenticationProvider(myDaoAuthenticationProvider);
     }
 
