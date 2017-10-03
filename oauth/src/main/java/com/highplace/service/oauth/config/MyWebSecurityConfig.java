@@ -1,6 +1,7 @@
 package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.service.ProductInstanceUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,16 +30,14 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public AuthenticationProvider myAuthenticationProvider() {
-        return new MyDaoAuthenticationProvider();
-    }
+    @Autowired
+    private MyDaoAuthenticationProvider myDaoAuthenticationProvider;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
         auth
-                .authenticationProvider(myAuthenticationProvider())
+                .authenticationProvider(myDaoAuthenticationProvider)
                 .userDetailsService(userDetailsService())
                 .passwordEncoder(passwordEncoder());
     }

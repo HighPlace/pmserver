@@ -29,6 +29,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
@@ -38,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Ben Alex
  * @author Rob Winch
  */
+@Component
 public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
     // ~ Static fields/initializers
     // =====================================================================================
