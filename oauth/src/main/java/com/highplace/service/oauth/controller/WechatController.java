@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Controller;
@@ -36,12 +37,16 @@ public class WechatController {
     public static final String WEB_LOGIN_BASE_URL = "https://open.weixin.qq.com/connect/qrconnect";
     public static final String MOBILE_LOGIN_BASE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
     public static final String GET_USERINFO_URL = "https://api.weixin.qq.com/sns/userinfo";
+    public static final String PREFIX_WX_LOGIN_STATE_KEY = "PREFIX_WX_LOGIN_STATE_KEY";
 
     @Autowired
     WechatConfig wechatConfig;
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     //针对微信的特殊处理,参考http://blog.csdn.net/kinginblue/article/details/52706155
     @Bean
@@ -70,9 +75,10 @@ public class WechatController {
     @RequestMapping(value = "/wechat/login", method= RequestMethod.GET)
     public String showLogin(HttpServletRequest request) throws UnsupportedEncodingException{
 
-        //生成state放入session
-        String secretState = "secret" + new Random().nextInt(999_999);
-        request.getSession().setAttribute("state", secretState);
+        //生成state放入redis
+        String secretState = "secret" + new Random().nextInt(999_999_999);
+        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState);
+        //request.getSession().setAttribute("state", secretState);
 
         //String loginUrl = WEB_LOGIN_BASE_URL
         String loginUrl = MOBILE_LOGIN_BASE_URL
@@ -101,8 +107,11 @@ public class WechatController {
             return "errorstate";
         }
         */
-
-        logger.debug("XXXXXXXXXXXXX remoteHost: " + request.getRemoteHost());
+        String secretStateFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_WX_LOGIN_STATE_KEY + secretState);
+        logger.debug("XXXXXXXXXXXXX secretStateFromRedis: " + secretStateFromRedis);
+        if( (secretStateFromRedis == null) || !secretStateFromRedis.equals(secretState) ){
+            throw new Exception("State value do not match!");
+        }
 
         //获取accesstoken
         String accessTokenUrl = ACCESS_TOKEN_BASE_URL
