@@ -1,6 +1,7 @@
 package com.highplace.service.oauth.domain;
 
 import org.hibernate.validator.constraints.Length;
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -13,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-public class User  implements UserDetails {
+public class User implements UserDetails, CredentialsContainer {
 
     @Id
     @GeneratedValue
@@ -190,13 +191,6 @@ public class User  implements UserDetails {
         this.wxOpenId = wxOpenId == null ? null : wxOpenId.trim();
     }
 
-    /**
-     * Returns the authorities granted to the user. Cannot return <code>null</code>.
-     *
-     * @return the authorities, sorted by natural key (never <code>null</code>)
-     */
-
-
     public String getPassword() {
         return password;
     }
@@ -295,5 +289,10 @@ public class User  implements UserDetails {
                 ", roles=" + roles +
                 ", actions=" + actions +
                 '}';
+    }
+
+    @Override
+    public void eraseCredentials() {
+        password = null;
     }
 }

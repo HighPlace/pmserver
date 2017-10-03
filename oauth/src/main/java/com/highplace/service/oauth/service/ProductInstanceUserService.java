@@ -47,7 +47,9 @@ public class ProductInstanceUserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         logger.info("XXXXXXXXXXXXX  username:" + username);
-        User user = userDao.findByUsername(username);
+        //User user = userDao.findByUsername(username);
+        //通过用户名、手机号、邮箱、微信openid其中一个查询
+        User user = userDao.findByGeneralName(username);
 
         if (user != null) {
 
