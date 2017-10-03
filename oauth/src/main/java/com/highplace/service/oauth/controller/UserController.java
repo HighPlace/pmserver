@@ -61,7 +61,7 @@ public class UserController {
         user.setPassword(hash);
 
         userDao.insertUser(user);
-        logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
+        logger.debug("XXXXXXXXXXXXX  userid:" + user.getUserId());
 
         userDao.insertUserRole(user.getUserId(), 1L); //hard code...
         return new UserView(user.getProductInstId(), user.getUserId(), user.getUsername());

@@ -102,13 +102,15 @@ public class WechatController {
         }
         */
 
+        logger.debug("XXXXXXXXXXXXX remoteHost: " + request.getRemoteHost());
+
         //获取accesstoken
         String accessTokenUrl = ACCESS_TOKEN_BASE_URL
                         + "?appid=" + wechatConfig.getClientid()
                         + "&secret=" + wechatConfig.getClientsecret()
                         + "&code=" + code
                         + "&grant_type=authorization_code";
-        logger.info("XXXXXXXXXXXXX accesstokenUrl: " + accessTokenUrl);
+        logger.debug("XXXXXXXXXXXXX accesstokenUrl: " + accessTokenUrl);
 
         WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
 
@@ -117,7 +119,7 @@ public class WechatController {
             throw new Exception("获取微信appid失败");
         }
 
-        logger.info("XXXXXXXXXXXXX wechatAccessToken: " + wechatAccessToken);
+        logger.debug("XXXXXXXXXXXXX wechatAccessToken: " + wechatAccessToken);
 
         /*
         //获取用户信息
@@ -125,7 +127,7 @@ public class WechatController {
         String userinfoUrl = GET_USERINFO_URL
                         + "?access_token=" + wechatAccessToken.getAccess_token()
                         + "&openid=" + wechatAccessToken.getOpenid();
-        logger.info("XXXXXXXXXXXXX getUserinfoUrl: " + userinfoUrl);
+        logger.debug("XXXXXXXXXXXXX getUserinfoUrl: " + userinfoUrl);
 
         WechatUserInfo wechatUserInfo =  restTemplate().getForObject(userinfoUrl, WechatUserInfo.class);
 
@@ -134,7 +136,7 @@ public class WechatController {
             wechatUserInfo = null;
             return null;
         }
-        logger.info(wechatUserInfo.toString());
+        logger.debug(wechatUserInfo.toString());
         */
 
         //通过openid检查用户是否已经存在
@@ -154,7 +156,7 @@ public class WechatController {
         }
         //request.getSession().setAttribute("user", isExists);
         UserView uv = new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername());
-        logger.info("XXXXXXXXXXXXX UserView: " + uv);
+        logger.debug("XXXXXXXXXXXXX UserView: " + uv);
         return uv;
     }
 
