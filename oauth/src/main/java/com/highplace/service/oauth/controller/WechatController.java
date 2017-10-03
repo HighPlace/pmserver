@@ -2,6 +2,7 @@ package com.highplace.service.oauth.controller;
 
 import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.User;
+import com.highplace.service.oauth.domain.UserView;
 import com.highplace.service.oauth.domain.WechatAccessToken;
 import com.highplace.service.oauth.domain.WechatUserInfo;
 import com.highplace.service.oauth.config.WechatConfig;
@@ -90,7 +91,7 @@ public class WechatController {
     @RequestMapping(value = "/wechat/callback", method=RequestMethod.GET)
     public Object callback(@RequestParam(value = "code", required = true) String code,
                            @RequestParam(value = "state", required = true) String secretState,
-                           HttpServletRequest request) throws IOException, InterruptedException, ExecutionException {
+                           HttpServletRequest request) throws IOException, InterruptedException, ExecutionException, Exception {
 
         /*
         //检查传回的state跟session中的是否一致
@@ -112,6 +113,7 @@ public class WechatController {
         WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
         logger.info(wechatAccessToken.toString());
 
+        /*
         //获取用户信息
         // https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
         String userinfoUrl = GET_USERINFO_URL
@@ -127,21 +129,25 @@ public class WechatController {
             return null;
         }
         logger.info(wechatUserInfo.toString());
+        */
 
         //通过openid检查用户是否已经存在
-        User isExists = userDao.findByWxOpenId(wechatUserInfo.getOpenid());
+        User isExists = userDao.findByWxOpenId(wechatAccessToken.getOpenid());
         if(isExists == null) {
+            /*
             isExists = new User();
-            isExists.setWxOpenId(wechatUserInfo.getOpenid());
+            isExists.setWxOpenId(wechatAccessToken.getOpenid());
             isExists.setUsername(wechatUserInfo.getNickname() + new Random().nextInt(999_999));
 
             isExists.setProductInstId("550E8400-E29B-11D4-A716-446655440000");//hard code...
             userDao.insertUser(isExists);
             logger.info("XXXXXXXXXXXXX user:" + isExists.toString());
             userDao.insertUserRole(isExists.getUserId(), 1L); //hard code...
+            */
+            throw new Exception("你没有绑定微信账号:" + wechatAccessToken.getOpenid());
         }
-        request.getSession().setAttribute("user", isExists);
-        return isExists;
+        //request.getSession().setAttribute("user", isExists);
+        return new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername());
     }
 
     // 检查签名

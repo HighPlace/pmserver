@@ -26,7 +26,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
@@ -45,7 +44,7 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
         User myUser = (User) userDetails;
         String username = authentication.getName();
 
-        if (authentication.getCredentials() == null) {
+        if (authentication.getCredentials() == null || authentication.getCredentials().toString() == "" ) {
             logger.debug("Authentication failed: no credentials provided");
 
             throw new BadCredentialsException(messages.getMessage(
@@ -79,7 +78,7 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
         //如果是微信openid登陆
         } else if (username.equals(myUser.getWxOpenId())) {
 
-            //如果是微信openid，直接返回成功
+            //如果是微信openid，验证随机密码
             return;
         } else {
 
