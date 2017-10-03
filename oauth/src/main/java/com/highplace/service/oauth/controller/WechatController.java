@@ -44,7 +44,7 @@ public class WechatController {
 
     //针对微信的特殊处理,参考http://blog.csdn.net/kinginblue/article/details/52706155
     @Bean
-    RestTemplate restTemplate(){
+    public RestTemplate restTemplate(){
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new WxMappingJackson2HttpMessageConverter());
         return restTemplate;
