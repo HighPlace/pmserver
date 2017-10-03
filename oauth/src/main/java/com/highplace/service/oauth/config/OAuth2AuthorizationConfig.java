@@ -1,11 +1,11 @@
 package com.highplace.service.oauth.config;
 
-import com.highplace.service.oauth.service.ProductInstanceUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -19,6 +19,7 @@ import org.springframework.security.oauth2.provider.token.AuthorizationServerTok
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
+import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
@@ -35,14 +36,9 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private AuthenticationManager authenticationManager; // 引入security中提供的 AuthenticationManager
 
-    //使用mysql存储clientDetails和token信息
+    //使用mysql存储clientDetails信息
     @Autowired
     private DataSource dataSource;
-
-    @Bean // 声明TokenStore实现
-    public TokenStore tokenStore() {
-        return new JdbcTokenStore(dataSource);
-    }
 
     @Bean // 声明 ClientDetails实现
     public ClientDetailsService clientDetails() {
@@ -50,6 +46,12 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     }
 
     /*
+    @Bean // 声明TokenStore实现
+    public TokenStore tokenStore() {
+        return new JdbcTokenStore(dataSource);
+    }
+    */
+
     //使用redis存储token信息
     @Autowired
     private RedisConnectionFactory connectionFactory;
@@ -57,7 +59,6 @@ public class OAuth2AuthorizationConfig extends AuthorizationServerConfigurerAdap
     public RedisTokenStore tokenStore() {
         return new RedisTokenStore(connectionFactory);
     }
-    */
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
