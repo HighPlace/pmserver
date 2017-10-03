@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class User  implements UserDetails {
 
@@ -67,6 +68,17 @@ public class User  implements UserDetails {
     private List<Role> roles;   //用户下的所有角色
 
     private List<Action> actions;; //用户角色对应的所有可以操作的资源
+
+    private List<GrantedAuthority> authorities;
+
+    @Override
+    public List<GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(List<GrantedAuthority> authorities) {
+        this.authorities = authorities;
+    }
 
     public List<Action> getActions() {
         return actions;
@@ -183,10 +195,7 @@ public class User  implements UserDetails {
      *
      * @return the authorities, sorted by natural key (never <code>null</code>)
      */
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
+
 
     public String getPassword() {
         return password;

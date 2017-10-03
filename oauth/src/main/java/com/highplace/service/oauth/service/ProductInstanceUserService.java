@@ -87,9 +87,12 @@ public class ProductInstanceUserService implements UserDetailsService {
                 */
             }
 
-            return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                    user.isEnabled(), user.isAccountNonExpired(), user.isCredentialsNonExpired(),
-                    user.isAccountNonLocked(), grantedAuthorities);
+            user.setAuthorities(grantedAuthorities);
+
+            //return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
+            //        user.isEnabled(), user.isAccountNonExpired(), user.isCredentialsNonExpired(),
+            //        user.isAccountNonLocked(), grantedAuthorities);
+            return user;
 
         } else {
 
