@@ -3,10 +3,11 @@ package com.highplace.service.oauth.domain;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class Role {
+public class Role implements Serializable {
 
     @Id
     @GeneratedValue
