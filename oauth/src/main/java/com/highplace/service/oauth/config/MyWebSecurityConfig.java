@@ -30,16 +30,21 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Autowired
-    private MyDaoAuthenticationProvider myDaoAuthenticationProvider;
+    @Bean
+    public MyDaoAuthenticationProvider myDaoAuthenticationProvider() {
+        MyDaoAuthenticationProvider myDaoAuthenticationProvider = new MyDaoAuthenticationProvider();
+        myDaoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
+        return myDaoAuthenticationProvider;
+    }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
         //auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
-        myDaoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-        myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
-        auth.authenticationProvider(myDaoAuthenticationProvider);
+        //myDaoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        //myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
+        auth.authenticationProvider(myDaoAuthenticationProvider());
     }
 
     @Bean
