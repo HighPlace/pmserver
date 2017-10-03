@@ -12,6 +12,15 @@ public class UserView {
         this.username = username;
     }
 
+    @Override
+    public String toString() {
+        return "UserView{" +
+                "productInstId='" + productInstId + '\'' +
+                ", userId=" + userId +
+                ", username='" + username + '\'' +
+                '}';
+    }
+
     public String getProductInstId() {
         return productInstId;
     }

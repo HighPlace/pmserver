@@ -111,7 +111,13 @@ public class WechatController {
         logger.info("XXXXXXXXXXXXX accesstokenUrl: " + accessTokenUrl);
 
         WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
-        logger.info(wechatAccessToken.toString());
+
+        if (null == wechatAccessToken || !wechatAccessToken.valid()){
+            logger.error("getWechatAccessToken invalid: " + wechatAccessToken);
+            throw new Exception("获取微信appid失败");
+        }
+
+        logger.info("XXXXXXXXXXXXX wechatAccessToken: " + wechatAccessToken);
 
         /*
         //获取用户信息
@@ -147,7 +153,9 @@ public class WechatController {
             throw new Exception("你没有绑定微信账号:" + wechatAccessToken.getOpenid());
         }
         //request.getSession().setAttribute("user", isExists);
-        return new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername());
+        UserView uv = new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername());
+        logger.info("XXXXXXXXXXXXX UserView: " + uv);
+        return uv;
     }
 
     // 检查签名
