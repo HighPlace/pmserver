@@ -37,7 +37,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
         return myDaoAuthenticationProvider;
     }
-
+    //UsernamePasswordAuthenticationFilter
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 

@@ -75,6 +75,7 @@ public class WechatController {
     @RequestMapping(value = "/wechat/login", method= RequestMethod.GET)
     public String showLogin(HttpServletRequest request) throws UnsupportedEncodingException{
 
+        logger.debug("XXXXXXXXXXXX sessionid" + request.getSession().getId());
         //生成state放入redis
         String secretState = "secret" + new Random().nextInt(999_999_999);
         stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState);
