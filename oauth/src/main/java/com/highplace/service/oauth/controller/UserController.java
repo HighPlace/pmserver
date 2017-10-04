@@ -29,6 +29,8 @@ public class UserController {
     public static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    public static final String VERIFY_CODE_NAME_INSESSION = "verifycode";
+
     @Qualifier("captchaProducer")
     @Autowired
     private DefaultKaptcha defaultKaptcha;
@@ -62,9 +64,9 @@ public class UserController {
                                HttpServletRequest request) throws Exception {
 
         //验证验证码
-        String codeFromSession = request.getSession().getAttribute("vrifycode").toString();
+        String codeFromSession = (String) request.getSession().getAttribute(VERIFY_CODE_NAME_INSESSION);
         logger.debug("codeFromSession=" + codeFromSession + "codeFromRequest=" + user.getVerifycode());
-        if (codeFromSession == null || user.getVerifycode() == null || codeFromSession.equals(user.getVerifycode())) {
+        if (codeFromSession == null || user.getVerifycode() == null || !codeFromSession.equals(user.getVerifycode())) {
             throw new Exception("验证码错误");
         }
 
@@ -109,7 +111,7 @@ public class UserController {
         //生产验证码字符串并保存到session中
         String createText = defaultKaptcha.createText();
         logger.debug("kaptcha text: " + createText);
-        request.getSession().setAttribute("vrifycode", createText);
+        request.getSession().setAttribute(VERIFY_CODE_NAME_INSESSION, createText);
 
         BufferedImage bi = defaultKaptcha.createImage(createText);
         ServletOutputStream out = response.getOutputStream();
