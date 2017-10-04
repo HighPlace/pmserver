@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
 import java.security.Principal;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class UserController {
@@ -29,11 +31,14 @@ public class UserController {
     public static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public static final String VERIFY_CODE_NAME_INSESSION = "verifycode";
+    public static final String PREFIX_VERIFY_CODE_NAME_INSESSION = "PREFIX_VERIFY_CODE_NAME_INSESSION";
 
     @Qualifier("captchaProducer")
     @Autowired
     private DefaultKaptcha defaultKaptcha;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     /*
     public static final String ROLE_TENANT_ADMIN = "TENANT_ADMIN";
@@ -64,15 +69,23 @@ public class UserController {
                                HttpServletRequest request) throws Exception {
 
         //验证验证码
-        String codeFromSession = (String) request.getSession().getAttribute(VERIFY_CODE_NAME_INSESSION);
-
+        /*
+        String codeFromSession = (String) request.getSession().getAttribute(PREFIX_VERIFY_CODE_NAME_INSESSION);
         logger.debug("XXXXXXXXXXXXXXX sessinoid:" + request.getSession().getId());
-        logger.debug("XXXXXXXXXXXXXXX get session: " + VERIFY_CODE_NAME_INSESSION + "=" + codeFromSession);
+        logger.debug("XXXXXXXXXXXXXXX get session: " + PREFIX_VERIFY_CODE_NAME_INSESSION + "=" + codeFromSession);
 
         if (codeFromSession == null || user.getVerifycode() == null || !codeFromSession.equals(user.getVerifycode())) {
             logger.debug("XXXXXXXXXXXXXXX codeFromSession=" + codeFromSession + "codeFromRequest=" + user.getVerifycode());
             throw new Exception("验证码错误");
         }
+        */
+
+        String codeFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_VERIFY_CODE_NAME_INSESSION + user.getVerifycode());
+        if (codeFromRedis == null || user.getVerifycode() == null || !codeFromRedis.equals(user.getVerifycode())) {
+            logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromRequest=" + user.getVerifycode());
+            throw new Exception("验证码错误");
+        }
+        stringRedisTemplate.delete(PREFIX_VERIFY_CODE_NAME_INSESSION + user.getVerifycode());
 
         User existing = userDao.findByUsername(user.getUsername());
         Assert.isNull(existing, "user already exists: " + user.getUsername());
@@ -114,10 +127,13 @@ public class UserController {
 
         //生产验证码字符串并保存到session中
         String createText = defaultKaptcha.createText();
-        request.getSession().setAttribute(VERIFY_CODE_NAME_INSESSION, createText);
-        logger.debug("XXXXXXXXXXXXXXX sessinoid:" + request.getSession().getId());
-        logger.debug("XXXXXXXXXXXXXXX set session: " + VERIFY_CODE_NAME_INSESSION + "=" + createText);
 
+        stringRedisTemplate.opsForValue().set(PREFIX_VERIFY_CODE_NAME_INSESSION + createText, createText,60*1,TimeUnit.SECONDS);
+        /*
+        request.getSession().setAttribute(PREFIX_VERIFY_CODE_NAME_INSESSION, createText);
+        logger.debug("XXXXXXXXXXXXXXX sessinoid:" + request.getSession().getId());
+        logger.debug("XXXXXXXXXXXXXXX set session: " + PREFIX_VERIFY_CODE_NAME_INSESSION + "=" + createText);
+        */
         BufferedImage bi = defaultKaptcha.createImage(createText);
         ServletOutputStream out = response.getOutputStream();
         ImageIO.write(bi, "jpg", out);
