@@ -58,21 +58,19 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
         if(username.equals(myUser.getUsername())
                 || username.equals(myUser.getEmail())
                 || username.equals(myUser.getMobileNo())) {
+            //优先比对密码
+            if( !passwordEncoder.matches(presentedPassword, userDetails.getPassword()) )
+            {
+                //如果是手机号，可能是手机验证码登录，所以再核对下手机验证码
+                if (username.equals(myUser.getMobileNo())){
+                    return;
 
-            if (username.equals(myUser.getMobileNo())) {
+                } else {
 
-                //如果是手机号登陆，优先比对手机验证码
-                return;
-
-            } else {
-
-                //否则，比对密码
-                if( !passwordEncoder.matches(presentedPassword, userDetails.getPassword()) )
-                {
                     logger.debug("Authentication failed: password does not match stored value");
                     throw new BadCredentialsException(messages.getMessage(
-                            "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                            "Bad credentials"));
+                                "AbstractUserDetailsAuthenticationProvider.badCredentials",
+                                "Bad credentials"));
                 }
             }
         //如果是微信openid登陆

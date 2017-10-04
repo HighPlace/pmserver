@@ -21,9 +21,9 @@ function requestOauthToken(username, password, code) {
 		async: false,
 		data: {
 			scope: 'ui',
-			username: username,
+			username: username + "|" + code,
 			password: password,
-			verifycode : code,
+			//verifycode : code,
 			grant_type: 'password'
 		},
 		success: function (data) {

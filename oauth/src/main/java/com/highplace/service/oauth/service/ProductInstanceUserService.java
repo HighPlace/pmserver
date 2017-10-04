@@ -8,6 +8,7 @@ import com.highplace.service.oauth.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.highplace.service.oauth.controller.UserController.PREFIX_VERIFY_CODE_NAME_INSESSION;
+
 @Service
 public class ProductInstanceUserService implements UserDetailsService {
 
@@ -27,6 +30,9 @@ public class ProductInstanceUserService implements UserDetailsService {
 
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     //@Autowired
     //ActionDao actionDao;
@@ -46,16 +52,48 @@ public class ProductInstanceUserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        logger.info("XXXXXXXXXXXXX  username:" + username);
+        //为增加验证码功能，用户名(用户名、邮箱、手机号)和验证以 name|code 的方式传入
+        //如果是openid登录，则没有code
+        logger.info("XXXXXXXXXXXXX  username | verifycode:" + username);
+
+        String[] str = username.split("\\|");
+
         //User user = userDao.findByUsername(username);
         //通过用户名、手机号、邮箱、微信openid其中一个查询
-        User user = userDao.findByGeneralName(username);
+        User user = userDao.findByGeneralName(str[0]);
 
         if (user != null) {
 
             logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
             logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
             logger.info("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
+
+            boolean checkVerifyCodeFlag = false;
+
+            //用户名和邮箱登录，必须要图形验证码
+            if(str[0].equals(user.getUsername()) || str[0].equals(user.getEmail())) {
+                if(str.length == 1){
+                    throw new UsernameNotFoundException("Verify code do not exist!");
+                } else {
+                    checkVerifyCodeFlag = true;
+                }
+            }
+            //手机号登录，有可能是通过手机验证码（作为密码传入），所以需要判断usernmae是否包含了图形验证码，如果包含了，则验证
+            else if(str[0].equals(user.getMobileNo())){
+                if(str.length > 1) {
+                    checkVerifyCodeFlag = true;
+                }
+            }
+
+            if(checkVerifyCodeFlag) {
+                String codeFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_VERIFY_CODE_NAME_INSESSION + str[1]);
+                if (codeFromRedis == null || !codeFromRedis.equals(str[1])) {
+                    logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromUsername=" + str[1]);
+                    throw new UsernameNotFoundException("验证码错误");
+                }
+                //删除验证码
+                stringRedisTemplate.delete(PREFIX_VERIFY_CODE_NAME_INSESSION + str[1]);
+            }
 
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 

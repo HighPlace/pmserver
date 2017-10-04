@@ -85,7 +85,8 @@ public class UserController {
             logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromRequest=" + user.getVerifycode());
             throw new Exception("验证码错误");
         }
-        stringRedisTemplate.delete(PREFIX_VERIFY_CODE_NAME_INSESSION + user.getVerifycode());
+        //request token后再删除
+        //stringRedisTemplate.delete(PREFIX_VERIFY_CODE_NAME_INSESSION + user.getVerifycode());
 
         User existing = userDao.findByUsername(user.getUsername());
         Assert.isNull(existing, "user already exists: " + user.getUsername());

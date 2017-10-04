@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.data.repository.query.SecurityEvaluationContextExtension;
+import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -48,17 +49,21 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.authenticationProvider(myDaoAuthenticationProvider());
     }
 
+
+/*
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         MyUsernamePasswordAuthenticationFilter myUsernamePasswordAuthenticationFilter = new MyUsernamePasswordAuthenticationFilter();
         myUsernamePasswordAuthenticationFilter.setAuthenticationManager(authenticationManagerBean());
         http.addFilterAt(myUsernamePasswordAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);
     }
-
+*/
     @Bean
     public SecurityEvaluationContextExtension securityEvaluationContextExtension() {
         return new SecurityEvaluationContextExtension();
     }
+
+    //TokenEndpoint
 
     @Override
     @Bean
