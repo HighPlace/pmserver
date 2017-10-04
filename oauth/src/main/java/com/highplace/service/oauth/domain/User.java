@@ -295,4 +295,13 @@ public class User implements UserDetails, CredentialsContainer {
     public void eraseCredentials() {
         password = null;
     }
+
+    //用作登录验证码
+    private String verifycode;
+    public String getVerifycode() {
+        return verifycode;
+    }
+    public void setVerifycode(String verifycode) {
+        this.verifycode = verifycode;
+    }
 }

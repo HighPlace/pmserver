@@ -59,12 +59,11 @@ public class UserController {
     @Transactional
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
     public UserView createUser(@Valid @RequestBody User user,
-                               @RequestParam(value = "verifycode", required = true) String verifycode,
                                HttpServletRequest request) throws Exception {
 
         //验证验证码
         String codeFromSession = request.getSession().getAttribute("vrifycode").toString();
-        if (codeFromSession == null || codeFromSession.equals(verifycode)) {
+        if (codeFromSession == null || user.getVerifycode() == null || codeFromSession.equals(user.getVerifycode())) {
             throw new Exception("验证码错误");
         }
 

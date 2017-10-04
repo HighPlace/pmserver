@@ -29,9 +29,9 @@ public class RestServiceError {
     }
 
     public enum Type {
-        BAD_REQUEST_ERROR("error.badrequest", "Bad request error"),
-        INTERNAL_SERVER_ERROR("error.internalserver", "Unexpected server error"),
-        VALIDATION_ERROR("error.validation", "Found validation issues");
+        BAD_REQUEST_ERROR("10000", "Bad request error"),
+        INTERNAL_SERVER_ERROR("10001", "Unexpected server error"),
+        VALIDATION_ERROR("10002", "Found validation issues");
 
         private String code;
         private String message;
