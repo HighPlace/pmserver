@@ -63,6 +63,7 @@ public class UserController {
 
         //验证验证码
         String codeFromSession = request.getSession().getAttribute("vrifycode").toString();
+        logger.debug("codeFromSession=" + codeFromSession + "codeFromRequest=" + user.getVerifycode());
         if (codeFromSession == null || user.getVerifycode() == null || codeFromSession.equals(user.getVerifycode())) {
             throw new Exception("验证码错误");
         }
