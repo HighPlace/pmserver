@@ -24,6 +24,6 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .and()
                 .httpBasic();
 
-        http.addFilterAt(new MyUsernamePasswordAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
+
     }
 }

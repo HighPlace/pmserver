@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -45,6 +46,11 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         //myDaoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         //myDaoAuthenticationProvider.setUserDetailsService(userDetailsService());
         auth.authenticationProvider(myDaoAuthenticationProvider());
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.addFilterAt(new MyUsernamePasswordAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
