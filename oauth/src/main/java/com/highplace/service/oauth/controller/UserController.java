@@ -68,7 +68,7 @@ public class UserController {
     public UserView createUser(@Valid @RequestBody User user,
                                HttpServletRequest request) throws Exception {
 
-        //验证验证码
+        //验证验证码 sessionid每次都不一样,改为直接存redis
         /*
         String codeFromSession = (String) request.getSession().getAttribute(PREFIX_VERIFY_CODE_NAME_INSESSION);
         logger.debug("XXXXXXXXXXXXXXX sessinoid:" + request.getSession().getId());
@@ -125,11 +125,10 @@ public class UserController {
         response.setHeader("Pragma", "no-cache");
         response.setContentType("image/jpeg");
 
-        //生产验证码字符串并保存到session中
+        //生产验证码字符串并保存到redis中
         String createText = defaultKaptcha.createText();
-
         stringRedisTemplate.opsForValue().set(PREFIX_VERIFY_CODE_NAME_INSESSION + createText, createText,60*1,TimeUnit.SECONDS);
-        /*
+        /* sessionid每次都不一样
         request.getSession().setAttribute(PREFIX_VERIFY_CODE_NAME_INSESSION, createText);
         logger.debug("XXXXXXXXXXXXXXX sessinoid:" + request.getSession().getId());
         logger.debug("XXXXXXXXXXXXXXX set session: " + PREFIX_VERIFY_CODE_NAME_INSESSION + "=" + createText);
