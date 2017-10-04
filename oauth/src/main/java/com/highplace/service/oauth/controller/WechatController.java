@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class WechatController {
@@ -78,7 +79,7 @@ public class WechatController {
         logger.debug("XXXXXXXXXXXX sessionid" + request.getSession().getId());
         //生成state放入redis
         String secretState = "secret" + new Random().nextInt(999_999_999);
-        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState);
+        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState,60*5, TimeUnit.SECONDS);
         //request.getSession().setAttribute("state", secretState);
 
         //String loginUrl = WEB_LOGIN_BASE_URL

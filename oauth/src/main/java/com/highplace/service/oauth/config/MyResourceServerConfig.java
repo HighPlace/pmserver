@@ -18,7 +18,7 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
                 .and()
-                .authorizeRequests().antMatchers("/reg","/wechat/**").permitAll()
+                .authorizeRequests().antMatchers("/reg","/wechat/**","/captcha-image").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
