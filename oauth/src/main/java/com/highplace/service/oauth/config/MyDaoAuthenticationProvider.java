@@ -42,7 +42,7 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
             throws AuthenticationException {
 
         User myUser = (User) userDetails;
-        String username = authentication.getName();
+        String username = authentication.getName().split("\\|")[0];
 
         if (authentication.getCredentials() == null || authentication.getCredentials().toString() == "" ) {
             logger.debug("Authentication failed: no credentials provided");
@@ -73,6 +73,8 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
                                 "Bad credentials"));
                 }
             }
+            return;
+
         //如果是微信openid登陆
         } else if (username.equals(myUser.getWxOpenId())) {
 
