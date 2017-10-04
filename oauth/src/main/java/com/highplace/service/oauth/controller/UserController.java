@@ -13,10 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
@@ -61,7 +58,15 @@ public class UserController {
     //注册时一定传入实例ID regType为0,设置实例ID为空，表示是租户
     @Transactional
     @RequestMapping(path = "/reg", method = RequestMethod.POST)
-    public UserView createUser(@Valid @RequestBody User user) {
+    public UserView createUser(@Valid @RequestBody User user,
+                               @RequestParam(value = "verifycode", required = true) String verifycode,
+                               HttpServletRequest request) throws Exception {
+
+        //验证验证码
+        String codeFromSession = request.getSession().getAttribute("vrifycode").toString();
+        if (codeFromSession == null || codeFromSession.equals(verifycode)) {
+            throw new Exception("验证码错误");
+        }
 
         User existing = userDao.findByUsername(user.getUsername());
         Assert.isNull(existing, "user already exists: " + user.getUsername());
@@ -104,7 +109,7 @@ public class UserController {
         //生产验证码字符串并保存到session中
         String createText = defaultKaptcha.createText();
         logger.debug("kaptcha text: " + createText);
-        request.getSession().setAttribute("vrifyCode", createText);
+        request.getSession().setAttribute("vrifycode", createText);
 
         BufferedImage bi = defaultKaptcha.createImage(createText);
         ServletOutputStream out = response.getOutputStream();

@@ -9,7 +9,7 @@ var global = {
  * Oauth2
  */
 
-function requestOauthToken(username, password) {
+function requestOauthToken(username, password, code) {
 
 	var success = false;
 
@@ -23,6 +23,7 @@ function requestOauthToken(username, password) {
 			scope: 'ui',
 			username: username,
 			password: password,
+			verifycode : code,
 			grant_type: 'password'
 		},
 		success: function (data) {

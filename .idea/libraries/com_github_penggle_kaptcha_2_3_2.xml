@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="com.github.penggle:kaptcha:2.3.2" type="repository">
+    <properties maven-id="com.github.penggle:kaptcha:2.3.2" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/kaptcha-2.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/filters-2.0.235-1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ideaLibSources/kaptcha-2.3.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
