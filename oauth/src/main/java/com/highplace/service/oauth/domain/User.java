@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+//注意:修改user类必须清除token
 public class User implements UserDetails, CredentialsContainer {
 
     @Id

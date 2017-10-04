@@ -50,7 +50,9 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterAt(new MyUsernamePasswordAuthenticationFilter(),UsernamePasswordAuthenticationFilter.class);
+        MyUsernamePasswordAuthenticationFilter myUsernamePasswordAuthenticationFilter = new MyUsernamePasswordAuthenticationFilter();
+        myUsernamePasswordAuthenticationFilter.setAuthenticationManager(authenticationManagerBean());
+        http.addFilterAt(myUsernamePasswordAuthenticationFilter,UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
