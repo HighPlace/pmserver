@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
@@ -156,7 +157,8 @@ public class UserController {
     @RequestMapping("/page")
     public List<Country> page() {
 
-        PageHelper.startPage(3, 20);
+        PageHelper.startPage(18, 10);
+        OrderByHelper.orderBy("countrycode desc");
 
         List<Country> countries = countryDao.findAll();
         logger.debug("Total: " + ((Page) countries).getTotal());
