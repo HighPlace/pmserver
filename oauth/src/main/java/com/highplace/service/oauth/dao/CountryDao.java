@@ -9,7 +9,7 @@ import java.util.List;
 @Mapper
 public interface CountryDao {
 
-    @Select("select * from country")
+    @Select("select * from country order by countryname desc")
     List<Country> findAll();
 
 }
