@@ -1,7 +1,11 @@
 package com.highplace.service.oauth.controller;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
+import com.highplace.service.oauth.dao.CountryDao;
 import com.highplace.service.oauth.dao.UserDao;
+import com.highplace.service.oauth.domain.Country;
 import com.highplace.service.oauth.domain.User;
 import com.highplace.service.oauth.domain.UserView;
 import org.slf4j.Logger;
@@ -10,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -23,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
 import java.security.Principal;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -39,6 +43,9 @@ public class UserController {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private CountryDao countryDao;
 
     /*
     public static final String ROLE_TENANT_ADMIN = "TENANT_ADMIN";
@@ -101,7 +108,7 @@ public class UserController {
         logger.debug("XXXXXXXXXXXXX  userid:" + user.getUserId());
 
         userDao.insertUserRole(user.getUserId(), 1L); //hard code...
-        return new UserView(user.getProductInstId(), user.getUserId(), user.getUsername());
+        return new UserView(user.getProductInstId(), user.getUserId(), user.getUsername(), null, null);
 
         /*
         Map<String, String> map = new LinkedHashMap<>();
@@ -142,5 +149,21 @@ public class UserController {
         } finally {
             out.close();
         }
+    }
+
+
+    //测试分页功能
+    @RequestMapping("/page")
+    public List<Country> page() {
+
+        PageHelper.startPage(3, 20);
+
+        List<Country> countries = countryDao.findAll();
+        logger.debug("Total: " + ((Page) countries).getTotal());
+        for (Country country : countries) {
+            logger.debug("Country Name: " + country.getCountryname());
+        }
+
+        return countries;
     }
 }

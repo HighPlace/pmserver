@@ -3,8 +3,7 @@ package com.highplace.service.oauth.controller;
 import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.User;
 import com.highplace.service.oauth.domain.UserView;
-import com.highplace.service.oauth.domain.WechatAccessToken;
-import com.highplace.service.oauth.domain.WechatUserInfo;
+import com.highplace.service.oauth.domain.wechat.WechatAccessToken;
 import com.highplace.service.oauth.config.WechatConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,7 @@ public class WechatController {
     public static final String MOBILE_LOGIN_BASE_URL = "https://open.weixin.qq.com/connect/oauth2/authorize";
     public static final String GET_USERINFO_URL = "https://api.weixin.qq.com/sns/userinfo";
     public static final String PREFIX_WX_LOGIN_STATE_KEY = "PREFIX_WX_LOGIN_STATE_KEY";
+    public static final String PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY = "PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY";
 
     @Autowired
     WechatConfig wechatConfig;
@@ -166,7 +166,11 @@ public class WechatController {
             throw new Exception("你没有绑定微信账号:" + wechatAccessToken.getOpenid());
         }
         //request.getSession().setAttribute("user", isExists);
-        UserView uv = new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername());
+        //生成一个临时的用于通过wxopenid登录的密码，并放入到session中
+        String wxOpenidTempPassword = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + wxOpenidTempPassword, wxOpenidTempPassword,60*1, TimeUnit.SECONDS);
+
+        UserView uv = new UserView(isExists.getProductInstId(),isExists.getUserId(),isExists.getUsername(), wechatAccessToken.getOpenid(), wxOpenidTempPassword);
         logger.debug("XXXXXXXXXXXXX UserView: " + uv);
         return uv;
     }

@@ -1,4 +1,4 @@
-package com.highplace.service.oauth.domain;
+package com.highplace.service.oauth.domain.wechat;
 
 public class WechatError {
 

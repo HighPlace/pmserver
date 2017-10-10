@@ -16,7 +16,10 @@
 
 package com.highplace.service.oauth.config;
 
+import com.highplace.service.oauth.controller.WechatController;
 import com.highplace.service.oauth.domain.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,6 +36,9 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
     private UserDetailsService userDetailsService;
 
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     public MyDaoAuthenticationProvider() {
     }
@@ -63,6 +69,8 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
             {
                 //如果是手机号，可能是手机验证码登录，所以再核对下手机验证码
                 if (username.equals(myUser.getMobileNo())){
+
+                    //to-do
                     return;
 
                 } else {
@@ -73,13 +81,21 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
                                 "Bad credentials"));
                 }
             }
-            return;
 
         //如果是微信openid登陆
         } else if (username.equals(myUser.getWxOpenId())) {
 
-            //如果是微信openid，验证随机密码
+            //如果是微信openid，验证临时密码
+            String wxOpenidTempPassword = stringRedisTemplate.opsForValue().get(WechatController.PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + presentedPassword);
+            logger.debug("XXXXXXXXXXXXX wxOpenidTempPasswordFromRedis: " + wxOpenidTempPassword);
+            if( (wxOpenidTempPassword == null) || !presentedPassword.equals(wxOpenidTempPassword) ){
+                logger.debug("Authentication failed: password does not match stored value");
+                throw new BadCredentialsException(messages.getMessage(
+                        "AbstractUserDetailsAuthenticationProvider.badCredentials",
+                        "Bad credentials"));
+            }
             return;
+
         } else {
 
             logger.debug("Authentication failed: username does not match any id");

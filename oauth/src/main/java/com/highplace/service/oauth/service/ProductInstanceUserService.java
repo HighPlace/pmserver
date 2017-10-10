@@ -64,9 +64,9 @@ public class ProductInstanceUserService implements UserDetailsService {
 
         if (user != null) {
 
-            logger.info("XXXXXXXXXXXXX  userid:" + user.getUserId());
-            logger.info("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
-            logger.info("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
+            logger.debug("XXXXXXXXXXXXX  userid:" + user.getUserId());
+            logger.debug("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
+            logger.debug("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
 
             boolean checkVerifyCodeFlag = false;
 

@@ -1,4 +1,4 @@
-package com.highplace.service.oauth.domain;
+package com.highplace.service.oauth.domain.wechat;
 
 /*
 access_token	网页授权接口调用凭证,注意：此access_token与基础支持的access_token不同
