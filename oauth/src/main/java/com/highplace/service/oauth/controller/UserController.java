@@ -71,10 +71,10 @@ public class UserController {
 
     //获取用户信息接口
     @RequestMapping(path = "/userinfo", method = RequestMethod.GET)
-    public Map<String, Object> getUserInfo(User myUser) {
+    public Map<String, Object> getUserInfo(OAuth2Authentication authen) {
 
         //OAuth2Authentication a = (OAuth2Authentication) principal;
-        //User myUser = (User) a.getPrincipal();
+        User myUser = (User) authen.getPrincipal();
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("userId", myUser.getUserId());
