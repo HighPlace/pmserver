@@ -96,7 +96,7 @@ public class User implements UserDetails, CredentialsContainer {
         return modules;
     }
 
-    public void setModules(List<Module> Module) {
+    public void setModules(List<Module> modules) {
         this.modules = modules;
     }
 

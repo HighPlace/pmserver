@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
@@ -73,7 +74,11 @@ public class UserController {
 
         User myUser = null;
         //if( principal instanceof User) {
-            myUser = (User) principal;
+
+        OAuth2Authentication a = (OAuth2Authentication) principal;
+
+
+            myUser = (User) a.getPrincipal();
 
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("userId", myUser.getUserId());
