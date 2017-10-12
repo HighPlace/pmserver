@@ -143,12 +143,7 @@ public class UserController {
         */
     }
 
-    //测试权限控制
-    @PreAuthorize("hasAnyAuthority('/property;POST','ADMIN')")
-    @RequestMapping("/testauthor")
-    public String author() {
-        return "有权限访问";
-    }
+
 
     @RequestMapping("/captcha-image")
     public void defaultKaptcha(HttpServletRequest request, HttpServletResponse response) throws Exception{
@@ -177,6 +172,23 @@ public class UserController {
         }
     }
 
+    @RequestMapping("/captcha-image-check")
+    public void checkVerifyCode(@RequestParam(value = "verifyCode", required = true) String verifyCode) throws Exception {
+
+        String codeFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_VERIFY_CODE_NAME_INSESSION + verifyCode);
+        if (codeFromRedis == null || !codeFromRedis.equals(verifyCode)) {
+            logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromRequest=" + verifyCode);
+            throw new Exception("验证码错误");
+        }
+    }
+
+
+    //测试权限控制
+    @PreAuthorize("hasAnyAuthority('/property;POST','ADMIN')")
+    @RequestMapping("/testauthor")
+    public String author() {
+        return "有权限访问";
+    }
 
     //测试分页功能
     @RequestMapping("/page")

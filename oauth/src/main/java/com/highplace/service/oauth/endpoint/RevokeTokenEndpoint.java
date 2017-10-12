@@ -17,11 +17,11 @@ public class RevokeTokenEndpoint {
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/oauth/token")
     @ResponseBody
-    public String revokeToken(String access_token) {
+    public void revokeToken(String access_token) throws Exception{
         if (consumerTokenServices.revokeToken(access_token)){
-            return "注销成功";
+            //成功不需返回
         }else{
-            return "注销失败";
+           throw new Exception("注销失败");
         }
     }
 }
