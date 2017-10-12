@@ -104,12 +104,12 @@ public class WechatLoginService {
 
         //如果没有指定，用缺省配置的
         if(callBackUrl == null) {
-            callBackUrl = URLEncoder.encode(wechatConfig.getCallback(), "utf-8");
+            callBackUrl = wechatConfig.getCallback();
         }
 
         loginUrl = loginUrl
                 + "?appid=" + wechatConfig.getClientid()
-                + "&redirect_uri=" + callBackUrl
+                + "&redirect_uri=" + URLEncoder.encode(callBackUrl, "utf-8")
                 //+ "&response_type=code&scope=snsapi_login"
                 + "&response_type=code&scope=snsapi_base"
                 + "&state=" + secretState

@@ -63,13 +63,14 @@ public class UserController {
     @Autowired
     private UserDao userDao;
 
+    //resource server获取用户信息接口
     //@PreAuthorize("#oauth2.hasScope('server')")
     @RequestMapping(path = "/user", method = RequestMethod.GET)
     public Principal user(Principal user) {
         return user;
     }
 
-    //获取用户信息接口
+    //前端获取用户信息接口
     @RequestMapping(path = "/userinfo", method = RequestMethod.GET)
     public Map<String, Object> getUserInfo(OAuth2Authentication authen) {
 
