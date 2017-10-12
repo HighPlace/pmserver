@@ -69,30 +69,24 @@ public class UserController {
         return user;
     }
 
+    //获取用户信息接口
     @RequestMapping(path = "/userinfo", method = RequestMethod.GET)
-    public Map<String, Object> getUserInfo(Principal principal) {
+    public Map<String, Object> getUserInfo(User myUser) {
 
-        User myUser = null;
-        //if( principal instanceof User) {
+        //OAuth2Authentication a = (OAuth2Authentication) principal;
+        //User myUser = (User) a.getPrincipal();
 
-        OAuth2Authentication a = (OAuth2Authentication) principal;
-
-
-            myUser = (User) a.getPrincipal();
-
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("userId", myUser.getUserId());
-            result.put("productInstId", myUser.getProductInstId());
-            result.put("username", myUser.getUsername());
-            result.put("mobileNo", myUser.getMobileNo());
-            result.put("email", myUser.getEmail());
-            result.put("wxOpenId", myUser.getWxOpenId());
-            result.put("superUserFlag", myUser.getSuperUserFlag());
-            result.put("roles", myUser.getRoles());
-            result.put("modules", myUser.getModules());
-            return result;
-        //}
-        //return null;
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("userId", myUser.getUserId());
+        result.put("productInstId", myUser.getProductInstId());
+        result.put("username", myUser.getUsername());
+        result.put("mobileNo", myUser.getMobileNo());
+        result.put("email", myUser.getEmail());
+        result.put("wxOpenId", myUser.getWxOpenId());
+        result.put("superUserFlag", myUser.getSuperUserFlag());
+        result.put("roles", myUser.getRoles());
+        result.put("modules", myUser.getModules());
+        return result;
 
     }
 
