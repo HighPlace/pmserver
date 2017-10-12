@@ -72,7 +72,7 @@ public class UserController {
     public Map<String, Object> getUserInfo(Principal principal) {
 
         User myUser = null;
-        if( principal instanceof User) {
+        //if( principal instanceof User) {
             myUser = (User) principal;
 
             Map<String, Object> result = new LinkedHashMap<>();
@@ -86,8 +86,8 @@ public class UserController {
             result.put("roles", myUser.getRoles());
             result.put("modules", myUser.getModules());
             return result;
-        }
-        return null;
+        //}
+        //return null;
 
     }
 
