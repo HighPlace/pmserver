@@ -6,6 +6,7 @@ import com.highplace.service.oauth.domain.wechat.WechatMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class WechatMenuService {
 
     public static final Logger logger = LoggerFactory.getLogger(WechatMenuService.class);

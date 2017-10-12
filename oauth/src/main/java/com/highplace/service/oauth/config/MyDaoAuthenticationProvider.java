@@ -18,6 +18,7 @@ package com.highplace.service.oauth.config;
 
 import com.highplace.service.oauth.controller.WechatController;
 import com.highplace.service.oauth.domain.User;
+import com.highplace.service.oauth.service.WechatLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -86,7 +87,7 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
         } else if (username.equals(myUser.getWxOpenId())) {
 
             //如果是微信openid，验证临时密码
-            String wxOpenidTempPassword = stringRedisTemplate.opsForValue().get(WechatController.PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + presentedPassword);
+            String wxOpenidTempPassword = stringRedisTemplate.opsForValue().get(WechatLoginService.PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + presentedPassword);
             logger.debug("XXXXXXXXXXXXX wxOpenidTempPasswordFromRedis: " + wxOpenidTempPassword);
             if( (wxOpenidTempPassword == null) || !presentedPassword.equals(wxOpenidTempPassword) ){
                 logger.debug("Authentication failed: password does not match stored value");

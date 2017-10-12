@@ -27,7 +27,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
 import java.security.Principal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -64,6 +66,29 @@ public class UserController {
     @RequestMapping(path = "/user", method = RequestMethod.GET)
     public Principal user(Principal user) {
         return user;
+    }
+
+    @RequestMapping(path = "/userinfo", method = RequestMethod.GET)
+    public Map<String, Object> getUserInfo(Principal principal) {
+
+        User myUser = null;
+        if( principal instanceof User) {
+            myUser = (User) principal;
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("userId", myUser.getUserId());
+            result.put("productInstId", myUser.getProductInstId());
+            result.put("username", myUser.getUsername());
+            result.put("mobileNo", myUser.getMobileNo());
+            result.put("email", myUser.getEmail());
+            result.put("wxOpenId", myUser.getWxOpenId());
+            result.put("superUserFlag", myUser.getSuperUserFlag());
+            result.put("roles", myUser.getRoles());
+            result.put("modules", myUser.getModules());
+            return result;
+        }
+        return null;
+
     }
 
     //@PreAuthorize("#oauth2.hasScope('server')")

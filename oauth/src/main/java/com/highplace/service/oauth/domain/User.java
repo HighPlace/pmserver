@@ -69,7 +69,9 @@ public class User implements UserDetails, CredentialsContainer {
 
     private List<Role> roles;   //用户下的所有角色
 
-    private List<Action> actions;; //用户角色对应的所有可以操作的资源
+    private List<Action> actions; //用户角色对应的所有可以操作的资源
+
+    private List<Module> modules; //用户角色对应的所有可以操作的模块
 
     private List<GrantedAuthority> authorities;
 
@@ -88,6 +90,14 @@ public class User implements UserDetails, CredentialsContainer {
 
     public void setActions(List<Action> actions) {
         this.actions = actions;
+    }
+
+    public List<Module> getModules() {
+        return modules;
+    }
+
+    public void setModules(List<Module> Module) {
+        this.modules = modules;
     }
 
     public List<Role> getRoles() {
@@ -289,6 +299,7 @@ public class User implements UserDetails, CredentialsContainer {
                 ", remark='" + remark + '\'' +
                 ", roles=" + roles +
                 ", actions=" + actions +
+                ", modules=" + modules +
                 '}';
     }
 
