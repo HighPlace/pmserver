@@ -4,6 +4,7 @@ import com.highplace.ProductInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,12 +23,15 @@ public class PropertyController {
         //logger.info("XXXXXXXXXX:" + principal.toString());
         logger.info("XXXXXXXXXX:" + authen.getPrincipal());
         logger.info("XXXXXXXXXX:" + authen.getUserAuthentication().getPrincipal());
+        logger.info("XXXXXXXXXX:" + authen.getPrincipal().getClass());
+        Authentication a = (Authentication)authen.getUserAuthentication().getDetails();
 
 
-        ProductInstance p = (ProductInstance)authen.getUserAuthentication().getPrincipal();
+
+        ProductInstance p = (ProductInstance)a.getPrincipal();
         logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
 
-        return authen;
+        return a;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
