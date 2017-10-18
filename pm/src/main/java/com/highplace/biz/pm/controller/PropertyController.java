@@ -19,6 +19,17 @@ public class PropertyController {
     public static final Logger logger = LoggerFactory.getLogger(PropertyController.class);
 
     @RequestMapping(path = "/current", method = RequestMethod.GET)
+    public Principal getCurrentAccount(Authentication authen) {
+
+        //logger.info("XXXXXXXXXX:" + principal.toString());
+        logger.info("XXXXXXXXXX:" + authen.getPrincipal());
+        LinkedHashMap a = (LinkedHashMap)authen.getDetails();
+        LinkedHashMap o = (LinkedHashMap)a.get("principal");
+        logger.info("XXXXXXXXXX:" + (String)o.get("productInstId"));
+
+        return authen;
+    }
+    /*
     public Principal getCurrentAccount(OAuth2Authentication authen) {
 
         //logger.info("XXXXXXXXXX:" + principal.toString());
@@ -31,6 +42,7 @@ public class PropertyController {
 
         return authen;
     }
+    */
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping("/testadmin")
