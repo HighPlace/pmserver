@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.LinkedHashMap;
 
 @RestController
 public class PropertyController {
@@ -24,14 +25,16 @@ public class PropertyController {
         logger.info("XXXXXXXXXX:" + authen.getPrincipal());
         logger.info("XXXXXXXXXX:" + authen.getUserAuthentication().getPrincipal());
         logger.info("XXXXXXXXXX:" + authen.getPrincipal().getClass());
-        Authentication a = (Authentication)authen.getUserAuthentication().getDetails();
+        LinkedHashMap a = (LinkedHashMap)authen.getUserAuthentication().getDetails();
+        Object o = a.get("principal");
+        logger.info("XXXXXXXXXX:" + o);
 
 
 
-        ProductInstance p = (ProductInstance)a.getPrincipal();
+        ProductInstance p = (ProductInstance)o;
         logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
 
-        return a;
+        return authen;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
