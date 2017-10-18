@@ -17,15 +17,15 @@ public class PropertyController {
     public static final Logger logger = LoggerFactory.getLogger(PropertyController.class);
 
     @RequestMapping(path = "/current", method = RequestMethod.GET)
-    public Principal getCurrentAccount(Principal principal) {
+    public Principal getCurrentAccount(OAuth2Authentication authen) {
 
         //logger.info("XXXXXXXXXX:" + principal.toString());
         //logger.info("XXXXXXXXXX:" + principal.getName());
 
-        ProductInstance p = (ProductInstance)principal;
+        ProductInstance p = (ProductInstance)authen.getPrincipal();
         logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
 
-        return principal;
+        return authen;
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
