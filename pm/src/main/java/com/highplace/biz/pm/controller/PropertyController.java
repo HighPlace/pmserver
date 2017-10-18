@@ -20,10 +20,11 @@ public class PropertyController {
     public Principal getCurrentAccount(OAuth2Authentication authen) {
 
         //logger.info("XXXXXXXXXX:" + principal.toString());
-        //logger.info("XXXXXXXXXX:" + principal.getName());
+        logger.info("XXXXXXXXXX:" + authen.getPrincipal());
+        logger.info("XXXXXXXXXX:" + authen.getDetails());
 
-        ProductInstance p = (ProductInstance)authen.getPrincipal();
-        logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
+        //ProductInstance p = (ProductInstance)authen.getPrincipal();
+        //logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
 
         return authen;
     }
