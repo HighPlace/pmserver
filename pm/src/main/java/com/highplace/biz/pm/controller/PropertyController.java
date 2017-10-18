@@ -26,13 +26,8 @@ public class PropertyController {
         logger.info("XXXXXXXXXX:" + authen.getUserAuthentication().getPrincipal());
         logger.info("XXXXXXXXXX:" + authen.getPrincipal().getClass());
         LinkedHashMap a = (LinkedHashMap)authen.getUserAuthentication().getDetails();
-        Object o = a.get("principal");
-        logger.info("XXXXXXXXXX:" + o);
-
-
-
-        ProductInstance p = (ProductInstance)o;
-        logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
+        LinkedHashMap o = (LinkedHashMap)a.get("principal");
+        logger.info("XXXXXXXXXX:" + (String)o.get("productInstId"));
 
         return authen;
     }
