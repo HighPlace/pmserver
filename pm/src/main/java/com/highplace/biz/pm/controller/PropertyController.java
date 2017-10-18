@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,9 +24,8 @@ public class PropertyController {
 
         //logger.info("XXXXXXXXXX:" + principal.toString());
         logger.info("XXXXXXXXXX:" + authen.getPrincipal());
-        LinkedHashMap a = (LinkedHashMap)authen.getDetails();
-        LinkedHashMap o = (LinkedHashMap)a.get("principal");
-        logger.info("XXXXXXXXXX:" + (String)o.get("productInstId"));
+        logger.info("XXXXXXXXXX:" + authen.getDetails());
+
 
         return authen;
     }
