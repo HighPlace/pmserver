@@ -37,7 +37,7 @@ public class ExampleController {
         return "有权限访问";
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', '/testinfo;ALL', '/testinfo;GET')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', '/testinfo;GET', '/testinfo/**;GET', '/testinfo;ALL', '/testinfo/**;ALL')")
     @RequestMapping("/testinfo")
     public String testinfo() {
         return "有权限访问";

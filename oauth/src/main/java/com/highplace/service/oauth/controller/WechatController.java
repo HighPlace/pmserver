@@ -1,7 +1,5 @@
 package com.highplace.service.oauth.controller;
 
-import com.highplace.service.oauth.domain.User;
-import com.highplace.service.oauth.domain.UserView;
 import com.highplace.service.oauth.service.WechatLoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +15,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Controller
 public class WechatController {

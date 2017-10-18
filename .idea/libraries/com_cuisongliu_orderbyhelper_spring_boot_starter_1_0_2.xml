@@ -1,0 +1,28 @@
+<component name="libraryTable">
+  <library name="com.cuisongliu:orderbyhelper-spring-boot-starter:1.0.2" type="repository">
+    <properties maven-id="com.cuisongliu:orderbyhelper-spring-boot-starter:1.0.2" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/orderbyhelper-spring-boot-starter-1.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-boot-starter-1.5.3.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-boot-1.5.3.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-context-4.3.8.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-aop-4.3.8.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-beans-4.3.8.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-expression-4.3.8.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-boot-autoconfigure-1.5.3.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-boot-starter-logging-1.5.3.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/logback-classic-1.1.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/logback-core-1.1.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/slf4j-api-1.7.22.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jcl-over-slf4j-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jul-to-slf4j-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/log4j-over-slf4j-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/spring-core-4.3.8.RELEASE.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/orderbyhelper-spring-boot-autoconfigure-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/orderby-helper-0.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jsqlparser-0.9.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

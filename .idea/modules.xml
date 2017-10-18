@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/configserver/configserver.iml" filepath="$PROJECT_DIR$/configserver/configserver.iml" />
       <module fileurl="file://$PROJECT_DIR$/examplers/examplers.iml" filepath="$PROJECT_DIR$/examplers/examplers.iml" />
       <module fileurl="file://$PROJECT_DIR$/oauth/oauth.iml" filepath="$PROJECT_DIR$/oauth/oauth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/pm/pm.iml" filepath="$PROJECT_DIR$/pm/pm.iml" />
       <module fileurl="file://$PROJECT_DIR$/pmserver.iml" filepath="$PROJECT_DIR$/pmserver.iml" />
       <module fileurl="file://$PROJECT_DIR$/registry/registry.iml" filepath="$PROJECT_DIR$/registry/registry.iml" />
       <module fileurl="file://$PROJECT_DIR$/unilogin/unilogin.iml" filepath="$PROJECT_DIR$/unilogin/unilogin.iml" />

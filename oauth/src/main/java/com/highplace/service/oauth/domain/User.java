@@ -1,5 +1,6 @@
 package com.highplace.service.oauth.domain;
 
+import com.highplace.ProductInstance;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,13 +10,11 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 //注意:修改user类必须清除token
-public class User implements UserDetails, CredentialsContainer {
+public class User implements UserDetails, CredentialsContainer, ProductInstance {
 
     @Id
     @GeneratedValue

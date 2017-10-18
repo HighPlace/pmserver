@@ -10,6 +10,7 @@
         <module name="configserver" />
         <module name="examplers" />
         <module name="oauth" />
+        <module name="pm" />
         <module name="registry" />
         <module name="unilogin" />
       </profile>
@@ -19,6 +20,7 @@
       <module name="configserver" target="1.8" />
       <module name="examplers" target="1.8" />
       <module name="oauth" target="1.8" />
+      <module name="pm" target="1.8" />
       <module name="registry" target="1.8" />
       <module name="unilogin" target="1.8" />
     </bytecodeTargetLevel>
