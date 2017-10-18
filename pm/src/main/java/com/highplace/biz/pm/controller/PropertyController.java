@@ -21,10 +21,11 @@ public class PropertyController {
 
         //logger.info("XXXXXXXXXX:" + principal.toString());
         logger.info("XXXXXXXXXX:" + authen.getPrincipal());
-        logger.info("XXXXXXXXXX:" + authen.getDetails());
+        logger.info("XXXXXXXXXX:" + authen.getUserAuthentication().getPrincipal());
 
-        //ProductInstance p = (ProductInstance)authen.getPrincipal();
-        //logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
+
+        ProductInstance p = (ProductInstance)authen.getUserAuthentication().getPrincipal();
+        logger.info("XXXXXXXXX product_inst_id:" + p.getProductInstId());
 
         return authen;
     }
