@@ -72,7 +72,11 @@ public class MyDaoAuthenticationProvider extends AbstractUserDetailsAuthenticati
                 if (username.equals(myUser.getMobileNo())){
 
                     //to-do
-                    return;
+                    //return;
+                    //未实现逻辑,先抛出异常
+                    throw new BadCredentialsException(messages.getMessage(
+                            "AbstractUserDetailsAuthenticationProvider.badCredentials",
+                            "Bad credentials"));
 
                 } else {
 
