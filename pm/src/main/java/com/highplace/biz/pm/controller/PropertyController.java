@@ -30,7 +30,7 @@ public class PropertyController {
 
     @RequestMapping(path = "/property", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property;GET','/property;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
-    public List<Property> getProperty(@Valid @RequestBody PropertySearchBean searchBean,
+    public List<Property> getProperty(@Valid PropertySearchBean searchBean,
                                         Principal principal) {
 
         return propertyService.searchProperty(SecurityUtils.getCurrentProductInstId(principal), searchBean);
@@ -60,18 +60,5 @@ public class PropertyController {
         return result;
     }
 
-
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @RequestMapping("/testadmin")
-    public String testadmin() {
-        return "有权限访问";
-    }
-
-    @PreAuthorize("hasAnyAuthority('ADMIN', '/property;GET', '/property/**;GET', '/property;ALL', '/property/**;ALL')")
-    @RequestMapping("/property")
-    public String testinfo() {
-        return "有权限访问";
-    }
 
 }
