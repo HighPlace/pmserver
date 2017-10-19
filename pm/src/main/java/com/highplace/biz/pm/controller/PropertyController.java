@@ -33,6 +33,7 @@ public class PropertyController {
     public List<Property> getProperty(@Valid PropertySearchBean searchBean,
                                         Principal principal) {
 
+        logger.debug("##############searchBean:" + searchBean.toString());
         return propertyService.searchProperty(SecurityUtils.getCurrentProductInstId(principal), searchBean);
 
     }

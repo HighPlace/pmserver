@@ -38,4 +38,14 @@ public class PageBean {
     public void setSortType(String sortType) {
         this.sortType = sortType;
     }
+
+    @Override
+    public String toString() {
+        return "PageBean{" +
+                "pageNum=" + pageNum +
+                ", pageSize=" + pageSize +
+                ", sortField='" + sortField + '\'' +
+                ", sortType='" + sortType + '\'' +
+                '}';
+    }
 }

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -95,6 +94,8 @@ public class PropertyService {
                 OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
             }
         }
+
+        logger.debug("############example:" ,example.toString());
 
         return propertyMapper.selectByExample(example);
     }

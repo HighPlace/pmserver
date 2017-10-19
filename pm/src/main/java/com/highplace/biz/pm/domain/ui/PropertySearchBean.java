@@ -48,4 +48,16 @@ public class PropertySearchBean extends PageBean {
     public void setStatus(Integer status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "PropertySearchBean{" +
+                "zoneId='" + zoneId + '\'' +
+                ", buildingId='" + buildingId + '\'' +
+                ", unitId='" + unitId + '\'' +
+                ", roomId='" + roomId + '\'' +
+                ", status=" + status +
+                '}' +
+                super.toString();
+    }
 }
