@@ -60,6 +60,7 @@ public class PropertyService {
     //查询房产信息列表
     public List<Property> searchProperty(String productInstId, PropertySearchBean searchBean) {
 
+        logger.debug("############example 1:");
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();
 
@@ -81,6 +82,8 @@ public class PropertyService {
 
         if(searchBean.getStatus() != null )
             criteria.andStatusEqualTo(searchBean.getStatus());
+
+        logger.debug("############example:" ,example.toString());
 
         //设置分页参数
         if(searchBean.getPageNum() != null && searchBean.getPageSize() != null )

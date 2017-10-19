@@ -34,6 +34,7 @@ public class PropertyController {
                                         Principal principal) {
 
         logger.debug("##############searchBean:" + searchBean.toString());
+        logger.debug("##############productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
         return propertyService.searchProperty(SecurityUtils.getCurrentProductInstId(principal), searchBean);
 
     }
