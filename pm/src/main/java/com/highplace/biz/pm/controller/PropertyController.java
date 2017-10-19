@@ -30,7 +30,7 @@ public class PropertyController {
 
     @RequestMapping(path = "/property", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property;GET','/property;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
-    public List<Property> getProperty(@Valid PropertySearchBean searchBean,
+    public Map<String, Object> getProperty(@Valid PropertySearchBean searchBean,
                                         Principal principal) {
 
         logger.debug("##############searchBean:" + searchBean.toString());

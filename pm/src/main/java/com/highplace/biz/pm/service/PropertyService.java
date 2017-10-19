@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.service;
 
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.PropertyMapper;
 import com.highplace.biz.pm.domain.Property;
@@ -15,9 +16,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class PropertyService {
@@ -58,7 +57,7 @@ public class PropertyService {
     }
 
     //查询房产信息列表
-    public List<Property> searchProperty(String productInstId, PropertySearchBean searchBean) {
+    public Map<String, Object> searchProperty(String productInstId, PropertySearchBean searchBean) {
 
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();
@@ -82,8 +81,6 @@ public class PropertyService {
         if(searchBean.getStatus() != null )
             criteria.andStatusEqualTo(searchBean.getStatus());
 
-        logger.debug("############criteria:" ,criteria.toString());
-
         //设置分页参数
         if(searchBean.getPageNum() != null && searchBean.getPageSize() != null )
             PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
@@ -97,7 +94,16 @@ public class PropertyService {
             }
         }
 
-        return propertyMapper.selectByExample(example);
+        //查询结果
+        List<Property> properties = propertyMapper.selectByExample(example);
+
+        //得到总记录数
+        long totalCount = ((Page) properties).getTotal();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalCount", totalCount);
+        result.put("data", properties);
+        return result;
     }
 
 }
