@@ -37,6 +37,7 @@ public class KaptchaConfig {
     @Bean(name="captchaProducer")
     public DefaultKaptcha getKaptchaBean(){
         DefaultKaptcha defaultKaptcha=new DefaultKaptcha();
+        /*
         Properties properties=new Properties();
         properties.setProperty("kaptcha.border", "yes");
         properties.setProperty("kaptcha.border.color", "105,179,90");
@@ -51,6 +52,7 @@ public class KaptchaConfig {
         properties.setProperty("kaptcha.textproducer.font.names", "宋体,楷体,微软雅黑");
         Config config=new Config(properties);
         defaultKaptcha.setConfig(config);
+        */
         return defaultKaptcha;
     }
 }
