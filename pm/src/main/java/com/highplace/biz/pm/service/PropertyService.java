@@ -48,7 +48,7 @@ public class PropertyService {
         */
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
 
-        String[] strarrays = new String[]{"一区","二区","三区"};
+        String[] strarrays = new String[]{"一区","二区","三区","四区"};
         stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
 
         //template.opsForSet().isMember("setTest","ccc")
