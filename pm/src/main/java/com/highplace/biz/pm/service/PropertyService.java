@@ -60,7 +60,6 @@ public class PropertyService {
     //查询房产信息列表
     public List<Property> searchProperty(String productInstId, PropertySearchBean searchBean) {
 
-        logger.debug("############example 1:");
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();
 
@@ -68,22 +67,22 @@ public class PropertyService {
         criteria.andProductInstIdEqualTo(productInstId);
 
         //查询条件判断
-        if(searchBean.getZoneId() != null || !searchBean.getZoneId().equals("") )
+        if(searchBean.getZoneId() != null && !searchBean.getZoneId().equals("") )
             criteria.andZoneIdEqualTo(searchBean.getZoneId());
 
-        if(searchBean.getBuildingId() != null || !searchBean.getBuildingId().equals("") )
+        if(searchBean.getBuildingId() != null && !searchBean.getBuildingId().equals("") )
             criteria.andBuildingIdEqualTo(searchBean.getBuildingId());
 
-        if(searchBean.getUnitId() != null || !searchBean.getUnitId().equals("") )
+        if(searchBean.getUnitId() != null && !searchBean.getUnitId().equals("") )
             criteria.andUnitIdEqualTo(searchBean.getUnitId());
 
-        if(searchBean.getRoomId() != null || !searchBean.getRoomId().equals("") )
+        if(searchBean.getRoomId() != null && !searchBean.getRoomId().equals("") )
             criteria.andRoomIdEqualTo(searchBean.getRoomId());
 
         if(searchBean.getStatus() != null )
             criteria.andStatusEqualTo(searchBean.getStatus());
 
-        logger.debug("############example:" ,example.toString());
+        logger.debug("############criteria:" ,criteria.toString());
 
         //设置分页参数
         if(searchBean.getPageNum() != null && searchBean.getPageSize() != null )
@@ -97,8 +96,6 @@ public class PropertyService {
                 OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
             }
         }
-
-        logger.debug("############example:" ,example.toString());
 
         return propertyMapper.selectByExample(example);
     }
