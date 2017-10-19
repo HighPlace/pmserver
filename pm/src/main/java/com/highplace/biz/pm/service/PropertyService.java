@@ -7,12 +7,11 @@ import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.PropertyExample;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
+import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.DefaultTypedTuple;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
@@ -57,7 +56,7 @@ public class PropertyService {
     }
 
     //查询房产信息列表
-    public Map<String, Object> searchProperty(String productInstId, PropertySearchBean searchBean) {
+    public Map<String, Object> query(String productInstId, PropertySearchBean searchBean) {
 
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();
@@ -104,6 +103,36 @@ public class PropertyService {
         result.put("totalCount", totalCount);
         result.put("data", properties);
         return result;
+    }
+
+    //插入房产信息
+    public int insert(String productInstId, Property property) {
+
+        //设置产品实例ID
+        property.setProductInstId(productInstId);
+        return propertyMapper.insertSelective(property);
+    }
+
+    //修改房产信息
+    public int update(String productInstId, Property property) {
+
+        PropertyExample example = new PropertyExample();
+        PropertyExample.Criteria criteria = example.createCriteria();
+        criteria.andPropertyIdEqualTo(property.getPropertyId());
+
+        //产品实例ID，必须填入
+        criteria.andProductInstIdEqualTo(productInstId);
+        return propertyMapper.updateByExampleSelective(property, example);
+    }
+
+    //删除房产信息
+    public int delete(String productInstId, Long propertyId) {
+
+        PropertyExample example = new PropertyExample();
+        PropertyExample.Criteria criteria = example.createCriteria();
+        criteria.andPropertyIdEqualTo(propertyId);
+        criteria.andProductInstIdEqualTo(productInstId);
+        return propertyMapper.deleteByExample(example);
     }
 
 }

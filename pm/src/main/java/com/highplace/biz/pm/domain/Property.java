@@ -1,5 +1,8 @@
 package com.highplace.biz.pm.domain;
 
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 public class Property {
@@ -11,14 +14,18 @@ public class Property {
 
     private String zoneId;
 
+    @NotNull
+    //@Length(min = 3, max = 30)
     private String buildingId;
 
     private String unitId;
 
+    @NotNull
     private String roomId;
 
     private Integer areaUnit;
 
+    @NotNull
     private Double propertyArea;
 
     private Double floorArea;
