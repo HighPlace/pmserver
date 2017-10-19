@@ -81,8 +81,11 @@ public class PropertyService {
             criteria.andStatusEqualTo(searchBean.getStatus());
 
         //设置分页参数
-        if(searchBean.getPageNum() != null && searchBean.getPageSize() != null )
+        if(searchBean.getPageNum() != null && searchBean.getPageSize() != null ) {
             PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
+        } else {
+            PageHelper.startPage(1, -1, true);
+        }
 
         //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
         if(searchBean.getSortField() != null ) {
@@ -127,6 +130,9 @@ public class PropertyService {
 
     //删除房产信息
     public int delete(String productInstId, Long propertyId) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        //to-do
 
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();

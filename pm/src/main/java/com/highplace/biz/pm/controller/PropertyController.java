@@ -54,12 +54,10 @@ public class PropertyController {
 
     @RequestMapping(path = "/property", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/property;PUT','/property;ALL','/property/**;PUT','/property/**;ALL','ADMIN')")
-    public Property changeProperty(@Valid @RequestBody Property property,
+    public Property changeProperty(@RequestBody Property property,
                                    Principal principal) throws Exception {
 
         if(property.getPropertyId() == null ) throw new Exception("propertyId is null");
-
-
 
         logger.debug("pre property:" + property.toString());
 
@@ -79,7 +77,7 @@ public class PropertyController {
         //删除记录
         int rows = propertyService.delete(SecurityUtils.getCurrentProductInstId(principal), propertyId);
         logger.debug("property delete return num:" + rows);
-        if(rows != 1) throw new Exception("change failed, effected num:" + rows);
+        if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
 
     @RequestMapping(path = "/property/zone", method = RequestMethod.GET)
