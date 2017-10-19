@@ -3,7 +3,6 @@ package com.highplace.service.oauth.service;
 import com.highplace.service.oauth.config.WechatConfig;
 import com.highplace.service.oauth.dao.UserDao;
 import com.highplace.service.oauth.domain.User;
-import com.highplace.service.oauth.domain.UserView;
 import com.highplace.service.oauth.domain.wechat.WechatAccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
