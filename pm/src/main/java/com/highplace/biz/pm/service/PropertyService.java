@@ -38,8 +38,6 @@ public class PropertyService {
     //从redis中查询房产分区/楼号/单元信息
     public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
 
-        Map<String, Object> zoneMap = new LinkedHashMap<>();
-
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
         Set<String> sZoneId = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
         if(sZoneId == null) return null;
@@ -47,7 +45,11 @@ public class PropertyService {
         List<String> lZondId = new ArrayList<>(sZoneId);
         Collections.sort(lZondId);
 
+        List<Object> zoneList = new ArrayList<>();
+
         for(int i = 0 ; i < lZondId.size() ; i++) {
+
+            Map<String, Object> zoneMap = new LinkedHashMap<>();
 
             String zoneId = lZondId.get(i);
             String redisKeyForBuildingId =  PREFIX_PROPERTY_BUILDINGID_KEY + productInstId + zoneId;
@@ -57,7 +59,7 @@ public class PropertyService {
             List<String> lBuildingId = new ArrayList<>(sBuildingId);
             Collections.sort(lBuildingId);
 
-            Map<String, Object> buildingMap = new LinkedHashMap<>();
+            List<Object> buildingList = new ArrayList<>();
 
             for(int j = 0 ; j < lBuildingId.size() ; j++) {
 
@@ -69,16 +71,21 @@ public class PropertyService {
                 List<String> lUnitId = new ArrayList<>(sUnitId);
                 Collections.sort(lUnitId);
 
+                Map<String, Object> buildingMap = new LinkedHashMap<>();
                 buildingMap.put("name", buildingId);
                 buildingMap.put("unitIds", lUnitId);
+
+                buildingList.add(buildingMap);
             }
 
             zoneMap.put("name", zoneId);
-            zoneMap.put("buildingIds", buildingMap);
+            zoneMap.put("buildingIds", buildingList);
+
+            zoneList.add(zoneMap);
         }
 
         Map<String, Object> result = new HashMap<String, Object>();
-        result.put("zoneIds", zoneMap);
+        result.put("zoneIds", zoneList);
         return result;
 
         /*
