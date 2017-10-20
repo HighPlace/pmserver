@@ -49,9 +49,10 @@ public class PropertyService {
         String[] strarrays = new String[]{"一区","二区","三区","四区","玫瑰苑"};
 
         stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
-        //Set<String> s = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
-        long size = stringRedisTemplate.opsForSet().size(redisKeyForZondId);
-        List<String> l = stringRedisTemplate.opsForSet().randomMembers(redisKeyForZondId, size);
+        Set<String> s = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
+        //long size = stringRedisTemplate.opsForSet().size(redisKeyForZondId);
+        //List<String> l = stringRedisTemplate.opsForSet().randomMembers(redisKeyForZondId, size);
+        List<String> l = new ArrayList<>(s);
         Collections.sort(l);
         return l;
 

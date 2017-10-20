@@ -33,11 +33,4 @@ public class CommonUtils {
         Collections.sort(list);
         return list.toArray(s);
     }
-    public static void main(String[] args) {
-        String[] s = new String[]{"fuck", "suck", "apple", "jam"};
-        s = stringSort(s);
-        for (int i = 0; i < s.length; i++) {
-            System.out.println(s[i]);
-        }
-    }
 }
