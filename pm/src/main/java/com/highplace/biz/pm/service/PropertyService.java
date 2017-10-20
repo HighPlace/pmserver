@@ -47,11 +47,18 @@ public class PropertyService {
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
 
         String[] strarrays = new String[]{"一区","二区","三区","四区"};
+        TreeSet<String> ts = new TreeSet<String>();
+        ts.add("玫瑰苑");
+        ts.add("一期");
+        ts.add("三期一区");
+        ts.add("三期二区");
+        ts.add("二期");
+
         stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
 
         //template.opsForSet().isMember("setTest","ccc")
 
-        Set<String> zoneIdSet = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
+        TreeSet<String> zoneIdSet = (TreeSet<String>)(stringRedisTemplate.opsForSet().members(redisKeyForZondId));
         return zoneIdSet;
     }
 
