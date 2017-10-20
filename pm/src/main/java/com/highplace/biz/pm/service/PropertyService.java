@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.service;
 
+import antlr.StringUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.PropertyMapper;
@@ -26,7 +27,7 @@ public class PropertyService {
     public static final String PREFIX_PROPERTY_ZONEID_KEY = "PROPERTY_ZONEID_KEY_";
     public static final String PREFIX_PROPERTY_BUILDINGID_KEY = "PROPERTY_BUILDINGID_KEY_";
     public static final String PREFIX_PROPERTY_UNITID_KEY = "PROPERTY_UNITID_KEY_";
-    public static final String PREFIX_PROPERTY_ROOMID_KEY = "PROPERTY_ZONEID_KEY_";
+    //public static final String PREFIX_PROPERTY_ROOMID_KEY = "PROPERTY_ZONEID_KEY_";
 
     @Autowired
     private PropertyMapper propertyMapper;
@@ -34,18 +35,48 @@ public class PropertyService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    //查询房产分区信息
-    public Collection<String> getAllZoneId(String productInstId) {
-        /*
-        ZSetOperations.TypedTuple<String> objectTypedTuple1 = new DefaultTypedTuple<String>("玫瑰苑",0.0);
-        ZSetOperations.TypedTuple<String> objectTypedTuple2 = new DefaultTypedTuple<String>("菊花苑",1.0);
-        Set<ZSetOperations.TypedTuple<String>> tuples = new HashSet<ZSetOperations.TypedTuple<String>>();
-        tuples.add(objectTypedTuple1);
-        tuples.add(objectTypedTuple2);
-        stringRedisTemplate.opsForZSet().add(PREFIX_PROPERTY_ZONEID_KEY + productInstId, tuples);
-        */
-        String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
+    //从redis中查询房产分区/楼号/单元信息
+    public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
 
+        Map<String, Object> zoneMap = new LinkedHashMap<>();
+
+        String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
+        Set<String> sZoneId = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
+        if(sZoneId == null) return null;
+
+        List<String> lZondId = new ArrayList<>(sZoneId);
+        Collections.sort(lZondId);
+
+        for(int i = 0 ; i < lZondId.size() ; i++) {
+
+            String zoneId = lZondId.get(i);
+            String redisKeyForBuildingId =  PREFIX_PROPERTY_BUILDINGID_KEY + productInstId + zoneId;
+            Set<String> sBuildingId = stringRedisTemplate.opsForSet().members(redisKeyForBuildingId);
+            //if(sBuildingId == null) continue;
+
+            List<String> lBuildingId = new ArrayList<>(sBuildingId);
+            Collections.sort(lBuildingId);
+
+            Map<String, Object> buildingMap = new LinkedHashMap<>();
+            for(int j = 0 ; j < lBuildingId.size() ; j++) {
+
+                String buildingId = lBuildingId.get(j);
+                String redisKeyForUnitId =  PREFIX_PROPERTY_UNITID_KEY + productInstId + buildingId;
+                Set<String> sUnitId = stringRedisTemplate.opsForSet().members(redisKeyForUnitId);
+                //if(sUnitId == null) continue;
+
+                List<String> lUnitId = new ArrayList<>(sUnitId);
+                Collections.sort(lUnitId);
+
+                buildingMap.put(buildingId, lUnitId);
+            }
+
+            zoneMap.put(zoneId, buildingMap);
+        }
+
+        return zoneMap;
+
+        /*
         String[] strarrays = new String[]{"一区","二区","三区","四区","玫瑰苑"};
 
         stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
@@ -55,6 +86,16 @@ public class PropertyService {
         List<String> l = new ArrayList<>(s);
         Collections.sort(l);
         return l;
+        */
+
+        /*
+        ZSetOperations.TypedTuple<String> objectTypedTuple1 = new DefaultTypedTuple<String>("玫瑰苑",0.0);
+        ZSetOperations.TypedTuple<String> objectTypedTuple2 = new DefaultTypedTuple<String>("菊花苑",1.0);
+        Set<ZSetOperations.TypedTuple<String>> tuples = new HashSet<ZSetOperations.TypedTuple<String>>();
+        tuples.add(objectTypedTuple1);
+        tuples.add(objectTypedTuple2);
+        stringRedisTemplate.opsForZSet().add(PREFIX_PROPERTY_ZONEID_KEY + productInstId, tuples);
+        */
 
         //template.opsForSet().isMember("setTest","ccc")
         /*
@@ -74,7 +115,6 @@ public class PropertyService {
 
         template.opsForList().remove("listRight",1,"setValue");//将删除列表中存储的列表中第一次次出现的“setValue”。
         */
-
     }
 
     //查询房产信息列表
@@ -139,6 +179,10 @@ public class PropertyService {
 
         //设置产品实例ID
         property.setProductInstId(productInstId);
+
+        //更新redis
+        addRedisValue(property);
+
         return propertyMapper.insertSelective(property);
     }
 
@@ -151,6 +195,9 @@ public class PropertyService {
 
         //产品实例ID，必须填入
         criteria.andProductInstIdEqualTo(productInstId);
+
+        //更新redis
+        addRedisValue(property);
         return propertyMapper.updateByExampleSelective(property, example);
     }
 
@@ -165,6 +212,27 @@ public class PropertyService {
         criteria.andPropertyIdEqualTo(propertyId);
         criteria.andProductInstIdEqualTo(productInstId);
         return propertyMapper.deleteByExample(example);
+    }
+
+    //zoneId/buildingId/unitId以set数据结构缓存到redis中
+    public void addRedisValue(Property property) {
+
+        if(property.getProductInstId() == null ) return;
+
+        String redisKeyForZoneId = PREFIX_PROPERTY_ZONEID_KEY + property.getProductInstId();
+        String redisKeyForBuildIdPrefix = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId();
+        String redisKeyForUnitIdPrefix = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId();
+
+        String zoneId = (property.getZoneId() == null)?"" : (property.getZoneId());
+        String unitId = (property.getUnitId() == null)?"" : (property.getUnitId());
+
+        stringRedisTemplate.opsForSet().add(redisKeyForZoneId, zoneId);
+
+        if(property.getBuildingId() != null) {
+            stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix + zoneId, property.getBuildingId());
+            stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix + property.getBuildingId(), unitId);
+        }
+
     }
 
 }

@@ -80,11 +80,11 @@ public class PropertyController {
         if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
 
-    @RequestMapping(path = "/property/zone", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('/property/zone;GET','/property/zone;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
-    public Collection<String> getPropertyZone(Principal principal) {
+    @RequestMapping(path = "/property/catalog", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property/catalog;GET','/property/catalog;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<String, Object> getPropertyCatalog(Principal principal) {
 
-        return propertyService.getAllZoneId(SecurityUtils.getCurrentProductInstId(principal));
+        return propertyService.getAllZoneBuildingUnitId(SecurityUtils.getCurrentProductInstId(principal));
 
     }
 }
