@@ -46,20 +46,34 @@ public class PropertyService {
         */
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
 
-        String[] strarrays = new String[]{"一区","二区","三区","四区"};
-        TreeSet<String> ts = new TreeSet<String>();
-        ts.add("玫瑰苑");
-        ts.add("一期");
-        ts.add("三期一区");
-        ts.add("三期二区");
-        ts.add("二期");
+        String[] strarrays = new String[]{"一区","二区","三区","四区","玫瑰苑"};
 
         stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
+        //Set<String> s = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
+        long size = stringRedisTemplate.opsForSet().size(redisKeyForZondId);
+        List<String> l = stringRedisTemplate.opsForSet().randomMembers(redisKeyForZondId, size);
+        Collections.sort(l);
+        return l;
 
         //template.opsForSet().isMember("setTest","ccc")
+        /*
+        template.opsForList().rightPush("listRight","java");
 
-        TreeSet<String> zoneIdSet = (TreeSet<String>)(stringRedisTemplate.opsForSet().members(redisKeyForZondId));
-        return zoneIdSet;
+        String[] stringarrays = new String[]{"1","2","3"};
+        template.opsForList().rightPushAll("listarrayright",stringarrays);
+        System.out.println(template.opsForList().range("listarrayright",0,-1));
+        结果:[1, 2, 3]
+
+        List<Object> strings = new ArrayList<Object>();
+        strings.add("1");
+        strings.add("2");
+        strings.add("3");
+        template.opsForList().rightPushAll("listcollectionright", strings);
+        System.out.println(template.opsForList().range("listcollectionright",0,-1));
+
+        template.opsForList().remove("listRight",1,"setValue");//将删除列表中存储的列表中第一次次出现的“setValue”。
+        */
+
     }
 
     //查询房产信息列表
