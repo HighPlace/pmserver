@@ -58,6 +58,7 @@ public class PropertyService {
             Collections.sort(lBuildingId);
 
             Map<String, Object> buildingMap = new LinkedHashMap<>();
+
             for(int j = 0 ; j < lBuildingId.size() ; j++) {
 
                 String buildingId = lBuildingId.get(j);
@@ -68,13 +69,17 @@ public class PropertyService {
                 List<String> lUnitId = new ArrayList<>(sUnitId);
                 Collections.sort(lUnitId);
 
-                buildingMap.put(buildingId, lUnitId);
+                buildingMap.put("name", buildingId);
+                buildingMap.put("unitIds", lUnitId);
             }
 
-            zoneMap.put(zoneId, buildingMap);
+            zoneMap.put("name", zoneId);
+            zoneMap.put("buildingIds", buildingMap);
         }
 
-        return zoneMap;
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("zoneIds", zoneMap);
+        return result;
 
         /*
         String[] strarrays = new String[]{"一区","二区","三区","四区","玫瑰苑"};
