@@ -4,15 +4,12 @@ import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.PropertyService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
-import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.*;
@@ -86,5 +83,16 @@ public class PropertyController {
 
         return propertyService.getAllZoneBuildingUnitId(SecurityUtils.getCurrentProductInstId(principal));
 
+    }
+
+    @RequestMapping(path = "/property/import", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<String, String> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
+                                                Principal principal) {
+
+        String taskId = propertyService.batchImport(SecurityUtils.getCurrentProductInstId(principal), fileUrl);
+        Map<String, String> result = new HashMap<>();
+        result.put("taskId", taskId);
+        return result;
     }
 }

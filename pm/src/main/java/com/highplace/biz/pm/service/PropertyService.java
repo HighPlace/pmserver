@@ -1,22 +1,24 @@
 package com.highplace.biz.pm.service;
 
-import antlr.StringUtils;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.highplace.biz.pm.config.MQConfig;
 import com.highplace.biz.pm.dao.PropertyMapper;
 import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.PropertyExample;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
-import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.*;
+
 
 @Service
 public class PropertyService {
@@ -27,13 +29,15 @@ public class PropertyService {
     public static final String PREFIX_PROPERTY_ZONEID_KEY = "PROPERTY_ZONEID_KEY_";
     public static final String PREFIX_PROPERTY_BUILDINGID_KEY = "PROPERTY_BUILDINGID_KEY_";
     public static final String PREFIX_PROPERTY_UNITID_KEY = "PROPERTY_UNITID_KEY_";
-    //public static final String PREFIX_PROPERTY_ROOMID_KEY = "PROPERTY_ZONEID_KEY_";
 
     @Autowired
     private PropertyMapper propertyMapper;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private AmqpTemplate mqTemplate;
 
     //从redis中查询房产分区/楼号/单元信息
     public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
@@ -245,6 +249,24 @@ public class PropertyService {
             stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix + property.getBuildingId(), unitId);
         }
 
+    }
+
+    //将批量导入请求通过消息队列发出
+    public String batchImport(String productInstId, String fileUrl ) {
+
+        String msgId = UUID.randomUUID().toString();
+        Map<String, String> msgMap = new HashMap<String, String>();
+        msgMap.put("msgId", msgId);
+        msgMap.put("productInstId", productInstId);
+        msgMap.put("fileUrl", fileUrl);
+        msgMap.put("target", "property");
+
+        String msg = JSON.toJSONString(msgMap);
+        logger.debug("Send MQ batchImport message: " + msg);
+
+        mqTemplate.convertAndSend(MQConfig.BATCH_IMPORT_QUEUE_NAME, msg);
+
+        return msgId;
     }
 
 }
