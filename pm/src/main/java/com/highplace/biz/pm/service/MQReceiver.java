@@ -12,6 +12,6 @@ public class MQReceiver {
 
     @RabbitListener(queues="batchImportQueue")    //监听器监听指定的Queue
     public void process(String str) {
-        logger.debug("Receive MQ message:"+str);
+        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:"+str);
     }
 }

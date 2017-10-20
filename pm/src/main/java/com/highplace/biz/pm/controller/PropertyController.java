@@ -85,8 +85,8 @@ public class PropertyController {
 
     }
 
-    @RequestMapping(path = "/property/import", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    @RequestMapping(path = "/property/import", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/property/import;POST','/property/import;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
     public Map<String, String> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
                                                 Principal principal) {
 
