@@ -320,7 +320,7 @@ public class PropertyService {
         String productInstID = jsonObject.getString("productInstId");
 
         //设置本地存储路径
-        String localFilePath = "/tmp/" + cosFilePath;
+        String localFilePath = "/tmp" + cosFilePath;
 
         String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstID + "_" + taskId;
 
@@ -358,7 +358,7 @@ public class PropertyService {
 
             //设置任务状态为1:处理完成
             redisKeyMap.put(TASK_STATUS_KEY, "1");
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, String.valueOf(jsonObject.getIntValue("code")));
+            redisKeyMap.put(TASK_RESULT_CODE_KEY, String.valueOf(jsonObject.getString("code")));
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
             stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
 
@@ -392,7 +392,7 @@ public class PropertyService {
                 wb = new HSSFWorkbook(is);
             } else {
                 JSONObject j = new JSONObject();
-                j.put("code", -2);
+                j.put("code", "101");
                 j.put("message", "文件格式错误");
                 logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
                 return j;
@@ -400,11 +400,12 @@ public class PropertyService {
             return loadExcelValue(productInstID, wb);
 
         } catch (Exception e) {
-            logger.error(e.getMessage());
+
             JSONObject j = new JSONObject();
-            j.put("code", -1);
+            j.put("code", "102");
             j.put("message", "文件读取错误");
-            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            e.printStackTrace();
             return j;
 
         } finally {
@@ -413,7 +414,7 @@ public class PropertyService {
                     is.close();
                 } catch (IOException e) {
                     is = null;
-                    logger.error(e.getMessage());
+                    logger.error("readExcel finally:" + e.getMessage());
                 }
             }
         }
@@ -548,7 +549,7 @@ public class PropertyService {
         }
 
         if (errorFlag) {
-            result.put("code", -3);
+            result.put("code", "103");
             result.put("message", errorMsg);
             logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
 
@@ -562,7 +563,7 @@ public class PropertyService {
             }else {
                 errorMsg = "导入成功，共" + number + "条数据";
             }
-            result.put("code", 0);
+            result.put("code", "0");
             result.put("message", errorMsg);
             result.put("totalNum", propertyList.size());
             result.put("insertNum", number);
