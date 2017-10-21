@@ -29,7 +29,12 @@ public class MQReceiver {
         if (jsonObject == null) return;
 
         if(jsonObject.getString("target").equals("property")) {
-            propertyService.batchImportHandler(jsonObject);
+            try {
+                propertyService.batchImportHandler(jsonObject);
+            }catch (Exception e){
+                logger.error("Process error:" + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
     }

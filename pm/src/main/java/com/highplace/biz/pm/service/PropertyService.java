@@ -320,7 +320,7 @@ public class PropertyService {
         String productInstID = jsonObject.getString("productInstId");
 
         //设置本地存储路径
-        String localFilePath = "/tmp" + cosFilePath;
+        String localFilePath = "/tmp/" + cosFilePath;
 
         String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstID + "_" + taskId;
 
@@ -468,6 +468,7 @@ public class PropertyService {
                     errorFlag = true;
                     break; //跳出循环
                 }
+                cell.setCellType(Cell.CELL_TYPE_STRING);
                 cellValue = cell.getStringCellValue();
                 switch (c) {
                     case 0:  //分区名称 (非必填)
