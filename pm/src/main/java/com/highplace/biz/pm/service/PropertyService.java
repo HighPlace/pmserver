@@ -354,6 +354,8 @@ public class PropertyService {
             //解析本地文件并导入数据库
             JSONObject jsonResult =  readExcel(productInstID, localFilePath);
 
+            logger.debug("readExcel result:" + jsonResult.toJSONString());
+
             //设置任务状态为1:处理完成
             redisKeyMap.put(TASK_STATUS_KEY, "1");
             redisKeyMap.put(TASK_RESULT_CODE_KEY, String.valueOf(jsonObject.getIntValue("code")));
@@ -392,6 +394,7 @@ public class PropertyService {
                 JSONObject j = new JSONObject();
                 j.put("code", -2);
                 j.put("message", "文件格式错误");
+                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
                 return j;
             }
             return loadExcelValue(productInstID, wb);
@@ -401,6 +404,7 @@ public class PropertyService {
             JSONObject j = new JSONObject();
             j.put("code", -1);
             j.put("message", "文件读取错误");
+            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
             return j;
 
         } finally {
@@ -546,6 +550,7 @@ public class PropertyService {
         if (errorFlag) {
             result.put("code", -3);
             result.put("message", errorMsg);
+            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
 
         } else {
             int number = 0;
@@ -561,6 +566,7 @@ public class PropertyService {
             result.put("message", errorMsg);
             result.put("totalNum", propertyList.size());
             result.put("insertNum", number);
+            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
         }
 
         return result;
