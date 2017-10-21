@@ -76,7 +76,7 @@ public class QCloudCosHelper {
         uploadFileRequest.setEnableShaDigest(false);
         String uploadFileResult = cosClient.uploadFile(uploadFileRequest);
 
-        logger.info("qcloud updateFileResult: " + uploadFileResult); //{"code":0,"message":"SUCCESS"}
+        logger.info("qcloud uploadFileResult: " + uploadFileResult); // {"code":0,"message":"SUCCESS","request_id":"NTllYjcxMDNfMTliMjk0MGFfMWM4ZV9jYzhiZDE=","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","resource_path":"/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","url":"http://gz.file.myqcloud.com/files/v2/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","vid":"92bd33f0c1bea6680011912f919613f91508602115"}}
         return JSON.parseObject(uploadFileResult);
     }
 
@@ -88,7 +88,7 @@ public class QCloudCosHelper {
         overWriteFileRequest.setInsertOnly(InsertOnly.OVER_WRITE);
         String overWriteFileRet = cosClient.uploadFile(overWriteFileRequest);
 
-        logger.info("qcloud updateBufferResult: " + overWriteFileRet); //{"code":0,"message":"SUCCESS"}
+        logger.info("qcloud uploadBufferResult: " + overWriteFileRet); //{"code":0,"message":"SUCCESS"}
         return JSON.parseObject(overWriteFileRet);
     }
 
@@ -98,7 +98,7 @@ public class QCloudCosHelper {
         StatFileRequest statFileRequest = new StatFileRequest(bucketName, cosFilePath);
         String statFileResult = cosClient.statFile(statFileRequest);
 
-        logger.info("qcloud statFileResult: " + statFileResult); //{"code":0,"message":"SUCCESS"}
+        logger.info("qcloud statFileResult: " + statFileResult); //{"code":0,"message":"SUCCESS","request_id":"NTllYjcyMzRfNjIyNWI2NF80NmRjX2M5NzQ1Zg==","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602420221.xls","authority":"eInvalid","biz_attr":"","ctime":1508602420,"custom_headers":{},"filelen":5120,"filesize":5120,"forbid":0,"mtime":1508602420,"sha":"1e305bf9511321fc731b8a1275c1237ff96a9903","slicesize":5120,"source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602420221.xls"}}
         return JSON.parseObject(statFileResult);
     }
 

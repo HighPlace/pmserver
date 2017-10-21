@@ -51,6 +51,8 @@ public class PropertyService {
     public static final String TASK_STATUS_KEY = "status"; //0:处理中 1:处理完成
     public static final String TASK_RESULT_CODE_KEY = "resultCode"; //0:成功 非0:失败
     public static final String TASK_RESULT_MESSAGE_KEY = "resultMessage"; //错误信息
+    public static final String TASK_RESULT_FILEURL_KEY = "fileUrl"; //下载文件url
+
     @Autowired
     QCloudConfig qCloudConfig;
     @Autowired
@@ -683,6 +685,7 @@ public class PropertyService {
             redisKeyMap.put(TASK_STATUS_KEY, 1);
             redisKeyMap.put(TASK_RESULT_CODE_KEY, 0);
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, "SUCCESS");
+            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getJSONObject("data").getString("source_url"));
             redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         }
     }
@@ -738,11 +741,6 @@ public class PropertyService {
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
         JSONObject jsonUploadResult =  qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
         //JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
-
-        int code = jsonUploadResult.getIntValue("code");
-        if (code == 0) {
-            JSONObject j = qCloudCosHelper.statFile(qCloudConfig.getCosBucketName(), cosFilePath);
-        }
 
         // 关闭释放资源
         qCloudCosHelper.releaseCosClient();
