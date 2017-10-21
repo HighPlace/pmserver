@@ -306,6 +306,12 @@ public class PropertyService {
         return msgId;
     }
 
+    //查询task状态
+    public Map<Object, Object> getTaskStatus(String productInstId, String taskId) {
+        String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstId + "_" + taskId;
+        return stringRedisTemplate.opsForHash().entries(redisKey);
+    }
+
     //从消息队列接收消息后进行导入数据库操作
     //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v4/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
     public void batchImportHandler(JSONObject jsonObject) {
@@ -327,7 +333,7 @@ public class PropertyService {
         Map<String,Object> redisKeyMap = new HashMap<String, Object>();
 
         //设置任务状态为0:处理中
-        stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "0");
+        stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 0);
         stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
         //创建qcloud cos操作Helper对象
@@ -343,8 +349,8 @@ public class PropertyService {
             String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
 
             //设置任务状态为1:处理完成
-            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
-            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, "-1");
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, -1);
             stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, resultMsg);
 
         } else {
@@ -355,9 +361,9 @@ public class PropertyService {
             logger.debug("readExcel result:" + jsonResult.toJSONString());
 
             //设置任务状态为1:处理完成
-            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
-            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonObject.getString("code"));
-            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
 
             //删除本地文件
             File localFile = new File(localFilePath);
@@ -389,7 +395,7 @@ public class PropertyService {
                 wb = new HSSFWorkbook(is);
             } else {
                 JSONObject j = new JSONObject();
-                j.put("code", "101");
+                j.put("code", 101);
                 j.put("message", "文件格式错误");
                 logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
                 return j;
@@ -399,7 +405,7 @@ public class PropertyService {
         } catch (Exception e) {
 
             JSONObject j = new JSONObject();
-            j.put("code", "102");
+            j.put("code", 102);
             j.put("message", "文件读取错误");
             logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
             e.printStackTrace();
@@ -415,7 +421,6 @@ public class PropertyService {
                 }
             }
         }
-
     }
 
     //从excel文件读取数据,并导入到数据库中
@@ -453,7 +458,6 @@ public class PropertyService {
             }
 
             tempProperty = new Property();
-            tempProperty.setProductInstId(productInstID); //设置产品实例ID
 
             //循环Excel的列
             String cellValue;
@@ -471,6 +475,8 @@ public class PropertyService {
                     case 0:  //分区名称 (非必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempProperty.setZoneId(cellValue);
+                        } else {
+                            tempProperty.setZoneId("");
                         }
                         break;
 
@@ -487,6 +493,8 @@ public class PropertyService {
                     case 2:  //单元(座) (非必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempProperty.setUnitId(cellValue);
+                        } else {
+                            tempProperty.setUnitId("");
                         }
                         break;
 
@@ -543,25 +551,45 @@ public class PropertyService {
                 }
             }
             if (errorFlag) break;  //只要出现错误，跳出循环
+            tempProperty.setPropertyType(0);
             propertyList.add(tempProperty);
         }
 
         if (errorFlag) {
-            result.put("code", "103");
+            result.put("code", 103);
             result.put("message", errorMsg);
             logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
 
         } else {
             int number = 0;
+            PropertyExample example;
             for (Property property : propertyList) {
-                number += propertyMapper.insertSelective(property);
+
+                //根据组合主键查询是否存在记录
+                example = new PropertyExample();
+                PropertyExample.Criteria criteria = example.createCriteria();
+                criteria.andProductInstIdEqualTo(productInstID);
+                criteria.andPropertyTypeEqualTo(property.getPropertyType());
+                criteria.andZoneIdEqualTo(property.getZoneId());
+                criteria.andBuildingIdEqualTo(property.getBuildingId());
+                criteria.andUnitIdEqualTo(property.getUnitId());
+                criteria.andRoomIdEqualTo(property.getRoomId());
+
+                List<Property> find = propertyMapper.selectByExample(example);
+                if(find.size() == 0) {  //不存在记录,直接insert
+                    number += insert(productInstID, property);
+                } else if (find.size() == 1) { //存在记录,进行update
+                    property.setPropertyId(find.get(0).getPropertyId());
+                    number += update(productInstID, property);
+                }
+
             }
             if(number < propertyList.size()) {
                 errorMsg = "导入成功，共" + number + "条数据, 重复" + (propertyList.size() - number) + "条数据";
             }else {
                 errorMsg = "导入成功，共" + number + "条数据";
             }
-            result.put("code", "0");
+            result.put("code", 0);
             result.put("message", errorMsg);
             result.put("totalNum", propertyList.size());
             result.put("insertNum", number);
@@ -569,7 +597,6 @@ public class PropertyService {
         }
 
         return result;
-
     }
 
 }

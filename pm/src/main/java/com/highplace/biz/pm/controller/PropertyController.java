@@ -96,4 +96,11 @@ public class PropertyController {
         result.put("taskId", taskId);
         return result;
     }
+
+    @RequestMapping(path = "/property/import", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
+                                             Principal principal) {
+        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId);
+    }
 }
