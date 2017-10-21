@@ -29,10 +29,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -666,9 +663,10 @@ public class PropertyService {
 
         String targetFilename = "/property_" + productInstID + "-" + new Date().getTime() + ".xls";
         String cosFilePath = targetFilename;
+        String localFilePath = "/tmp" + targetFilename;
 
         //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCos(productInstID, cosFilePath);
+        JSONObject jsonResult = writeExcelAndUploadCos(productInstID, cosFilePath, localFilePath);
         int code = jsonResult.getIntValue("code");
         if (code != 0) {
 
@@ -690,10 +688,11 @@ public class PropertyService {
     }
 
     //读取房产资料并上传到cos
-    private JSONObject writeExcelAndUploadCos(String productInstID, String cosFilePath) {
+    private JSONObject writeExcelAndUploadCos(String productInstID, String cosFilePath, String localFilePath) {
 
         HSSFWorkbook workbook = new HSSFWorkbook();
         HSSFSheet sheet = workbook.createSheet("房产档案");
+        sheet.autoSizeColumn(1, true);//自适应列宽度
         createExcelTitle(workbook, sheet);
 
         //获取数据
@@ -724,9 +723,21 @@ public class PropertyService {
             rowNum++;
         }
 
+        try {
+            OutputStream out = new FileOutputStream(localFilePath);
+            workbook.write(out);
+        } catch (Exception e) {
+            logger.error("generate local excel failed: " + e.getMessage());
+            JSONObject j = new JSONObject();
+            j.put("code", 20001);
+            j.put("message", "generate local excel failed");
+            return j;
+        }
+
         //创建qcloud cos操作Helper对象,并上传文件
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-        JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
+        JSONObject jsonUploadResult =  qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        //JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
 
         int code = jsonUploadResult.getIntValue("code");
         if (code == 0) {
