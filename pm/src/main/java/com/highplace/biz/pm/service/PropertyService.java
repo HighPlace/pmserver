@@ -5,17 +5,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.MQConfig;
-import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.PropertyMapper;
 import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.PropertyExample;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
-import com.qcloud.cos.COSClient;
-import com.qcloud.cos.ClientConfig;
-import com.qcloud.cos.request.DelFileRequest;
-import com.qcloud.cos.request.GetFileLocalRequest;
-import com.qcloud.cos.sign.Credentials;
+import com.highplace.biz.pm.service.util.ExcelUtils;
+import com.highplace.biz.pm.service.util.QCloudCosHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -24,7 +27,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -37,11 +42,15 @@ public class PropertyService {
     public static final String PREFIX_PROPERTY_BUILDINGID_KEY = "PROPERTY_BUILDINGID_KEY_";
     public static final String PREFIX_PROPERTY_UNITID_KEY = "PROPERTY_UNITID_KEY_";
 
-    @Autowired
-    private PropertyMapper propertyMapper;
+    //后面加上productInstId_taskID
+    public static final String PREFIX_PROPERTY_IMPORT_KEY = "TASK_IMPORT_PROPERTY_";
+
+    public static final String TASK_STATUS_KEY = "status"; //0:处理中 1:处理完成
+    public static final String TASK_RESULT_CODE_KEY = "resultCode"; //0:成功 非0:失败
+    public static final String TASK_RESULT_MESSAGE_KEY = "resultMessage"; //错误信息
 
     @Autowired
-    QCloudConfig qCloudConfig;
+    private PropertyMapper propertyMapper;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -49,24 +58,37 @@ public class PropertyService {
     @Autowired
     private AmqpTemplate mqTemplate;
 
+    //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
+    public static int getPropertyStatus(String statusDesc) {
+        if (StringUtils.isNotEmpty(statusDesc)) {
+            if (statusDesc.equals("未售")) return 1;
+            if (statusDesc.equals("未装修")) return 2;
+            if (statusDesc.equals("装修中")) return 3;
+            if (statusDesc.equals("已入住")) return 4;
+            if (statusDesc.equals("已出租")) return 5;
+            return 0;
+        }
+        return 0;
+    }
+
     //从redis中查询房产分区/楼号/单元信息
     public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
 
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
         Set<String> sZoneId = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
-        if(sZoneId == null) return null;
+        if (sZoneId == null) return null;
 
         List<String> lZondId = new ArrayList<>(sZoneId);
         Collections.sort(lZondId);
 
         List<Object> zoneList = new ArrayList<>();
 
-        for(int i = 0 ; i < lZondId.size() ; i++) {
+        for (int i = 0; i < lZondId.size(); i++) {
 
             Map<String, Object> zoneMap = new LinkedHashMap<>();
 
             String zoneId = lZondId.get(i);
-            String redisKeyForBuildingId =  PREFIX_PROPERTY_BUILDINGID_KEY + productInstId + zoneId;
+            String redisKeyForBuildingId = PREFIX_PROPERTY_BUILDINGID_KEY + productInstId + zoneId;
             Set<String> sBuildingId = stringRedisTemplate.opsForSet().members(redisKeyForBuildingId);
             //if(sBuildingId == null) continue;
 
@@ -75,10 +97,10 @@ public class PropertyService {
 
             List<Object> buildingList = new ArrayList<>();
 
-            for(int j = 0 ; j < lBuildingId.size() ; j++) {
+            for (int j = 0; j < lBuildingId.size(); j++) {
 
                 String buildingId = lBuildingId.get(j);
-                String redisKeyForUnitId =  PREFIX_PROPERTY_UNITID_KEY + productInstId + buildingId;
+                String redisKeyForUnitId = PREFIX_PROPERTY_UNITID_KEY + productInstId + buildingId;
                 Set<String> sUnitId = stringRedisTemplate.opsForSet().members(redisKeyForUnitId);
                 //if(sUnitId == null) continue;
 
@@ -153,28 +175,28 @@ public class PropertyService {
         criteria.andProductInstIdEqualTo(productInstId);
 
         //查询条件判断
-        if(searchBean.getZoneId() != null && !searchBean.getZoneId().equals("") )
+        if (searchBean.getZoneId() != null && !searchBean.getZoneId().equals(""))
             criteria.andZoneIdEqualTo(searchBean.getZoneId());
 
-        if(searchBean.getBuildingId() != null && !searchBean.getBuildingId().equals("") )
+        if (searchBean.getBuildingId() != null && !searchBean.getBuildingId().equals(""))
             criteria.andBuildingIdEqualTo(searchBean.getBuildingId());
 
-        if(searchBean.getUnitId() != null && !searchBean.getUnitId().equals("") )
+        if (searchBean.getUnitId() != null && !searchBean.getUnitId().equals(""))
             criteria.andUnitIdEqualTo(searchBean.getUnitId());
 
-        if(searchBean.getRoomId() != null && !searchBean.getRoomId().equals("") )
+        if (searchBean.getRoomId() != null && !searchBean.getRoomId().equals(""))
             criteria.andRoomIdEqualTo(searchBean.getRoomId());
 
-        if(searchBean.getStatus() != null )
+        if (searchBean.getStatus() != null)
             criteria.andStatusEqualTo(searchBean.getStatus());
 
         //设置分页参数
-        if(searchBean.getPageNum() != null && searchBean.getPageSize() != null )
+        if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
             PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
 
         //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
-        if(searchBean.getSortField() != null ) {
-            if(searchBean.getSortType() == null ) {
+        if (searchBean.getSortField() != null) {
+            if (searchBean.getSortType() == null) {
                 OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " asc"); //默认升序
             } else {
                 OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
@@ -188,7 +210,7 @@ public class PropertyService {
         long totalCount;
 
         //判断是否有分页
-        if(searchBean.getPageNum() != null && searchBean.getPageSize() != null ) {
+        if (searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
             totalCount = ((Page) properties).getTotal();
         } else {
             totalCount = properties.size();
@@ -243,18 +265,18 @@ public class PropertyService {
     //zoneId/buildingId/unitId以set数据结构缓存到redis中
     public void addRedisValue(Property property) {
 
-        if(property.getProductInstId() == null ) return;
+        if (property.getProductInstId() == null) return;
 
         String redisKeyForZoneId = PREFIX_PROPERTY_ZONEID_KEY + property.getProductInstId();
         String redisKeyForBuildIdPrefix = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId();
         String redisKeyForUnitIdPrefix = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId();
 
-        String zoneId = (property.getZoneId() == null)?"" : (property.getZoneId());
-        String unitId = (property.getUnitId() == null)?"" : (property.getUnitId());
+        String zoneId = (property.getZoneId() == null) ? "" : (property.getZoneId());
+        String unitId = (property.getUnitId() == null) ? "" : (property.getUnitId());
 
         stringRedisTemplate.opsForSet().add(redisKeyForZoneId, zoneId);
 
-        if(property.getBuildingId() != null) {
+        if (property.getBuildingId() != null) {
             stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix + zoneId, property.getBuildingId());
             stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix + property.getBuildingId(), unitId);
         }
@@ -262,7 +284,7 @@ public class PropertyService {
     }
 
     //将批量导入请求通过消息队列发出
-    public String batchImportCall(String productInstId, String fileUrl, Integer vendor ) {
+    public String batchImportCall(String productInstId, String fileUrl, Integer vendor) {
 
         String msgId = UUID.randomUUID().toString();
         Map<String, Object> msgMap = new HashMap<String, Object>();
@@ -282,38 +304,259 @@ public class PropertyService {
 
     //从消息队列接收消息后进行导入数据库操作
     //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v4/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
-    public void batchImportHandler(String msg) {
+    public void batchImportHandler(JSONObject jsonObject) {
 
-        JSONObject jsonObject = JSON.parseObject(msg);
-        if(null != jsonObject) {
+        //获取任务ID
+        String taskId = jsonObject.getString("msgId");
 
-            // 初始化秘钥信息
-            Credentials cred = new Credentials(Long.parseLong(qCloudConfig.getAppId()), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-            // 初始化客户端配置
-            ClientConfig clientConfig = new ClientConfig();
-            // 设置bucket所在的区域，比如华南园区：gz； 华北园区：tj；华东园区：sh ；
-            clientConfig.setRegion("gz");
-            // 初始化cosClient
-            COSClient cosClient = new COSClient(clientConfig, cred);
-            //获取文件在cos上的路径
-            String cosFilePath = jsonObject.getString("fileUrl");
-            //设置本地存储路径
-            String localPathDown = "/tmp/" + cosFilePath;
-            GetFileLocalRequest getFileLocalRequest =
-                    new GetFileLocalRequest(qCloudConfig.getCosBucketName(), cosFilePath, localPathDown);
-            getFileLocalRequest.setUseCDN(false);
-            getFileLocalRequest.setReferer("*.myweb.cn");
-            String getFileResult = cosClient.getFileLocal(getFileLocalRequest);
-            logger.info("qcloud getFileResult: " + getFileResult);
+        //获取文件在cos上的路径
+        String cosFilePath = jsonObject.getString("fileUrl");
 
-            // 7. 删除文件
-            DelFileRequest delFileRequest = new DelFileRequest(qCloudConfig.getCosBucketName(), cosFilePath);
-            String delFileResult = cosClient.delFile(delFileRequest);
-            logger.info("qcloud delFileResult: " + delFileResult);
+        //获取productInstID
+        String productInstID = jsonObject.getString("productInstId");
 
-            // 关闭释放资源
-            cosClient.shutdown();
+        //设置本地存储路径
+        String localFilePath = "/tmp/" + cosFilePath;
+
+        String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstID + "_" + taskId;
+
+        //设置任务状态为0:处理中
+
+        stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 0);
+        stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
+
+        //创建qcloud cos操作Helper对象
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper();
+
+        //下载文件到本地
+        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(cosFilePath, localFilePath);
+        int code = jsonGetFileResult.getIntValue("code");
+
+        if (code != 0) {
+            //写结果数据,返回失败
+            String errMsg = jsonGetFileResult.getString("message");
+            String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //设置任务状态为1:处理完成
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, -1);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, resultMsg);
+
+        } else {
+
+            //解析本地文件并导入数据库
+            JSONObject jsonResult =  readExcel(productInstID, localFilePath);
+
+            //设置任务状态为1:处理完成
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonObject.getIntValue("code"));
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
+
+            //删除本地文件
+            File localFile = new File(localFilePath);
+            localFile.delete();
+
+            //删除远程的文件
+            qCloudCosHelper.deleteFile(cosFilePath);
         }
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+    }
+
+    //读取Excel文件
+    private JSONObject readExcel(String productInstID, String localFilePath)  {
+
+        //初始化输入流
+        InputStream is = null;
+
+        try {
+            is = new FileInputStream(localFilePath);
+
+            //根据版本选择创建Workbook的方式
+            Workbook wb = null;
+            //根据文件名判断文件是2003版本还是2007版本
+            if (ExcelUtils.isExcel2007(localFilePath)) {
+                wb = new XSSFWorkbook(is);
+            } else if (ExcelUtils.isExcel2003(localFilePath)) {
+                wb = new HSSFWorkbook(is);
+            } else {
+                JSONObject j = new JSONObject();
+                j.put("code", -2);
+                j.put("message", "文件格式错误");
+                return j;
+            }
+            return loadExcelValue(productInstID, wb);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            JSONObject j = new JSONObject();
+            j.put("code", -1);
+            j.put("message", "文件读取错误");
+            return j;
+
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    is = null;
+                    logger.error(e.getMessage());
+                }
+            }
+        }
+
+    }
+
+    //从excel文件读取数据,并导入到数据库中
+    //如果解析文件出错，将不会导入数据
+    private JSONObject loadExcelValue(String productInstID, Workbook wb) {
+
+        JSONObject result = new JSONObject();
+        String errorMsg = "";
+        String br = "<br/>";
+
+        //得到第一个shell
+        Sheet sheet = wb.getSheetAt(0);
+        //总行数
+        int totalRows = sheet.getPhysicalNumberOfRows();
+        //总列数
+        int totalCells = 0;
+        //得到Excel的列数(前提是有行数)，从第二行算起
+        if (totalRows >= 2 && sheet.getRow(1) != null) {
+            totalCells = sheet.getRow(0).getPhysicalNumberOfCells();
+        }
+
+        List<Property> propertyList = new ArrayList<Property>();
+        Property tempProperty;
+
+        boolean errorFlag = false; //只要出现错误,都跳出循环
+
+        //循环Excel行数,从第二行开始。标题不入库
+        for (int r = 1; r < totalRows; r++) {
+
+            Row row = sheet.getRow(r);
+            if (row == null) {
+                errorMsg += "第" + (r + 1) + "行数据有问题, 请仔细检查.";
+                errorFlag = true;
+                break;  //跳出循环
+            }
+
+            tempProperty = new Property();
+            tempProperty.setProductInstId(productInstID); //设置产品实例ID
+
+            //循环Excel的列
+            String cellValue;
+            for (int c = 0; c < totalCells; c++) {
+                Cell cell = row.getCell(c);
+
+                if (cell == null) {
+                    errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                    errorFlag = true;
+                    break; //跳出循环
+                }
+                cellValue = cell.getStringCellValue();
+                switch (c) {
+                    case 0:  //分区名称 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setZoneId(cellValue);
+                        }
+                        break;
+
+                    case 1:  //楼号 (必填)
+                        cellValue = cell.getStringCellValue();
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setBuildingId(cellValue);
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 2:  //单元(座) (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setUnitId(cellValue);
+                        }
+                        break;
+
+                    case 3:  //房号 (必填)
+                        cellValue = cell.getStringCellValue();
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setRoomId(cellValue);
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 4:  //产权面积 (必填)
+                        cellValue = cell.getStringCellValue();
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempProperty.setPropertyArea(Double.parseDouble(cellValue));
+                            } catch (NumberFormatException e) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                                errorFlag = true;
+                            }
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 5:  //套内面积 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempProperty.setFloorArea(Double.parseDouble(cellValue));
+                            } catch (NumberFormatException e) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                                errorFlag = true;
+                            }
+                        }
+                        break;
+
+                    case 6:  //户型 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setHouseType(cellValue);
+                        }
+                        break;
+
+                    case 7:  //房产状态(未售/未装修/装修中/已入住/已出租) (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempProperty.setStatus(getPropertyStatus(cellValue));
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            if (errorFlag) break;  //只要出现错误，跳出循环
+            propertyList.add(tempProperty);
+        }
+
+        if (errorFlag) {
+            result.put("code", -3);
+            result.put("message", errorMsg);
+
+        } else {
+            int number = 0;
+            for (Property property : propertyList) {
+                number += propertyMapper.insertSelective(property);
+            }
+            if(number < propertyList.size()) {
+                errorMsg = "导入成功，共" + number + "条数据, 重复" + (propertyList.size() - number) + "条数据";
+            }else {
+                errorMsg = "导入成功，共" + number + "条数据";
+            }
+            result.put("code", 0);
+            result.put("message", errorMsg);
+            result.put("totalNum", propertyList.size());
+            result.put("insertNum", number);
+        }
+
+        return result;
+
     }
 
 }

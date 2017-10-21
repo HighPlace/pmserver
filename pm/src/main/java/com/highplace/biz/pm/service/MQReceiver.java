@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,9 +23,15 @@ public class MQReceiver {
     //spring.cloud.stream.bindings.<channelName>.group=分组名
     //每个应用定义一个唯一的分组名，不好和其他应用重复
     @RabbitListener(queues="batchImportQueue")    //监听器监听指定的Queue
-    public void process(String str) {
-        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:"+str);
-        propertyService.batchImportHandler(str);
+    public void process(String msg) {
+        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        JSONObject jsonObject = JSON.parseObject(msg);
+        if (jsonObject == null) return;
+
+        if(jsonObject.getString("target").equals("property")) {
+            propertyService.batchImportHandler(jsonObject);
+        }
+
     }
 }
 
