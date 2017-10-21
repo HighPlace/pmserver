@@ -4,8 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.meta.InsertOnly;
 import com.qcloud.cos.request.DelFileRequest;
 import com.qcloud.cos.request.GetFileLocalRequest;
+import com.qcloud.cos.request.StatFileRequest;
+import com.qcloud.cos.request.UploadFileRequest;
 import com.qcloud.cos.sign.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +67,41 @@ public class QCloudCosHelper {
         logger.info("qcloud delFileResult: " + delFileResult);
         return JSON.parseObject(delFileResult);
     }
+
+    //上传文件到cos
+    //返回格式:{"code":0,"message":"SUCCESS"}
+    public JSONObject uploadFile(String bucketName, String cosFilePath, String localFilePath) {
+
+        UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, cosFilePath, localFilePath);
+        uploadFileRequest.setEnableShaDigest(false);
+        String uploadFileResult = cosClient.uploadFile(uploadFileRequest);
+
+        logger.info("qcloud updateFileResult: " + uploadFileResult); //{"code":0,"message":"SUCCESS"}
+        return JSON.parseObject(uploadFileResult);
+    }
+
+    //上传buffer到cos
+    public JSONObject uploadBuffer(String bucketName, String cosFilePath, byte[] contentBuffer) {
+
+        UploadFileRequest overWriteFileRequest = new UploadFileRequest(bucketName, cosFilePath, contentBuffer);
+        // 如果COS上已有文件, 则进行覆盖(默认不覆盖)
+        overWriteFileRequest.setInsertOnly(InsertOnly.OVER_WRITE);
+        String overWriteFileRet = cosClient.uploadFile(overWriteFileRequest);
+
+        logger.info("qcloud updateBufferResult: " + overWriteFileRet); //{"code":0,"message":"SUCCESS"}
+        return JSON.parseObject(overWriteFileRet);
+    }
+
+    //查看文件属性信息
+    public JSONObject statFile(String bucketName, String cosFilePath) {
+
+        StatFileRequest statFileRequest = new StatFileRequest(bucketName, cosFilePath);
+        String statFileResult = cosClient.statFile(statFileRequest);
+
+        logger.info("qcloud statFileResult: " + statFileResult); //{"code":0,"message":"SUCCESS"}
+        return JSON.parseObject(statFileResult);
+    }
+
 
     //释放cos客户端
     public void releaseCosClient() {

@@ -101,6 +101,24 @@ public class PropertyController {
     @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
                                              Principal principal) {
-        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId);
+        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, 0);
+    }
+
+    @RequestMapping(path = "/property/export", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/property/export;POST','/property/export;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
+    public Map<String, String> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
+                                             Principal principal) {
+        if(vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        String taskId = propertyService.batchExportCall(SecurityUtils.getCurrentProductInstId(principal), vendor);
+        Map<String, String> result = new HashMap<>();
+        result.put("taskId", taskId);
+        return result;
+    }
+
+    @RequestMapping(path = "/property/export", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property/export;GET','/property/export;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<Object, Object> getExportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
+                                                   Principal principal) {
+        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, 1);
     }
 }

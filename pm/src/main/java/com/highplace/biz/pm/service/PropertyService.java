@@ -14,7 +14,7 @@ import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelUtils;
 import com.highplace.biz.pm.service.util.QCloudCosHelper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -29,7 +29,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -46,25 +49,21 @@ public class PropertyService {
 
     //后面加上productInstId_taskID
     public static final String PREFIX_PROPERTY_IMPORT_KEY = "TASK_IMPORT_PROPERTY_";
+    public static final String PREFIX_PROPERTY_EXPORT_KEY = "TASK_EXPORT_PROPERTY_";
 
     public static final String TASK_STATUS_KEY = "status"; //0:处理中 1:处理完成
     public static final String TASK_RESULT_CODE_KEY = "resultCode"; //0:成功 非0:失败
     public static final String TASK_RESULT_MESSAGE_KEY = "resultMessage"; //错误信息
-
-    @Autowired
-    private PropertyMapper propertyMapper;
-
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
-
-    @Autowired
-    private RedisTemplate redisTemplate;
-
-    @Autowired
-    private AmqpTemplate mqTemplate;
-
     @Autowired
     QCloudConfig qCloudConfig;
+    @Autowired
+    private PropertyMapper propertyMapper;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private AmqpTemplate mqTemplate;
 
     //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
     public static int getPropertyStatus(String statusDesc) {
@@ -77,6 +76,17 @@ public class PropertyService {
             return 0;
         }
         return 0;
+    }
+
+    //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
+    public static String getPropertyStatusDesc(int status) {
+
+        if (status == 1) return "未售";
+        if (status == 2) return "未装修";
+        if (status == 3) return "装修中";
+        if (status == 4) return "已入住";
+        if (status == 5) return "已出租";
+        return "未知";
     }
 
     //从redis中查询房产分区/楼号/单元信息
@@ -304,16 +314,38 @@ public class PropertyService {
 
         String msg = JSON.toJSONString(msgMap);
         logger.debug("Send MQ batchImport message: " + msg);
-
         mqTemplate.convertAndSend(MQConfig.BATCH_IMPORT_QUEUE_NAME, msg);
+        return msgId;
+    }
 
+    //将批量导出请求通过消息队列发出
+    public String batchExportCall(String productInstId, Integer vendor) {
+
+        String msgId = UUID.randomUUID().toString();
+        Map<String, Object> msgMap = new HashMap<String, Object>();
+        msgMap.put("msgId", msgId);
+        msgMap.put("productInstId", productInstId);
+        msgMap.put("target", "property");
+        msgMap.put("vendor", vendor);
+
+        String msg = JSON.toJSONString(msgMap);
+        logger.debug("Send MQ batchExport message: " + msg);
+        mqTemplate.convertAndSend(MQConfig.BATCH_EXPORT_QUEUE_NAME, msg);
         return msgId;
     }
 
     //查询task状态
-    public Map<Object, Object> getTaskStatus(String productInstId, String taskId) {
-        String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstId + "_" + taskId;
-        return redisTemplate.opsForHash().entries(redisKey);
+    //flag: 0:import 1:export
+    public Map<Object, Object> getTaskStatus(String productInstId, String taskId, int flag) {
+        if (flag == 0) {
+            String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstId + "_" + taskId;
+            return redisTemplate.opsForHash().entries(redisKey);
+        } else if (flag == 1) {
+            String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstId + "_" + taskId;
+            return redisTemplate.opsForHash().entries(redisKey);
+        } else {
+            return null;
+        }
     }
 
     //从消息队列接收消息后进行导入数据库操作
@@ -334,7 +366,7 @@ public class PropertyService {
 
         String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstID + "_" + taskId;
 
-        Map<String,Object> redisKeyMap = new HashMap<String, Object>();
+        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
 
         //设置任务状态为0:处理中
         redisKeyMap.put(TASK_STATUS_KEY, 0);
@@ -342,10 +374,10 @@ public class PropertyService {
         redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
         //创建qcloud cos操作Helper对象
-        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(),qCloudConfig.getSecretId(),qCloudConfig.getSecretKey());
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
 
         //下载文件到本地
-        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(),cosFilePath, localFilePath);
+        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
         int code = jsonGetFileResult.getIntValue("code");
 
         if (code != 0) {
@@ -366,7 +398,7 @@ public class PropertyService {
         } else {
 
             //解析本地文件并导入数据库
-            JSONObject jsonResult =  readExcel(productInstID, localFilePath);
+            JSONObject jsonResult = readExcel(productInstID, localFilePath);
 
             logger.debug("readExcel result:" + jsonResult.toJSONString());
 
@@ -385,7 +417,7 @@ public class PropertyService {
             localFile.delete();
 
             //删除远程的文件
-            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(),cosFilePath);
+            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
         }
 
         // 关闭释放资源
@@ -393,7 +425,7 @@ public class PropertyService {
     }
 
     //读取Excel文件
-    private JSONObject readExcel(String productInstID, String localFilePath)  {
+    private JSONObject readExcel(String productInstID, String localFilePath) {
 
         //初始化输入流
         InputStream is = null;
@@ -591,7 +623,7 @@ public class PropertyService {
                 criteria.andRoomIdEqualTo(property.getRoomId());
 
                 List<Property> find = propertyMapper.selectByExample(example);
-                if(find.size() == 0) {  //不存在记录,直接insert
+                if (find.size() == 0) {  //不存在记录,直接insert
                     number += insert(productInstID, property);
                 } else if (find.size() == 1) { //存在记录,进行update
                     property.setPropertyId(find.get(0).getPropertyId());
@@ -599,9 +631,9 @@ public class PropertyService {
                 }
 
             }
-            if(number < propertyList.size()) {
+            if (number < propertyList.size()) {
                 errorMsg = "导入成功，共" + number + "条数据, 重复" + (propertyList.size() - number) + "条数据";
-            }else {
+            } else {
                 errorMsg = "导入成功，共" + number + "条数据";
             }
             result.put("code", 0);
@@ -614,4 +646,144 @@ public class PropertyService {
         return result;
     }
 
+    //从消息队列接收消息后进行导出数据库操作
+    public void batchExportHandler(JSONObject jsonObject) {
+
+        //获取任务ID
+        String taskId = jsonObject.getString("msgId");
+
+        //获取productInstID
+        String productInstID = jsonObject.getString("productInstId");
+
+        String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstID + "_" + taskId;
+
+        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
+
+        //设置任务状态为0:处理中
+        redisKeyMap.put(TASK_STATUS_KEY, 0);
+        redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+        redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
+
+        String targetFilename = "property_" + productInstID + "-" + new Date().getTime() + ".xls";
+        String cosFilePath = targetFilename;
+
+        //读取到excel并上传到cos
+        JSONObject jsonResult = writeExcelAndUploadCos(productInstID, cosFilePath);
+        int code = jsonResult.getIntValue("code");
+        if (code != 0) {
+
+            String errMsg = jsonResult.getString("message");
+            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //设置任务状态为1:处理完成
+            redisKeyMap.put(TASK_STATUS_KEY, 1);
+            redisKeyMap.put(TASK_RESULT_CODE_KEY, 20000);
+            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
+            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+        } else {
+            //设置任务状态为1:处理完成
+            redisKeyMap.put(TASK_STATUS_KEY, 1);
+            redisKeyMap.put(TASK_RESULT_CODE_KEY, 0);
+            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, "SUCCESS");
+            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+        }
+    }
+
+    //读取房产资料并上传到cos
+    private JSONObject writeExcelAndUploadCos(String productInstID, String cosFilePath) {
+
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet("房产档案");
+        createExcelTitle(workbook, sheet);
+
+        //获取数据
+        PropertyExample propertyExample = new PropertyExample();
+        PropertyExample.Criteria criteria = propertyExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstID);
+        OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
+        List<Property> propertyList = propertyMapper.selectByExample(propertyExample);
+
+        //设置日期格式
+        //HSSFCellStyle style=workbook.createCellStyle();
+        //style.setDataFormat(HSSFDataFormat.getBuiltinFormat("m/d/yy h:mm"));
+
+        //新增数据行，并且设置单元格数据
+        int rowNum = 1;
+        for (Property property : propertyList) {
+
+            HSSFRow row = sheet.createRow(rowNum);
+            row.createCell(0).setCellValue(property.getZoneId());
+            row.createCell(1).setCellValue(property.getBuildingId());
+            row.createCell(2).setCellValue(property.getUnitId());
+            row.createCell(3).setCellValue(property.getRoomId());
+            row.createCell(4).setCellValue(property.getPropertyArea().toString());
+            row.createCell(5).setCellValue(property.getFloorArea().toString());
+            row.createCell(6).setCellValue(property.getHouseType());
+            row.createCell(7).setCellValue(getPropertyStatusDesc(property.getStatus()));
+            //cell.setCellStyle(style);
+            rowNum++;
+        }
+
+        //创建qcloud cos操作Helper对象,并上传文件
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
+
+        int code = jsonUploadResult.getIntValue("code");
+        if (code == 0) {
+            JSONObject j = qCloudCosHelper.statFile(qCloudConfig.getCosBucketName(), cosFilePath);
+        }
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+        return jsonUploadResult;
+    }
+
+    //创建excel表头
+    private void createExcelTitle(HSSFWorkbook workbook, HSSFSheet sheet) {
+
+        HSSFRow row = sheet.createRow(0);
+        //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
+        sheet.setColumnWidth(2, 12 * 256);
+        sheet.setColumnWidth(3, 17 * 256);
+
+        //设置为居中加粗
+        HSSFCellStyle style = workbook.createCellStyle();
+        HSSFFont font = workbook.createFont();
+        font.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+        style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+        style.setFont(font);
+
+        HSSFCell cell;
+        cell = row.createCell(0);
+        cell.setCellValue("分区名称");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(1);
+        cell.setCellValue("楼号");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(2);
+        cell.setCellValue("单元(座)");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(3);
+        cell.setCellValue("房号");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(4);
+        cell.setCellValue("产权面积");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(5);
+        cell.setCellValue("套内面积");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(6);
+        cell.setCellValue("户型");
+        cell.setCellStyle(style);
+
+        cell = row.createCell(7);
+        cell.setCellValue("房产状态");
+        cell.setCellStyle(style);
+    }
 }

@@ -23,7 +23,7 @@ public class MQReceiver {
     //spring.cloud.stream.bindings.<channelName>.group=分组名
     //每个应用定义一个唯一的分组名，不好和其他应用重复
     @RabbitListener(queues="batchImportQueue")    //监听器监听指定的Queue
-    public void process(String msg) {
+    public void processImport(String msg) {
         logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
         JSONObject jsonObject = JSON.parseObject(msg);
         if (jsonObject == null) return;
@@ -36,7 +36,22 @@ public class MQReceiver {
                 e.printStackTrace();
             }
         }
+    }
 
+    @RabbitListener(queues="batchExportQueue")    //监听器监听指定的Queue
+    public void processExport(String msg) {
+        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        JSONObject jsonObject = JSON.parseObject(msg);
+        if (jsonObject == null) return;
+
+        if(jsonObject.getString("target").equals("property")) {
+            try {
+                propertyService.batchExportHandler(jsonObject);
+            }catch (Exception e){
+                logger.error("Process error:" + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 }
 
