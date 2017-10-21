@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.MQConfig;
+import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.PropertyMapper;
 import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.PropertyExample;
@@ -23,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
@@ -58,6 +58,9 @@ public class PropertyService {
 
     @Autowired
     private AmqpTemplate mqTemplate;
+
+    @Autowired
+    QCloudConfig qCloudConfig;
 
     //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
     public static int getPropertyStatus(String statusDesc) {
@@ -329,10 +332,10 @@ public class PropertyService {
         stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
         //创建qcloud cos操作Helper对象
-        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper();
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(),qCloudConfig.getSecretId(),qCloudConfig.getSecretKey());
 
         //下载文件到本地
-        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(cosFilePath, localFilePath);
+        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(),cosFilePath, localFilePath);
         int code = jsonGetFileResult.getIntValue("code");
 
         if (code != 0) {
@@ -362,7 +365,7 @@ public class PropertyService {
             localFile.delete();
 
             //删除远程的文件
-            qCloudCosHelper.deleteFile(cosFilePath);
+            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(),cosFilePath);
         }
 
         // 关闭释放资源
