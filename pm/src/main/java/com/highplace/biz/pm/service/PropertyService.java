@@ -664,7 +664,7 @@ public class PropertyService {
         redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
-        String targetFilename = "property_" + productInstID + "-" + new Date().getTime() + ".xls";
+        String targetFilename = "/property_" + productInstID + "-" + new Date().getTime() + ".xls";
         String cosFilePath = targetFilename;
 
         //读取到excel并上传到cos
