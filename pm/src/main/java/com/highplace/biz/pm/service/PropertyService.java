@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
@@ -323,7 +324,7 @@ public class PropertyService {
         Map<String,Object> redisKeyMap = new HashMap<String, Object>();
 
         //设置任务状态为0:处理中
-        redisKeyMap.put(TASK_STATUS_KEY, 0);
+        redisKeyMap.put(TASK_STATUS_KEY, "0");
         stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
@@ -340,8 +341,8 @@ public class PropertyService {
             String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
 
             //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, -1);
+            redisKeyMap.put(TASK_STATUS_KEY, "1");
+            redisKeyMap.put(TASK_RESULT_CODE_KEY, "-1");
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
             stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
 
@@ -351,8 +352,8 @@ public class PropertyService {
             JSONObject jsonResult =  readExcel(productInstID, localFilePath);
 
             //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, jsonObject.getInteger("code"));
+            redisKeyMap.put(TASK_STATUS_KEY, "1");
+            redisKeyMap.put(TASK_RESULT_CODE_KEY, String.valueOf(jsonObject.getIntValue("code")));
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
             stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
 
