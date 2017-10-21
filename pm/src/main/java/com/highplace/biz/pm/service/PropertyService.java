@@ -1,14 +1,23 @@
 package com.highplace.biz.pm.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.MQConfig;
+import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.PropertyMapper;
 import com.highplace.biz.pm.domain.Property;
 import com.highplace.biz.pm.domain.PropertyExample;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
+import com.qcloud.cos.COSClient;
+import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.BasicCOSCredentials;
+import com.qcloud.cos.auth.COSCredentials;
+import com.qcloud.cos.model.GetObjectRequest;
+import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -17,6 +26,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
+import java.io.File;
 import java.util.*;
 
 
@@ -32,6 +42,9 @@ public class PropertyService {
 
     @Autowired
     private PropertyMapper propertyMapper;
+
+    @Autowired
+    QCloudConfig qCloudConfig;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -252,14 +265,15 @@ public class PropertyService {
     }
 
     //将批量导入请求通过消息队列发出
-    public String batchImport(String productInstId, String fileUrl ) {
+    public String batchImportCall(String productInstId, String fileUrl, Integer vendor ) {
 
         String msgId = UUID.randomUUID().toString();
-        Map<String, String> msgMap = new HashMap<String, String>();
+        Map<String, Object> msgMap = new HashMap<String, Object>();
         msgMap.put("msgId", msgId);
         msgMap.put("productInstId", productInstId);
         msgMap.put("fileUrl", fileUrl);
         msgMap.put("target", "property");
+        msgMap.put("vendor", vendor);
 
         String msg = JSON.toJSONString(msgMap);
         logger.debug("Send MQ batchImport message: " + msg);
@@ -267,6 +281,29 @@ public class PropertyService {
         mqTemplate.convertAndSend(MQConfig.BATCH_IMPORT_QUEUE_NAME, msg);
 
         return msgId;
+    }
+
+    //从消息队列接收消息后进行导入数据库操作
+    //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v5/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
+    public void batchImportHandler(String msg) {
+
+        JSONObject jsonObject = JSON.parseObject(msg);
+        if(null != jsonObject) {
+
+            // 设置秘钥
+            COSCredentials cred = new BasicCOSCredentials(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+            // 设置区域, 这里设置为广州
+            // (COS地域的简称请参照 https://www.qcloud.com/document/product/436/6224)
+            ClientConfig clientConfig = new ClientConfig(new Region("gz"));
+            // 生成cos客户端对象
+            COSClient cosClient = new COSClient(cred, clientConfig);
+            //待导入文件在bucket中的路径
+            String key = jsonObject.getString("fileUrl");
+            //下载后放到本地的tmp目录
+            File downFile = new File("/tmp" + key);
+            GetObjectRequest getObjectRequest = new GetObjectRequest(qCloudConfig.getCosBucketName(), key);
+            ObjectMetadata downObjectMeta = cosClient.getObject(getObjectRequest, downFile);
+        }
     }
 
 }

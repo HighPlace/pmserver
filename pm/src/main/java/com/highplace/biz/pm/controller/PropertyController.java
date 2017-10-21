@@ -88,9 +88,10 @@ public class PropertyController {
     @RequestMapping(path = "/property/import", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property/import;POST','/property/import;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
     public Map<String, String> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
+                                             @RequestParam(value = "vendor", required = false) Integer vendor,
                                                 Principal principal) {
-
-        String taskId = propertyService.batchImport(SecurityUtils.getCurrentProductInstId(principal), fileUrl);
+        if(vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        String taskId = propertyService.batchImportCall(SecurityUtils.getCurrentProductInstId(principal), fileUrl, vendor);
         Map<String, String> result = new HashMap<>();
         result.put("taskId", taskId);
         return result;
