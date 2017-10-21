@@ -13,11 +13,9 @@ import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
-import com.qcloud.cos.auth.BasicCOSCredentials;
-import com.qcloud.cos.auth.COSCredentials;
-import com.qcloud.cos.model.GetObjectRequest;
-import com.qcloud.cos.model.ObjectMetadata;
-import com.qcloud.cos.region.Region;
+import com.qcloud.cos.request.DelFileRequest;
+import com.qcloud.cos.request.GetFileLocalRequest;
+import com.qcloud.cos.sign.Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -26,7 +24,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.File;
 import java.util.*;
 
 
@@ -284,25 +281,38 @@ public class PropertyService {
     }
 
     //从消息队列接收消息后进行导入数据库操作
-    //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v5/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
+    //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v4/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
     public void batchImportHandler(String msg) {
 
         JSONObject jsonObject = JSON.parseObject(msg);
         if(null != jsonObject) {
 
-            // 设置秘钥
-            COSCredentials cred = new BasicCOSCredentials(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-            // 设置区域, 这里设置为广州
-            // (COS地域的简称请参照 https://www.qcloud.com/document/product/436/6224)
-            ClientConfig clientConfig = new ClientConfig(new Region("gz"));
-            // 生成cos客户端对象
-            COSClient cosClient = new COSClient(cred, clientConfig);
-            //待导入文件在bucket中的路径
-            String key = jsonObject.getString("fileUrl");
-            //下载后放到本地的tmp目录
-            File downFile = new File("/tmp" + key);
-            GetObjectRequest getObjectRequest = new GetObjectRequest(qCloudConfig.getCosBucketName(), key);
-            ObjectMetadata downObjectMeta = cosClient.getObject(getObjectRequest, downFile);
+            // 初始化秘钥信息
+            Credentials cred = new Credentials(Long.parseLong(qCloudConfig.getAppId()), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+            // 初始化客户端配置
+            ClientConfig clientConfig = new ClientConfig();
+            // 设置bucket所在的区域，比如华南园区：gz； 华北园区：tj；华东园区：sh ；
+            clientConfig.setRegion("gz");
+            // 初始化cosClient
+            COSClient cosClient = new COSClient(clientConfig, cred);
+            //获取文件在cos上的路径
+            String cosFilePath = jsonObject.getString("fileUrl");
+            //设置本地存储路径
+            String localPathDown = "/tmp/" + cosFilePath;
+            GetFileLocalRequest getFileLocalRequest =
+                    new GetFileLocalRequest(qCloudConfig.getCosBucketName(), cosFilePath, localPathDown);
+            getFileLocalRequest.setUseCDN(false);
+            getFileLocalRequest.setReferer("*.myweb.cn");
+            String getFileResult = cosClient.getFileLocal(getFileLocalRequest);
+            logger.info("qcloud getFileResult: " + getFileResult);
+
+            // 7. 删除文件
+            DelFileRequest delFileRequest = new DelFileRequest(qCloudConfig.getCosBucketName(), cosFilePath);
+            String delFileResult = cosClient.delFile(delFileRequest);
+            logger.info("qcloud delFileResult: " + delFileResult);
+
+            // 关闭释放资源
+            cosClient.shutdown();
         }
     }
 
