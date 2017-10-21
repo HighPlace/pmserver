@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
@@ -55,6 +56,9 @@ public class PropertyService {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private AmqpTemplate mqTemplate;
@@ -309,7 +313,7 @@ public class PropertyService {
     //查询task状态
     public Map<Object, Object> getTaskStatus(String productInstId, String taskId) {
         String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstId + "_" + taskId;
-        return stringRedisTemplate.opsForHash().entries(redisKey);
+        return redisTemplate.opsForHash().entries(redisKey);
     }
 
     //从消息队列接收消息后进行导入数据库操作
@@ -334,8 +338,8 @@ public class PropertyService {
 
         //设置任务状态为0:处理中
         redisKeyMap.put(TASK_STATUS_KEY, 0);
-        stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-        stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
+        redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+        redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
         //创建qcloud cos操作Helper对象
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(),qCloudConfig.getSecretId(),qCloudConfig.getSecretKey());
@@ -353,7 +357,7 @@ public class PropertyService {
             redisKeyMap.put(TASK_STATUS_KEY, 1);
             redisKeyMap.put(TASK_RESULT_CODE_KEY, 20000);
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
-            stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
 
             //stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
             //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, "-1");
@@ -370,7 +374,7 @@ public class PropertyService {
             redisKeyMap.put(TASK_STATUS_KEY, 1);
             redisKeyMap.put(TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
-            stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
 
             //stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
             //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
