@@ -169,4 +169,6 @@ public interface PropertyMapper {
         "where property_id = #{propertyId,jdbcType=BIGINT}"
     })
     int updateByPrimaryKey(Property record);
+
+
 }

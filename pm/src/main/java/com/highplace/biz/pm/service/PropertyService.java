@@ -327,8 +327,7 @@ public class PropertyService {
         Map<String,Object> redisKeyMap = new HashMap<String, Object>();
 
         //设置任务状态为0:处理中
-        redisKeyMap.put(TASK_STATUS_KEY, "0");
-        stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+        stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "0");
         stringRedisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
         //创建qcloud cos操作Helper对象
@@ -344,10 +343,9 @@ public class PropertyService {
             String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
 
             //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, "1");
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, "-1");
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
-            stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, "-1");
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, resultMsg);
 
         } else {
 
@@ -357,10 +355,9 @@ public class PropertyService {
             logger.debug("readExcel result:" + jsonResult.toJSONString());
 
             //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, "1");
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, String.valueOf(jsonObject.getString("code")));
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
-            stringRedisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonObject.getString("code"));
+            stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, jsonObject.getString("message"));
 
             //删除本地文件
             File localFile = new File(localFilePath);
