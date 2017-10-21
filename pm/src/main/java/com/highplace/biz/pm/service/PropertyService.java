@@ -716,7 +716,7 @@ public class PropertyService {
             row.createCell(2).setCellValue(property.getUnitId());
             row.createCell(3).setCellValue(property.getRoomId());
             row.createCell(4).setCellValue(property.getPropertyArea().toString());
-            row.createCell(5).setCellValue(property.getFloorArea().toString());
+            row.createCell(5).setCellValue((property.getFloorArea() == null)?"" : property.getFloorArea().toString());
             row.createCell(6).setCellValue(property.getHouseType());
             row.createCell(7).setCellValue(getPropertyStatusDesc(property.getStatus()));
             //cell.setCellStyle(style);
@@ -746,6 +746,11 @@ public class PropertyService {
 
         // 关闭释放资源
         qCloudCosHelper.releaseCosClient();
+
+        //删除本地文件
+        File localFile = new File(localFilePath);
+        localFile.delete();
+
         return jsonUploadResult;
     }
 
