@@ -668,7 +668,7 @@ public class PropertyService {
         String localFilePath = "/tmp" + targetFilename;
 
         //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCos(productInstID, cosFilePath, localFilePath);
+        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstID, cosFilePath, localFilePath);
         int code = jsonResult.getIntValue("code");
         if (code != 0) {
 
@@ -689,6 +689,34 @@ public class PropertyService {
             redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         }
     }
+
+    //读取房产资料并上传到cos
+    private JSONObject writeExcelAndUploadCosNew(String productInstID, String cosFilePath, String localFilePath) {
+
+        //获取数据
+        PropertyExample propertyExample = new PropertyExample();
+        PropertyExample.Criteria criteria = propertyExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstID);
+        OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
+        List<Property> propertyList = propertyMapper.selectByExample(propertyExample);
+
+        ExcelUtils.getInstance().exportObj2Excel(localFilePath, propertyList, Property.class);
+
+        //创建qcloud cos操作Helper对象,并上传文件
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        JSONObject jsonUploadResult =  qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        //JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+
+        //删除本地文件
+        File localFile = new File(localFilePath);
+        localFile.delete();
+
+        return jsonUploadResult;
+    }
+
 
     //读取房产资料并上传到cos
     private JSONObject writeExcelAndUploadCos(String productInstID, String cosFilePath, String localFilePath) {
