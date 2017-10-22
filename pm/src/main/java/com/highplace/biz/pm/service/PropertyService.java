@@ -691,7 +691,7 @@ public class PropertyService {
         }
     }
 
-    //读取房产资料并上传到cos
+    //读取房产资料并上传到cos,基于注解方式
     private JSONObject writeExcelAndUploadCosNew(String productInstID, String cosFilePath, String localFilePath) {
 
         //获取数据
@@ -700,17 +700,16 @@ public class PropertyService {
         criteria.andProductInstIdEqualTo(productInstID);
         OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
         List<Property> propertyList = propertyMapper.selectByExample(propertyExample);
-        //不按模板导出excel
-        //ExcelUtils.getInstance().exportObj2Excel(localFilePath, propertyList, Property.class);
+
+        //不按模板导出excel, 基于注解
+        ExcelUtils.getInstance().exportObj2Excel(localFilePath, propertyList, Property.class);
 
         //按模板导出excel
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("title", "房产档案");
-        map.put("total", propertyList.size()+" 条");
-        map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
-
-        ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath,
-                propertyList, Property.class, true);
+        //Map<String, String> map = new HashMap<String, String>();
+        //map.put("title", "房产档案");
+        //map.put("total", propertyList.size()+" 条");
+        //map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
+        //ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath, propertyList, Property.class, true);
 
         //创建qcloud cos操作Helper对象,并上传文件
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
@@ -727,7 +726,7 @@ public class PropertyService {
         return jsonUploadResult;
     }
 
-
+    /*
     //读取房产资料并上传到cos
     private JSONObject writeExcelAndUploadCos(String productInstID, String cosFilePath, String localFilePath) {
 
@@ -838,4 +837,5 @@ public class PropertyService {
         cell.setCellValue("房产状态");
         cell.setCellStyle(style);
     }
+    */
 }
