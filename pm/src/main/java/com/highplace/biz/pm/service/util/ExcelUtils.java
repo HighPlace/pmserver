@@ -6,11 +6,9 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.core.io.ClassPathResource;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -33,6 +31,13 @@ public class ExcelUtils {
             return false;
         }
         return true;
+    }
+
+    //获取excel模板
+    public static InputStream getTemplates(String tempName) throws IOException {
+        //return new FileInputStream(ResourceUtils.getFile("classpath:excel-templates/" + tempName));
+        //return new FileInputStream(ResourceUtils.getFile("classpath:" + tempName));
+        return new ClassPathResource("excel-templates/" + tempName).getInputStream();
     }
 
     private static ExcelUtils eu = new ExcelUtils();
@@ -234,7 +239,7 @@ public class ExcelUtils {
     public List<Object> readExcel2ObjsByClasspath(String path,Class clz,int readLine,int tailLine) {
         Workbook wb = null;
         try {
-            wb = new HSSFWorkbook(TemplateFileUtil.getTemplates(path));
+            wb = new HSSFWorkbook(ExcelUtils.getTemplates(path));
             return handlerExcel2Objs(wb, clz, readLine,tailLine);
         } catch (IOException e) {
             e.printStackTrace();
@@ -252,7 +257,7 @@ public class ExcelUtils {
     public List<Object> readExcel2ObjsByPath(String path,Class clz,int readLine,int tailLine) {
         Workbook wb = null;
         try {
-            wb = new HSSFWorkbook(TemplateFileUtil.getTemplates(path));
+            wb = new HSSFWorkbook(ExcelUtils.getTemplates(path));
             return handlerExcel2Objs(wb, clz, readLine,tailLine);
         } catch (IOException e) {
             e.printStackTrace();

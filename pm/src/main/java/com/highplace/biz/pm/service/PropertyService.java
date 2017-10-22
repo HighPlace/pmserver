@@ -709,7 +709,7 @@ public class PropertyService {
         map.put("total", propertyList.size()+" 条");
         map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
 
-        ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath,
+        ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "excel-templates/default-template.xls", localFilePath,
                 propertyList, Property.class, true);
 
         //创建qcloud cos操作Helper对象,并上传文件

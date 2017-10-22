@@ -94,7 +94,7 @@ public class ExcelTemplate {
      */
     public ExcelTemplate readTemplateByClasspath(String path) {
         try {
-            wb = new HSSFWorkbook(TemplateFileUtil.getTemplates(path));
+            wb = new HSSFWorkbook(ExcelUtils.getTemplates(path));
             initTemplate();
         } catch (IOException e) {
             e.printStackTrace();
@@ -144,7 +144,7 @@ public class ExcelTemplate {
      */
     public ExcelTemplate readTemplateByPath(String path) {
         try {
-            wb = new HSSFWorkbook(TemplateFileUtil.getTemplates(path));
+            wb = new HSSFWorkbook(ExcelUtils.getTemplates(path));
             initTemplate();
         } catch (IOException e) {
             e.printStackTrace();
