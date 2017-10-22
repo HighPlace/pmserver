@@ -4,12 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.exception.AbstractCosException;
 import com.qcloud.cos.meta.InsertOnly;
-import com.qcloud.cos.request.DelFileRequest;
-import com.qcloud.cos.request.GetFileLocalRequest;
-import com.qcloud.cos.request.StatFileRequest;
-import com.qcloud.cos.request.UploadFileRequest;
+import com.qcloud.cos.request.*;
 import com.qcloud.cos.sign.Credentials;
+import com.qcloud.cos.sign.Sign;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +101,32 @@ public class QCloudCosHelper {
         return JSON.parseObject(statFileResult);
     }
 
+    //创建目录，目录必须以/结尾，如"/sample_folder/subfolder/"
+    public void createFolder(String bucketName, String cosFolderPath){
+
+        StatFolderRequest statFolderRequest = new StatFolderRequest(bucketName, cosFolderPath);
+        String statFolderRet = cosClient.statFolder(statFolderRequest);
+        logger.info("qcloud statFolderResult: " + statFolderRet);
+        if(JSON.parseObject(statFolderRet).getIntValue("code") != 0) {
+            CreateFolderRequest createFolderRequest = new CreateFolderRequest(bucketName, cosFolderPath);
+            String createFolderRet = cosClient.createFolder(createFolderRequest);
+            logger.info("qcloud createFolderResult: " + createFolderRet);
+        }
+    }
+
+    //生成文件下载URL,文件名不能以/结尾,如：/pic/test.jpg
+    public String getDownLoadUrl(String bucketName, String cosFilePath, String sourceURL) {
+
+        long expired = System.currentTimeMillis() / 1000 + 6000;
+        try {
+            String signStr = Sign.getDownLoadSign(bucketName, cosFilePath, credentials, expired);
+            return sourceURL + "?sign=" + signStr;
+        } catch (AbstractCosException e) {
+            logger.error("getDownLoadSign fail:" + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     //释放cos客户端
     public void releaseCosClient() {

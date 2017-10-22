@@ -655,21 +655,20 @@ public class PropertyService {
         //获取productInstID
         String productInstID = jsonObject.getString("productInstId");
 
-        String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstID + "_" + taskId;
-
-        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
-
         //设置任务状态为0:处理中
+        String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstID + "_" + taskId;
+        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
         redisKeyMap.put(TASK_STATUS_KEY, 0);
         redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
-        String targetFilename = "/property_" + productInstID + "-" + new Date().getTime() + ".xls";
-        String cosFilePath = targetFilename;
-        String localFilePath = "/tmp" + targetFilename;
+        String targetFilename = "property_" + productInstID + "-" + new Date().getTime() + ".xls";
+        String cosFolder = "/" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "/";
+        String cosFilePath = cosFolder + targetFilename;
+        String localFilePath = "/tmp/" + targetFilename;
 
         //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstID, cosFilePath, localFilePath);
+        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstID, cosFolder, cosFilePath, localFilePath);
         int code = jsonResult.getIntValue("code");
         if (code != 0) {
 
@@ -686,13 +685,13 @@ public class PropertyService {
             redisKeyMap.put(TASK_STATUS_KEY, 1);
             redisKeyMap.put(TASK_RESULT_CODE_KEY, 0);
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, "SUCCESS");
-            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getJSONObject("data").getString("source_url"));
+            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getJSONObject(TASK_RESULT_FILEURL_KEY));
             redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         }
     }
 
     //读取房产资料并上传到cos,基于注解方式
-    private JSONObject writeExcelAndUploadCosNew(String productInstID, String cosFilePath, String localFilePath) {
+    private JSONObject writeExcelAndUploadCosNew(String productInstID, String cosFolder, String cosFilePath, String localFilePath) {
 
         //获取数据
         PropertyExample propertyExample = new PropertyExample();
@@ -711,10 +710,19 @@ public class PropertyService {
         //map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
         //ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath, propertyList, Property.class, true);
 
-        //创建qcloud cos操作Helper对象,并上传文件
+        //创建qcloud cos操作Helper对象
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        //创建cos folder
+        qCloudCosHelper.createFolder(qCloudConfig.getCosBucketName(), cosFolder);
+        //上传文件
         JSONObject jsonUploadResult =  qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
         //JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
+
+        if(jsonUploadResult.getIntValue("code") == 0 ){
+            //生成下载url
+            String downloadUrl = qCloudCosHelper.getDownLoadUrl(qCloudConfig.getCosBucketName(), cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
+            jsonUploadResult.put(TASK_RESULT_FILEURL_KEY, downloadUrl);
+        }
 
         // 关闭释放资源
         qCloudCosHelper.releaseCosClient();
