@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -699,8 +700,17 @@ public class PropertyService {
         criteria.andProductInstIdEqualTo(productInstID);
         OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
         List<Property> propertyList = propertyMapper.selectByExample(propertyExample);
+        //不按模板导出excel
+        //ExcelUtils.getInstance().exportObj2Excel(localFilePath, propertyList, Property.class);
 
-        ExcelUtils.getInstance().exportObj2Excel(localFilePath, propertyList, Property.class);
+        //按模板导出excel
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("title", "房产档案");
+        map.put("total", propertyList.size()+" 条");
+        map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
+
+        ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath,
+                propertyList, Property.class, true);
 
         //创建qcloud cos操作Helper对象,并上传文件
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
