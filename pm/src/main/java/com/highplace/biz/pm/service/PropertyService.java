@@ -500,13 +500,13 @@ public class PropertyService {
             for (int c = 0; c < totalCells; c++) {
                 Cell cell = row.getCell(c);
 
-                if (cell == null) {
-                    errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
-                    errorFlag = true;
-                    break; //跳出循环
+                if (cell == null) {  //null的列,默认为空
+                    cellValue = "";
+                } else {
+                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                    cellValue = cell.getStringCellValue().trim();
                 }
-                cell.setCellType(Cell.CELL_TYPE_STRING);
-                cellValue = cell.getStringCellValue().trim();
+
                 switch (c) {
                     case 0:  //分区名称 (非必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
