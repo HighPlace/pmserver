@@ -78,17 +78,6 @@ public class PropertyService {
         return 0;
     }
 
-    //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
-    public static String getPropertyStatusDesc(int status) {
-
-        if (status == 1) return "未售";
-        if (status == 2) return "未装修";
-        if (status == 3) return "装修中";
-        if (status == 4) return "已入住";
-        if (status == 5) return "已出租";
-        return "未知";
-    }
-
     //从redis中查询房产分区/楼号/单元信息
     public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
 
@@ -517,7 +506,7 @@ public class PropertyService {
                     break; //跳出循环
                 }
                 cell.setCellType(Cell.CELL_TYPE_STRING);
-                cellValue = cell.getStringCellValue();
+                cellValue = cell.getStringCellValue().trim();
                 switch (c) {
                     case 0:  //分区名称 (非必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
@@ -528,7 +517,6 @@ public class PropertyService {
                         break;
 
                     case 1:  //楼号 (必填)
-                        cellValue = cell.getStringCellValue();
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempProperty.setBuildingId(cellValue);
                         } else {
@@ -546,7 +534,6 @@ public class PropertyService {
                         break;
 
                     case 3:  //房号 (必填)
-                        cellValue = cell.getStringCellValue();
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempProperty.setRoomId(cellValue);
                         } else {
@@ -556,13 +543,14 @@ public class PropertyService {
                         break;
 
                     case 4:  //产权面积 (必填)
-                        cellValue = cell.getStringCellValue();
                         if (StringUtils.isNotEmpty(cellValue)) {
                             try {
                                 tempProperty.setPropertyArea(Double.parseDouble(cellValue));
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
+                                logger.error("read PropertyArea failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                e.printStackTrace();
                             }
                         } else {
                             errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
@@ -571,12 +559,15 @@ public class PropertyService {
                         break;
 
                     case 5:  //套内面积 (非必填)
+
                         if (StringUtils.isNotEmpty(cellValue)) {
                             try {
                                 tempProperty.setFloorArea(Double.parseDouble(cellValue));
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
+                                logger.error("read FloorArea failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                e.printStackTrace();
                             }
                         }
                         break;
