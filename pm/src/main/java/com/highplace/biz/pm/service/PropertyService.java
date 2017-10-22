@@ -662,8 +662,8 @@ public class PropertyService {
         redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
 
-        String targetFilename = "property_" + productInstID + "-" + new Date().getTime() + ".xls";
-        String cosFolder = "/" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + "/";
+        String targetFilename = "property_" + productInstID + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
+        String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
         String cosFilePath = cosFolder + targetFilename;
         String localFilePath = "/tmp/" + targetFilename;
 
@@ -685,7 +685,7 @@ public class PropertyService {
             redisKeyMap.put(TASK_STATUS_KEY, 1);
             redisKeyMap.put(TASK_RESULT_CODE_KEY, 0);
             redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, "SUCCESS");
-            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getJSONObject(TASK_RESULT_FILEURL_KEY));
+            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getString(TASK_RESULT_FILEURL_KEY));
             redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
         }
     }
