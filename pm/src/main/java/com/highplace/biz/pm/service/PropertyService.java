@@ -220,7 +220,7 @@ public class PropertyService {
         long totalCount;
 
         //判断是否有分页
-        if (searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
+        if ( !noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
             totalCount = ((Page) properties).getTotal();
         } else {
             totalCount = properties.size();

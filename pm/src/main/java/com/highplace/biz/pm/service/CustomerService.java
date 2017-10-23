@@ -159,7 +159,7 @@ public class CustomerService {
         long totalCount;
 
         //判断是否有分页
-        if (searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
+        if ( !noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
             totalCount = ((Page) customerList).getTotal();
         } else {
             totalCount = customerList.size();
