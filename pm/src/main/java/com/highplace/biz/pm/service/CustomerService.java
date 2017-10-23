@@ -337,6 +337,7 @@ public class CustomerService {
 
                     for(CustomerCar customerCar : carList) {
                         prePropertyIdAndPlateNoList.add(customerCar.getPropertyId().toString() + "|" + customerCar.getPlateNo());
+
                         customerCar.setProductInstId(productInstId);
                         customerCar.setCustomerId(customer.getCustomerId());
                         customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
@@ -345,11 +346,14 @@ public class CustomerService {
                             customerCarMapper.insertSelective(customerCar);
                         }
                     }
+                    logger.debug("prePropertyIdAndPlateNoList:" + prePropertyIdAndPlateNoList);
 
                     //更新后的数据
                     List<String> postPropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
+                    logger.debug("postPropertyIdAndPlateNoList:" + postPropertyIdAndPlateNoList);
                     //求补集，删除postPropertyIdAndPlateNoList多余的部分
                     postPropertyIdAndPlateNoList.removeAll(prePropertyIdAndPlateNoList);
+                    logger.debug("postPropertyIdAndPlateNoList removed:" + postPropertyIdAndPlateNoList);
                     if(postPropertyIdAndPlateNoList.size() > 0) {
                         for(String propertyIdAndPlateNo : postPropertyIdAndPlateNoList) {
                             String[] d = propertyIdAndPlateNo.split("|");
