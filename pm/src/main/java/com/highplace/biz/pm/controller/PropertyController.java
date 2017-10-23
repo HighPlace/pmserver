@@ -27,9 +27,9 @@ public class PropertyController {
     public Map<String, Object> getProperty(@Valid PropertySearchBean searchBean,
                                         Principal principal) {
 
-        logger.debug("searchBean:" + searchBean.toString());
+        logger.debug("PropertySearchBean:" + searchBean.toString());
         logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
-        return propertyService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean);
+        return propertyService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
 
     }
 

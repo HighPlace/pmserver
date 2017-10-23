@@ -39,6 +39,14 @@ public class PageBean {
         this.sortType = sortType;
     }
 
+    //抹去分页排序相关信息
+    public void erasePageBean() {
+        pageNum = null;
+        pageSize = null;
+        sortField = null;
+        sortType = null;
+    }
+
     @Override
     public String toString() {
         return "PageBean{" +

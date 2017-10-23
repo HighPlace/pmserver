@@ -173,7 +173,7 @@ public class PropertyService {
     }
 
     //查询房产信息列表
-    public Map<String, Object> query(String productInstId, PropertySearchBean searchBean) {
+    public Map<String, Object> query(String productInstId, PropertySearchBean searchBean, boolean noPageSortFlag) {
 
         PropertyExample example = new PropertyExample();
         PropertyExample.Criteria criteria = example.createCriteria();
@@ -197,16 +197,19 @@ public class PropertyService {
         if (searchBean.getStatus() != null)
             criteria.andStatusEqualTo(searchBean.getStatus());
 
-        //设置分页参数
-        if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
-            PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
+        //如果noPageSortFlag 不为true
+        if(!noPageSortFlag) {
+            //设置分页参数
+            if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
+                PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
 
-        //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
-        if (searchBean.getSortField() != null) {
-            if (searchBean.getSortType() == null) {
-                OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " asc"); //默认升序
-            } else {
-                OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
+            //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
+            if (searchBean.getSortField() != null) {
+                if (searchBean.getSortType() == null) {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " asc"); //默认升序
+                } else {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
+                }
             }
         }
 
