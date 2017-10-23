@@ -1,10 +1,8 @@
 package com.highplace.service.oauth.service;
 
+import com.highplace.service.oauth.dao.ModuleDao;
 import com.highplace.service.oauth.dao.UserDao;
-import com.highplace.service.oauth.domain.Action;
-import com.highplace.service.oauth.domain.MyGrantedAuthority;
-import com.highplace.service.oauth.domain.Role;
-import com.highplace.service.oauth.domain.User;
+import com.highplace.service.oauth.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,9 @@ public class ProductInstanceUserService implements UserDetailsService {
 
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    ModuleDao moduleDao;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -67,6 +68,13 @@ public class ProductInstanceUserService implements UserDetailsService {
             logger.debug("XXXXXXXXXXXXX  userid:" + user.getUserId());
             logger.debug("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
             logger.debug("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
+
+            //如果是超级管理员,要另外获取产品实例对应的所有模块
+            if(user.getSuperUserFlag()){
+
+                List<Module> modules = moduleDao.findByProductInstId(user.getProductInstId());
+                user.setModules(modules);
+            }
 
             boolean checkVerifyCodeFlag = false;
 
