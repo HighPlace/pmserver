@@ -277,6 +277,7 @@ public class CustomerService {
                 for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
                     customerPropertyRel.setProductInstId(productInstId);
                     customerPropertyRel.setCustomerId(customer.getCustomerId());
+                    customerPropertyRel.setModifyTime(new Date()); //避免update table set为空,导致update失败
                     //有可能是新增加的对应关系,所以先更新,更新不了再插入
                     if (customerPropertyRelMapper.updateByPrimaryKeySelective(customerPropertyRel) == 0) {
                         customerPropertyRelMapper.insertSelective(customerPropertyRel);
@@ -289,6 +290,7 @@ public class CustomerService {
                 for(CustomerCar customerCar : carList) {
                     customerCar.setProductInstId(productInstId);
                     customerCar.setCustomerId(customer.getCustomerId());
+                    customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
                     //有可能是新增加的车,所以先更新,更新不了再插入
                     if (customerCarMapper.updateByPrimaryKeySelective(customerCar) == 0) {
                         customerCarMapper.insertSelective(customerCar);
