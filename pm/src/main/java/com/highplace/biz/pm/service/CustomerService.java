@@ -288,10 +288,11 @@ public class CustomerService {
 
                 } else { //传入了内容，先更新，再删除
 
-                    //更新前的数据
-                    List<Long> prePropertyList = getPropertyIdListByCustomerId(productInstId, customer.getCustomerId());
+                    //提交的请求数据
+                    List<Long> prePropertyList = new ArrayList<>();
 
                     for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
+                        prePropertyList.add(customerPropertyRel.getPropertyId());
                         customerPropertyRel.setProductInstId(productInstId);
                         customerPropertyRel.setCustomerId(customer.getCustomerId());
                         customerPropertyRel.setModifyTime(new Date()); //避免update table set为空,导致update失败
@@ -301,17 +302,17 @@ public class CustomerService {
                         }
                     }
 
-                    //更新后的数据
+                    //更新后数据库中的数据
                     List<Long> postPropertyList = getPropertyIdListByCustomerId(productInstId, customer.getCustomerId());
 
-                    //求补集，删除prePropertyList多余的部分
-                    prePropertyList.removeAll(postPropertyList);
-                    if(prePropertyList.size() >0 ) {
+                    //求补集，删除postPropertyList多余的部分
+                    postPropertyList.removeAll(prePropertyList);
+                    if(postPropertyList.size() >0 ) {
                         CustomerPropertyRelExample example1 = new CustomerPropertyRelExample();
                         CustomerPropertyRelExample.Criteria criteria1 = example1.createCriteria();
                         criteria1.andProductInstIdEqualTo(productInstId);
                         criteria1.andCustomerIdEqualTo(customer.getCustomerId());
-                        criteria1.andPropertyIdIn(prePropertyList);
+                        criteria1.andPropertyIdIn(postPropertyList);
                         customerPropertyRelMapper.deleteByExample(example1);
                     }
                 }
@@ -331,10 +332,11 @@ public class CustomerService {
 
                 } else  {  //传入了内容，先更新，再删除
 
-                    //更新前的数据
-                    List<String> prePropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
+                    //提交的请求数据
+                    List<String> prePropertyIdAndPlateNoList = new ArrayList<>();
 
                     for(CustomerCar customerCar : carList) {
+                        prePropertyIdAndPlateNoList.add(customerCar.getPropertyId().toString() + "|" + customerCar.getPlateNo());
                         customerCar.setProductInstId(productInstId);
                         customerCar.setCustomerId(customer.getCustomerId());
                         customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
@@ -346,10 +348,10 @@ public class CustomerService {
 
                     //更新后的数据
                     List<String> postPropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
-                    //求补集，删除prePropertyList多余的部分
-                    prePropertyIdAndPlateNoList.removeAll(postPropertyIdAndPlateNoList);
-                    if(prePropertyIdAndPlateNoList.size() > 0) {
-                        for(String propertyIdAndPlateNo : prePropertyIdAndPlateNoList) {
+                    //求补集，删除postPropertyIdAndPlateNoList多余的部分
+                    postPropertyIdAndPlateNoList.removeAll(prePropertyIdAndPlateNoList);
+                    if(postPropertyIdAndPlateNoList.size() > 0) {
+                        for(String propertyIdAndPlateNo : postPropertyIdAndPlateNoList) {
                             String[] d = propertyIdAndPlateNo.split("|");
                             customerCarMapper.deleteByPrimaryKey(productInstId, customer.getCustomerId(), Long.parseLong(d[0]), d[1]);
                         }
