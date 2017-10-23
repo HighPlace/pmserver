@@ -36,16 +36,14 @@ public class PropertyController {
     @RequestMapping(path = "/property", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property;POST','/property;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
     public Property createProperty(@Valid @RequestBody Property property,
-                                    Principal principal) {
+                                    Principal principal) throws Exception {
 
         logger.debug("pre property:" + property.toString());
 
         //插入记录
         int rows = propertyService.insert(SecurityUtils.getCurrentProductInstId(principal), property);
-
         logger.debug("property insert return num:" + rows);
         logger.debug("post property:" + property.toString());
-
         return property;
     }
 

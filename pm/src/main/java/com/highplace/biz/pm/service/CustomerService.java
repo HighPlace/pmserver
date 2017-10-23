@@ -13,10 +13,14 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class CustomerService {
@@ -25,15 +29,19 @@ public class CustomerService {
 
     @Autowired
     private PropertyService propertyService;
-
     @Autowired
     private CustomerMapper customerMapper;
-
     @Autowired
     private CustomerPropertyRelMapper customerPropertyRelMapper;
-
     @Autowired
     private CustomerCarMapper customerCarMapper;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    //写入redis的key前缀, 后面加上productInstId
+    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
+    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
+    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
 
     //返回空的查询结果
     public static Map<String, Object> queryEmpty () {
@@ -43,11 +51,58 @@ public class CustomerService {
         return result;
     }
 
+    //name/phone/plateNo以set数据结构缓存到redis中
+    public void addRedisValue(Customer customer) {
+        if (customer.getProductInstId() == null) return;
+
+        stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId(), customer.getCustomerName());
+        stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId(), customer.getPhone());
+        List<CustomerCar> carList = customer.getCustomerCars();
+        if(carList != null && carList.size()>0 ) {
+            for(CustomerCar customerCar : carList) {
+                stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + customer.getProductInstId(), customerCar.getPlateNo());
+            }
+        }
+    }
+
+    //从redis中查询客户姓名或客户电话或客户汽车列表，用于前端在检索时快速提示(模糊查询)
+    // entity: name/phone/plateNo
+    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue) {
+
+        String redisKey;
+        if(entity.equals("name")) {
+            redisKey = PREFIX_CUSTOMER_NAME_KEY + productInstId;
+        } else if(entity.equals("phone")) {
+            redisKey = PREFIX_CUSTOMER_PHONE_KEY + productInstId;
+        } else if(entity.equals("plateNo")) {
+            redisKey = PREFIX_CUSTOMER_PLATENO_KEY + productInstId;
+        } else {
+            return null;
+        }
+
+        Set<String> sEntity = stringRedisTemplate.opsForSet().members(redisKey);
+        if (sEntity == null) return null;
+
+        List<String> dataList = new ArrayList();
+        Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
+        int i = 0;
+        for (String entityValue: sEntity) {
+            i ++;
+            if(pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
+            if(i >= 10) break; //匹配到超过10条记录，退出
+        }
+
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("data", dataList);
+        return result;
+    }
+
     //查询房产信息列表
     public Map<String, Object> query(String productInstId, CustomerSearchBean searchBean, boolean noPageSortFlag) {
 
         CustomerExample example = new CustomerExample();
         CustomerExample.Criteria criteria = example.createCriteria();
+
         //产品实例ID，必须填入
         criteria.andProductInstIdEqualTo(productInstId);
 
@@ -169,6 +224,109 @@ public class CustomerService {
         result.put("totalCount", totalCount);
         result.put("data", customerList);
         return result;
+    }
+
+    //插入客户信息
+    //多表插入，需要增加事务
+    @Transactional
+    public int insert(String productInstId, Customer customer) {
+
+        //设置产品实例ID
+        customer.setProductInstId(productInstId);
+        int num = customerMapper.insertSelective(customer);
+        if(num == 1) {
+            //批量插入客户和房产对应关系信息
+            List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
+            if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
+                for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
+
+                    customerPropertyRel.setProductInstId(productInstId);
+                    customerPropertyRel.setCustomerId(customer.getCustomerId());
+                    customerPropertyRelMapper.insertSelective(customerPropertyRel);
+                }
+            }
+            //批量插入客户汽车信息
+            List<CustomerCar> carList = customer.getCustomerCars();
+            if(carList != null && carList.size()>0 ) {
+                for(CustomerCar customerCar : carList) {
+                    customerCar.setProductInstId(productInstId);
+                    customerCar.setCustomerId(customer.getCustomerId());
+                    customerCarMapper.insertSelective(customerCar);
+                }
+            }
+
+            //更新redis
+            addRedisValue(customer);
+        }
+        return num;
+    }
+
+    //修改客户信息
+    public int update(String productInstId, Customer customer) {
+
+        CustomerExample example = new CustomerExample();
+        CustomerExample.Criteria criteria = example.createCriteria();
+        criteria.andCustomerIdEqualTo(customer.getCustomerId()); //客户ID
+        criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
+
+        int num = customerMapper.updateByExampleSelective(customer, example);
+        if(num == 1) {
+            //批量更新客户和房产对应关系信息
+            List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
+            if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
+                for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
+                    customerPropertyRel.setProductInstId(productInstId);
+                    customerPropertyRel.setCustomerId(customer.getCustomerId());
+                    //有可能是新增加的对应关系,所以先更新,更新不了再插入
+                    if (customerPropertyRelMapper.updateByPrimaryKeySelective(customerPropertyRel) == 0) {
+                        customerPropertyRelMapper.insertSelective(customerPropertyRel);
+                    }
+                }
+            }
+            //批量插入客户汽车信息
+            List<CustomerCar> carList = customer.getCustomerCars();
+            if(carList != null && carList.size()>0 ) {
+                for(CustomerCar customerCar : carList) {
+                    customerCar.setProductInstId(productInstId);
+                    customerCar.setCustomerId(customer.getCustomerId());
+                    //有可能是新增加的车,所以先更新,更新不了再插入
+                    if (customerCarMapper.updateByPrimaryKeySelective(customerCar) == 0) {
+                        customerCarMapper.insertSelective(customerCar);
+                    }
+                }
+            }
+            //更新redis
+            addRedisValue(customer);
+        }
+        return num;
+    }
+
+    //删除客户信息
+    @Transactional
+    public int delete(String productInstId, Long customerId) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        //to-do
+        //删除客户与房产关系
+        CustomerPropertyRelExample customerPropertyRelExample = new CustomerPropertyRelExample();
+        CustomerPropertyRelExample.Criteria criteria1 = customerPropertyRelExample.createCriteria();
+        criteria1.andProductInstIdEqualTo(productInstId);
+        criteria1.andCustomerIdEqualTo(customerId);
+        customerPropertyRelMapper.deleteByExample(customerPropertyRelExample);
+
+        //删除客户汽车信息
+        CustomerCarExample customerCarExample = new CustomerCarExample();
+        CustomerCarExample.Criteria criteria2 = customerCarExample.createCriteria();
+        criteria1.andProductInstIdEqualTo(productInstId);
+        criteria1.andCustomerIdEqualTo(customerId);
+        customerCarMapper.deleteByExample(customerCarExample);
+
+        //删除客户信息
+        CustomerExample example = new CustomerExample();
+        CustomerExample.Criteria criteria3 = example.createCriteria();
+        criteria3.andCustomerIdEqualTo(customerId);
+        criteria3.andProductInstIdEqualTo(productInstId);
+        return customerMapper.deleteByExample(example);
     }
 
 }

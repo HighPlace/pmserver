@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 public class CustomerPropertyRel {
@@ -19,6 +20,7 @@ public class CustomerPropertyRel {
 
     private Long customerId;
 
+    @NotNull
     private Long propertyId;
 
     private Integer type;

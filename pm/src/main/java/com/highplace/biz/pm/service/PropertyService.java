@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.io.*;
@@ -417,7 +418,7 @@ public class PropertyService {
     }
 
     //读取Excel文件
-    private JSONObject readExcel(String productInstID, String localFilePath) {
+    public JSONObject readExcel(String productInstID, String localFilePath) {
 
         //初始化输入流
         InputStream is = null;
@@ -464,7 +465,9 @@ public class PropertyService {
 
     //从excel文件读取数据,并导入到数据库中
     //如果解析文件出错，将不会导入数据
-    private JSONObject loadExcelValue(String productInstID, Workbook wb) {
+    //批处理增加事务
+    @Transactional
+    public JSONObject loadExcelValue(String productInstID, Workbook wb) {
 
         JSONObject result = new JSONObject();
         String errorMsg = "";
