@@ -39,7 +39,7 @@ public class CustomerService {
     public static Map<String, Object> queryEmpty () {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalCount", 0);
-        result.put("data", null);
+        result.put("data", "");
         return result;
     }
 
@@ -101,7 +101,7 @@ public class CustomerService {
 
             CustomerCarExample example1 = new CustomerCarExample();
             CustomerCarExample.Criteria criteria1 = example1.createCriteria();
-            criteria1.andPlateNoLike(searchBean.getPlateNo()); //模糊查询
+            criteria1.andPlateNoLike("%" + searchBean.getPlateNo() + "%"); //模糊查询
             List<CustomerCar> customerCarList = customerCarMapper.selectByExample(example1);
             //如果没有查到客户和车的对应关系，直接返回
             if(customerCarList.size() == 0)  return queryEmpty();
@@ -130,10 +130,10 @@ public class CustomerService {
         }
 
         if( StringUtils.isNotEmpty(searchBean.getCustomerName())) {
-            criteria.andCustomerNameLike(searchBean.getCustomerName()); //模糊查询
+            criteria.andCustomerNameLike("%"  + searchBean.getCustomerName() + "%" ); //模糊查询
         }
         if( StringUtils.isNotEmpty(searchBean.getPhone())) {
-            criteria.andPhoneLike(searchBean.getPhone()); //模糊查询
+            criteria.andPhoneLike("%"  + searchBean.getPhone() + "%" ); //模糊查询
         }
 
         //如果noPageSortFlag 不为true
