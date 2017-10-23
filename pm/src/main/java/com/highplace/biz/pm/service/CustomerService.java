@@ -356,7 +356,8 @@ public class CustomerService {
                     logger.debug("postPropertyIdAndPlateNoList removed:" + postPropertyIdAndPlateNoList);
                     if(postPropertyIdAndPlateNoList.size() > 0) {
                         for(String propertyIdAndPlateNo : postPropertyIdAndPlateNoList) {
-                            String[] d = propertyIdAndPlateNo.split("|");
+                            //String[] d = propertyIdAndPlateNo.split("|");
+                            String[] d = StringUtils.split(propertyIdAndPlateNo, "|");
                             customerCarMapper.deleteByPrimaryKey(productInstId, customer.getCustomerId(), Long.parseLong(d[0]), d[1]);
                         }
                     }
