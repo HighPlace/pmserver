@@ -262,6 +262,7 @@ public class CustomerService {
     }
 
     //修改客户信息
+    @Transactional
     public int update(String productInstId, Customer customer) {
 
         CustomerExample example = new CustomerExample();
@@ -271,36 +272,126 @@ public class CustomerService {
 
         int num = customerMapper.updateByExampleSelective(customer, example);
         if(num == 1) {
+
             //批量更新客户和房产对应关系信息
             List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
-            if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
-                for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
-                    customerPropertyRel.setProductInstId(productInstId);
-                    customerPropertyRel.setCustomerId(customer.getCustomerId());
-                    customerPropertyRel.setModifyTime(new Date()); //避免update table set为空,导致update失败
-                    //有可能是新增加的对应关系,所以先更新,更新不了再插入
-                    if (customerPropertyRelMapper.updateByPrimaryKeySelective(customerPropertyRel) == 0) {
-                        customerPropertyRelMapper.insertSelective(customerPropertyRel);
+            //if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
+            if(customerPropertyRelList != null ) {
+
+                //传入了customerPropertyRelList,但内容为空,则清掉客户和房产对应关系
+                if (customerPropertyRelList.size() == 0) {
+                    CustomerPropertyRelExample example1 = new CustomerPropertyRelExample();
+                    CustomerPropertyRelExample.Criteria criteria1 = example1.createCriteria();
+                    criteria1.andProductInstIdEqualTo(productInstId);
+                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
+                    customerPropertyRelMapper.deleteByExample(example1);
+
+                } else { //传入了内容，先更新，再删除
+
+                    //更新前的数据
+                    List<Long> prePropertyList = getPropertyIdListByCustomerId(productInstId, customer.getCustomerId());
+
+                    for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
+                        customerPropertyRel.setProductInstId(productInstId);
+                        customerPropertyRel.setCustomerId(customer.getCustomerId());
+                        customerPropertyRel.setModifyTime(new Date()); //避免update table set为空,导致update失败
+                        //有可能是新增加的对应关系,所以先更新,更新不了再插入
+                        if (customerPropertyRelMapper.updateByPrimaryKeySelective(customerPropertyRel) == 0) {
+                            customerPropertyRelMapper.insertSelective(customerPropertyRel);
+                        }
+                    }
+
+                    //更新后的数据
+                    List<Long> postPropertyList = getPropertyIdListByCustomerId(productInstId, customer.getCustomerId());
+
+                    //求补集，删除prePropertyList多余的部分
+                    prePropertyList.removeAll(postPropertyList);
+                    if(prePropertyList.size() >0 ) {
+                        CustomerPropertyRelExample example1 = new CustomerPropertyRelExample();
+                        CustomerPropertyRelExample.Criteria criteria1 = example1.createCriteria();
+                        criteria1.andProductInstIdEqualTo(productInstId);
+                        criteria1.andCustomerIdEqualTo(customer.getCustomerId());
+                        criteria1.andPropertyIdIn(prePropertyList);
+                        customerPropertyRelMapper.deleteByExample(example1);
                     }
                 }
             }
+
             //批量插入客户汽车信息
             List<CustomerCar> carList = customer.getCustomerCars();
-            if(carList != null && carList.size()>0 ) {
-                for(CustomerCar customerCar : carList) {
-                    customerCar.setProductInstId(productInstId);
-                    customerCar.setCustomerId(customer.getCustomerId());
-                    customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
-                    //有可能是新增加的车,所以先更新,更新不了再插入
-                    if (customerCarMapper.updateByPrimaryKeySelective(customerCar) == 0) {
-                        customerCarMapper.insertSelective(customerCar);
+            //if(carList != null && carList.size()>0 ) {
+            if(carList != null){
+                //传入了customerCarList,但内容为空,则清掉客户的汽车数据
+                if(carList.size() == 0) {
+                    CustomerCarExample example1 = new CustomerCarExample();
+                    CustomerCarExample.Criteria criteria1 = example1.createCriteria();
+                    criteria1.andProductInstIdEqualTo(productInstId);
+                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
+                    customerCarMapper.deleteByExample(example1);
+
+                } else  {  //传入了内容，先更新，再删除
+
+                    //更新前的数据
+                    List<String> prePropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
+
+                    for(CustomerCar customerCar : carList) {
+                        customerCar.setProductInstId(productInstId);
+                        customerCar.setCustomerId(customer.getCustomerId());
+                        customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
+                        //有可能是新增加的车,所以先更新,更新不了再插入
+                        if (customerCarMapper.updateByPrimaryKeySelective(customerCar) == 0) {
+                            customerCarMapper.insertSelective(customerCar);
+                        }
+                    }
+
+                    //更新后的数据
+                    List<String> postPropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
+                    //求补集，删除prePropertyList多余的部分
+                    prePropertyIdAndPlateNoList.removeAll(postPropertyIdAndPlateNoList);
+                    if(prePropertyIdAndPlateNoList.size() > 0) {
+                        for(String propertyIdAndPlateNo : prePropertyIdAndPlateNoList) {
+                            String[] d = propertyIdAndPlateNo.split("|");
+                            customerCarMapper.deleteByPrimaryKey(productInstId, customer.getCustomerId(), Long.parseLong(d[0]), d[1]);
+                        }
                     }
                 }
+
             }
             //更新redis
             addRedisValue(customer);
         }
         return num;
+    }
+
+    //获取客户房产关系的property_id组合
+    //PRIMARY KEY (`product_inst_id`,`customer_id`,`property_id`)
+    private List<Long> getPropertyIdListByCustomerId(String productInstId, Long customerId){
+
+        List<Long> result = new ArrayList<>();
+        CustomerPropertyRelExample example = new CustomerPropertyRelExample();
+        CustomerPropertyRelExample.Criteria criteria = example.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andCustomerIdEqualTo(customerId);
+        List<CustomerPropertyRel> customerPropertyRelList = customerPropertyRelMapper.selectByExample(example);
+        for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
+            result.add(customerPropertyRel.getPropertyId());
+        }
+        return result;
+    }
+
+    //获取客户汽车关系的property_id和plate_no组合主键组合,以"|"分割
+    //PRIMARY KEY (`product_inst_id`,`customer_id`,`property_id`, `plate_no`)
+    private List<String> getPropertyIdAndPlateNoConcatByCustomerId(String productInstId, Long customerId){
+        List<String> result = new ArrayList<>();
+        CustomerCarExample example = new CustomerCarExample();
+        CustomerCarExample.Criteria criteria = example.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andCustomerIdEqualTo(customerId);
+        List<CustomerCar> customerCarList = customerCarMapper.selectByExample(example);
+        for(CustomerCar customerCar : customerCarList) {
+            result.add(customerCar.getPropertyId().toString() + "|" + customerCar.getPlateNo());
+        }
+        return result;
     }
 
     //删除客户信息
