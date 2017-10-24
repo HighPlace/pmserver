@@ -351,7 +351,9 @@ public class CustomerService {
 
                             //1 更新relation表
                             relation.setModifyTime(new Date()); //防止update失败
-                            relationMapper.updateByPrimaryKeyWithBLOBs(relation);
+                            if( relationMapper.updateByPrimaryKeyWithBLOBs(relation) != 1) {
+                                continue; //说明更新失败,relatinoId不对
+                            }
 
                             //2 更新relation下的carList表
                             List<Car> carList = relation.getCarList();
