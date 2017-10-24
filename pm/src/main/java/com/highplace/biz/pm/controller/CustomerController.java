@@ -3,6 +3,7 @@ package com.highplace.biz.pm.controller;
 import com.highplace.biz.pm.domain.Customer;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.service.CustomerService;
+import com.highplace.biz.pm.service.CustomerServiceOld;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,13 +13,15 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 public class CustomerController {
 
     public static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
+
+    @Autowired
+    private CustomerServiceOld customerServiceOld;
 
     @Autowired
     private CustomerService customerService;
@@ -50,7 +53,7 @@ public class CustomerController {
         logger.debug("pre customer:" + customer.toString());
 
         //插入记录
-        int rows = customerService.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
+        int rows = customerServiceOld.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
         logger.debug("customer insert return num:" + rows);
         logger.debug("post customer:" + customer.toString());
         return customer;
@@ -66,7 +69,7 @@ public class CustomerController {
         logger.debug("pre customer:" + customer.toString());
 
         //插入记录
-        int rows = customerService.update(SecurityUtils.getCurrentProductInstId(principal), customer);
+        int rows = customerServiceOld.update(SecurityUtils.getCurrentProductInstId(principal), customer);
         logger.debug("customer insert return num:" + rows);
         logger.debug("post customer:" + customer.toString());
         if(rows != 1) throw new Exception("change failed, effected num:" + rows);
@@ -79,7 +82,7 @@ public class CustomerController {
                                Principal principal) throws Exception {
 
         //删除记录
-        int rows = customerService.delete(SecurityUtils.getCurrentProductInstId(principal), customerId);
+        int rows = customerServiceOld.delete(SecurityUtils.getCurrentProductInstId(principal), customerId);
         logger.debug("customer delete return num:" + rows);
         if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
