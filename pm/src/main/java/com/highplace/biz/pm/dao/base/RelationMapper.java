@@ -12,10 +12,12 @@ public interface RelationMapper {
     // ----- mybatis generator外新增的方法------ //
     @Select({
             "select",
-            "relation_id, product_inst_id, customer_id, property_id, type, status, start_date, ",
-            "end_date, create_time, modify_time, remark",
-            "from t_relation",
-            "where customer_id = #{customerId,jdbcType=BIGINT}"
+            "a.relation_id, a.product_inst_id, a.customer_id, a.property_id, a.type, a.status, a.start_date, ",
+            "a.end_date, a.create_time, a.modify_time, a.remark",
+            "concat(b.zone_id, b.building_id, b.unit_id, b.room_id) as property_name",
+            "from t_relation a, t_property b",
+            "where a.customer_id = #{customerId,jdbcType=BIGINT}",
+            "and a.property_id = b.property_id"
     })
     @Results({
             @Result(column="relation_id", property="relationId", jdbcType=JdbcType.BIGINT, id=true),

@@ -7,14 +7,21 @@ public class Relation {
 
     // ----- mybatis generator外新增的属性------ //
     private List<Car> carList;   //客户对应房产下的私家车信息
+    private String propertyName; //zoneId + buildingId + unitId + roomId组成的房产名称
 
     public List<Car> getCarList() {
         return carList;
     }
-
     public void setCarList(List<Car> carList) {
         this.carList = carList;
     }
+    public String getPropertyName() {
+        return propertyName;
+    }
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+    }
+
 // ----- end ------ //
 
     private Long relationId;
