@@ -31,6 +31,7 @@ public interface RelationMapper {
             @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
             @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
             @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR),
+            @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
             @Result(column="relation_id", property="carList", many=@Many(select="com.highplace.biz.pm.dao.base.CarMapper.selectByRelationId")),
     })
     List<Relation> selectByCustomerIdWithCar(Long customerId);
