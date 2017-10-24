@@ -1,9 +1,9 @@
-package com.highplace.biz.pm.dao;
+package com.highplace.biz.pm.dao.base;
 
-import com.highplace.biz.pm.domain.Property;
-import com.highplace.biz.pm.domain.PropertyExample.Criteria;
-import com.highplace.biz.pm.domain.PropertyExample.Criterion;
-import com.highplace.biz.pm.domain.PropertyExample;
+import com.highplace.biz.pm.domain.base.Property;
+import com.highplace.biz.pm.domain.base.PropertyExample.Criteria;
+import com.highplace.biz.pm.domain.base.PropertyExample.Criterion;
+import com.highplace.biz.pm.domain.base.PropertyExample;
 import java.util.List;
 import java.util.Map;
 import org.apache.ibatis.jdbc.SQL;

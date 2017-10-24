@@ -58,7 +58,7 @@ public class Customer {
     private List<CustomerPropertyRel> customerPropertyRels;   //客户名下的所有房产关系
 
     //mybatis generator外新增的属性
-    private List<CustomerCar> customerCars;                   //客户名下的所有房产关系
+    private List<CustomerCar> customerCars;                   //客户名下的所有汽车关系
 
     public List<CustomerPropertyRel> getCustomerPropertyRels() {
         return customerPropertyRels;

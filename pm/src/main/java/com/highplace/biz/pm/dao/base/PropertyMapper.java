@@ -1,7 +1,7 @@
-package com.highplace.biz.pm.dao;
+package com.highplace.biz.pm.dao.base;
 
-import com.highplace.biz.pm.domain.Property;
-import com.highplace.biz.pm.domain.PropertyExample;
+import com.highplace.biz.pm.domain.base.Property;
+import com.highplace.biz.pm.domain.base.PropertyExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.DeleteProvider;

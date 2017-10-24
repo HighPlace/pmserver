@@ -1,6 +1,6 @@
 package com.highplace.biz.pm.controller;
 
-import com.highplace.biz.pm.domain.Property;
+import com.highplace.biz.pm.domain.base.Property;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.PropertyService;
 import com.highplace.biz.pm.service.util.SecurityUtils;

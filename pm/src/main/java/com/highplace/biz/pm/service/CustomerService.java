@@ -2,10 +2,10 @@ package com.highplace.biz.pm.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.highplace.biz.pm.dao.CustomerCarMapper;
-import com.highplace.biz.pm.dao.CustomerMapper;
-import com.highplace.biz.pm.dao.CustomerPropertyRelMapper;
-import com.highplace.biz.pm.domain.*;
+import com.highplace.biz.pm.dao.base.CarMapper;
+import com.highplace.biz.pm.dao.base.CustomerMapper;
+import com.highplace.biz.pm.dao.base.RelationMapper;
+import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
@@ -15,11 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
@@ -32,9 +30,9 @@ public class CustomerService {
     @Autowired
     private CustomerMapper customerMapper;
     @Autowired
-    private CustomerPropertyRelMapper customerPropertyRelMapper;
+    private RelationMapper relationMapper;
     @Autowired
-    private CustomerCarMapper customerCarMapper;
+    private CarMapper carMapper;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
@@ -45,9 +43,10 @@ public class CustomerService {
 
     //返回空的查询结果
     public static Map<String, Object> queryEmpty () {
+        List<Object> data = new ArrayList<>();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalCount", 0);
-        result.put("data", "");
+        result.put("data", data);
         return result;
     }
 
@@ -57,10 +56,15 @@ public class CustomerService {
 
         stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId(), customer.getCustomerName());
         stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId(), customer.getPhone());
-        List<CustomerCar> carList = customer.getCustomerCars();
-        if(carList != null && carList.size()>0 ) {
-            for(CustomerCar customerCar : carList) {
-                stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + customer.getProductInstId(), customerCar.getPlateNo());
+        List<Relation> relationList = customer.getRelationList();
+        if(relationList != null ) {
+            for(Relation relation : relationList) {
+                List<Car> carList = relation.getCarList();
+                if(carList != null) {
+                    for(Car car : carList) {
+                        stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + customer.getProductInstId(), car.getPlateNo());
+                    }
+                }
             }
         }
     }
@@ -137,15 +141,15 @@ public class CustomerService {
             }
 
             //2 从customer property关系表中查询所有的customer ID
-            CustomerPropertyRelExample customerPropertyRelExample = new CustomerPropertyRelExample();
-            CustomerPropertyRelExample.Criteria criteria1 = customerPropertyRelExample.createCriteria();
+            RelationExample relationExample = new RelationExample();
+            RelationExample.Criteria criteria1 = relationExample.createCriteria();
             criteria1.andPropertyIdIn(propertyIdList);
-            List<CustomerPropertyRel> customerPropertyRelList = customerPropertyRelMapper.selectByExample(customerPropertyRelExample);
+            List<Relation> relationList = relationMapper.selectByExample(relationExample);
             //如果没有查到房产和客户的对应关系，直接返回
-            if(customerPropertyRelList.size() == 0)  return queryEmpty();
+            if(relationList.size() == 0)  return queryEmpty();
 
-            for (CustomerPropertyRel customerPropertyRel: customerPropertyRelList) {
-                customerIdListByProperty.add(customerPropertyRel.getCustomerId());
+            for (Relation relation: relationList) {
+                customerIdListByProperty.add(relation.getCustomerId());
             }
             hasCustomerIdListByProperty = true;
             logger.debug("customerIdListByProperty: " + customerIdListByProperty);
@@ -154,18 +158,18 @@ public class CustomerService {
         //如果有传入汽车相关查询信息,查出对应的客户ID List
         if ( StringUtils.isNotEmpty(searchBean.getPlateNo())) {
 
-            CustomerCarExample example1 = new CustomerCarExample();
-            CustomerCarExample.Criteria criteria1 = example1.createCriteria();
+            CarExample example1 = new CarExample();
+            CarExample.Criteria criteria1 = example1.createCriteria();
             criteria1.andPlateNoLike("%" + searchBean.getPlateNo() + "%"); //模糊查询
-            List<CustomerCar> customerCarList = customerCarMapper.selectByExample(example1);
-            //如果没有查到客户和车的对应关系，直接返回
-            if(customerCarList.size() == 0)  return queryEmpty();
+            List<Car> carList = carMapper.selectByExampleWithRelation(example1);
+            //如果没有查到车，直接返回
+            if(carList.size() == 0)  return queryEmpty();
 
-            for (CustomerCar customerCar: customerCarList) {
-                customerIdListByCar.add(customerCar.getCustomerId());
+            for (Car car: carList) {
+                customerIdListByCar.add(car.getRelation().getCustomerId());
             }
             hasustomerIdListByCar = true;
-            logger.debug("customerIdListByCar: " + customerIdListByProperty);
+            logger.debug("customerIdListByCar: " + customerIdListByCar);
         }
 
         //加入客户ID List的and条件查询
@@ -208,7 +212,7 @@ public class CustomerService {
         }
 
         //查询结果
-        List<Customer> customerList = customerMapper.selectByExampleWithPropertyAndCar(example);
+        List<Customer> customerList = customerMapper.selectByExampleWithRelationAndCarWithBLOBs(example);
 
         //总记录数
         long totalCount;
@@ -224,209 +228,6 @@ public class CustomerService {
         result.put("totalCount", totalCount);
         result.put("data", customerList);
         return result;
-    }
-
-    //插入客户信息
-    //多表插入，需要增加事务
-    @Transactional
-    public int insert(String productInstId, Customer customer) {
-
-        //设置产品实例ID
-        customer.setProductInstId(productInstId);
-        int num = customerMapper.insertSelective(customer);
-        if(num == 1) {
-            //批量插入客户和房产对应关系信息
-            List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
-            if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
-                for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
-
-                    customerPropertyRel.setProductInstId(productInstId);
-                    customerPropertyRel.setCustomerId(customer.getCustomerId());
-                    customerPropertyRelMapper.insertSelective(customerPropertyRel);
-                }
-            }
-            //批量插入客户汽车信息
-            List<CustomerCar> carList = customer.getCustomerCars();
-            if(carList != null && carList.size()>0 ) {
-                for(CustomerCar customerCar : carList) {
-                    customerCar.setProductInstId(productInstId);
-                    customerCar.setCustomerId(customer.getCustomerId());
-                    customerCarMapper.insertSelective(customerCar);
-                }
-            }
-
-            //更新redis
-            addRedisValue(customer);
-        }
-        return num;
-    }
-
-    //修改客户信息
-    @Transactional
-    public int update(String productInstId, Customer customer) {
-
-        CustomerExample example = new CustomerExample();
-        CustomerExample.Criteria criteria = example.createCriteria();
-        criteria.andCustomerIdEqualTo(customer.getCustomerId()); //客户ID
-        criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
-
-        int num = customerMapper.updateByExampleSelective(customer, example);
-        if(num == 1) {
-
-            //批量更新客户和房产对应关系信息
-            List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
-            //if(customerPropertyRelList != null && customerPropertyRelList.size()>0 ) {
-            if(customerPropertyRelList != null ) {
-
-                //传入了customerPropertyRelList,但内容为空,则清掉客户和房产对应关系
-                if (customerPropertyRelList.size() == 0) {
-                    CustomerPropertyRelExample example1 = new CustomerPropertyRelExample();
-                    CustomerPropertyRelExample.Criteria criteria1 = example1.createCriteria();
-                    criteria1.andProductInstIdEqualTo(productInstId);
-                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
-                    customerPropertyRelMapper.deleteByExample(example1);
-
-                } else { //传入了内容，先更新，再删除
-
-                    //提交的请求数据
-                    List<Long> prePropertyList = new ArrayList<>();
-
-                    for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
-                        prePropertyList.add(customerPropertyRel.getPropertyId());
-                        customerPropertyRel.setProductInstId(productInstId);
-                        customerPropertyRel.setCustomerId(customer.getCustomerId());
-                        customerPropertyRel.setModifyTime(new Date()); //避免update table set为空,导致update失败
-                        //有可能是新增加的对应关系,所以先更新,更新不了再插入
-                        if (customerPropertyRelMapper.updateByPrimaryKeySelective(customerPropertyRel) == 0) {
-                            customerPropertyRelMapper.insertSelective(customerPropertyRel);
-                        }
-                    }
-
-                    //更新后数据库中的数据
-                    List<Long> postPropertyList = getPropertyIdListByCustomerId(productInstId, customer.getCustomerId());
-
-                    //求补集，删除postPropertyList多余的部分
-                    postPropertyList.removeAll(prePropertyList);
-                    if(postPropertyList.size() >0 ) {
-                        CustomerPropertyRelExample example1 = new CustomerPropertyRelExample();
-                        CustomerPropertyRelExample.Criteria criteria1 = example1.createCriteria();
-                        criteria1.andProductInstIdEqualTo(productInstId);
-                        criteria1.andCustomerIdEqualTo(customer.getCustomerId());
-                        criteria1.andPropertyIdIn(postPropertyList);
-                        customerPropertyRelMapper.deleteByExample(example1);
-                    }
-                }
-            }
-
-            //批量插入客户汽车信息
-            List<CustomerCar> carList = customer.getCustomerCars();
-            //if(carList != null && carList.size()>0 ) {
-            if(carList != null){
-                //传入了customerCarList,但内容为空,则清掉客户的汽车数据
-                if(carList.size() == 0) {
-                    CustomerCarExample example1 = new CustomerCarExample();
-                    CustomerCarExample.Criteria criteria1 = example1.createCriteria();
-                    criteria1.andProductInstIdEqualTo(productInstId);
-                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
-                    customerCarMapper.deleteByExample(example1);
-
-                } else  {  //传入了内容，先更新，再删除
-
-                    //提交的请求数据
-                    List<String> prePropertyIdAndPlateNoList = new ArrayList<>();
-
-                    for(CustomerCar customerCar : carList) {
-                        prePropertyIdAndPlateNoList.add(customerCar.getPropertyId().toString() + "|" + customerCar.getPlateNo());
-
-                        customerCar.setProductInstId(productInstId);
-                        customerCar.setCustomerId(customer.getCustomerId());
-                        customerCar.setModifyTime(new Date()); //避免update table set为空,导致update失败
-                        //有可能是新增加的车,所以先更新,更新不了再插入
-                        if (customerCarMapper.updateByPrimaryKeySelective(customerCar) == 0) {
-                            customerCarMapper.insertSelective(customerCar);
-                        }
-                    }
-                    logger.debug("prePropertyIdAndPlateNoList:" + prePropertyIdAndPlateNoList);
-
-                    //更新后的数据
-                    List<String> postPropertyIdAndPlateNoList = getPropertyIdAndPlateNoConcatByCustomerId(productInstId, customer.getCustomerId());
-                    logger.debug("postPropertyIdAndPlateNoList:" + postPropertyIdAndPlateNoList);
-                    //求补集，删除postPropertyIdAndPlateNoList多余的部分
-                    postPropertyIdAndPlateNoList.removeAll(prePropertyIdAndPlateNoList);
-                    logger.debug("postPropertyIdAndPlateNoList removed:" + postPropertyIdAndPlateNoList);
-                    if(postPropertyIdAndPlateNoList.size() > 0) {
-                        for(String propertyIdAndPlateNo : postPropertyIdAndPlateNoList) {
-                            //String[] d = propertyIdAndPlateNo.split("|");
-                            String[] d = StringUtils.split(propertyIdAndPlateNo, "|");
-                            customerCarMapper.deleteByPrimaryKey(productInstId, customer.getCustomerId(), Long.parseLong(d[0]), d[1]);
-                        }
-                    }
-                }
-
-            }
-            //更新redis
-            addRedisValue(customer);
-        }
-        return num;
-    }
-
-    //获取客户房产关系的property_id组合
-    //PRIMARY KEY (`product_inst_id`,`customer_id`,`property_id`)
-    private List<Long> getPropertyIdListByCustomerId(String productInstId, Long customerId){
-
-        List<Long> result = new ArrayList<>();
-        CustomerPropertyRelExample example = new CustomerPropertyRelExample();
-        CustomerPropertyRelExample.Criteria criteria = example.createCriteria();
-        criteria.andProductInstIdEqualTo(productInstId);
-        criteria.andCustomerIdEqualTo(customerId);
-        List<CustomerPropertyRel> customerPropertyRelList = customerPropertyRelMapper.selectByExample(example);
-        for(CustomerPropertyRel customerPropertyRel : customerPropertyRelList) {
-            result.add(customerPropertyRel.getPropertyId());
-        }
-        return result;
-    }
-
-    //获取客户汽车关系的property_id和plate_no组合主键组合,以"|"分割
-    //PRIMARY KEY (`product_inst_id`,`customer_id`,`property_id`, `plate_no`)
-    private List<String> getPropertyIdAndPlateNoConcatByCustomerId(String productInstId, Long customerId){
-        List<String> result = new ArrayList<>();
-        CustomerCarExample example = new CustomerCarExample();
-        CustomerCarExample.Criteria criteria = example.createCriteria();
-        criteria.andProductInstIdEqualTo(productInstId);
-        criteria.andCustomerIdEqualTo(customerId);
-        List<CustomerCar> customerCarList = customerCarMapper.selectByExample(example);
-        for(CustomerCar customerCar : customerCarList) {
-            result.add(customerCar.getPropertyId().toString() + "|" + customerCar.getPlateNo());
-        }
-        return result;
-    }
-
-    //删除客户信息
-    @Transactional
-    public int delete(String productInstId, Long customerId) {
-
-        //删除之前需要加入业务逻辑判断,不能随便删除
-        //to-do
-        //删除客户与房产关系
-        CustomerPropertyRelExample customerPropertyRelExample = new CustomerPropertyRelExample();
-        CustomerPropertyRelExample.Criteria criteria1 = customerPropertyRelExample.createCriteria();
-        criteria1.andProductInstIdEqualTo(productInstId);
-        criteria1.andCustomerIdEqualTo(customerId);
-        customerPropertyRelMapper.deleteByExample(customerPropertyRelExample);
-
-        //删除客户汽车信息
-        CustomerCarExample customerCarExample = new CustomerCarExample();
-        CustomerCarExample.Criteria criteria2 = customerCarExample.createCriteria();
-        criteria1.andProductInstIdEqualTo(productInstId);
-        criteria1.andCustomerIdEqualTo(customerId);
-        customerCarMapper.deleteByExample(customerCarExample);
-
-        //删除客户信息
-        CustomerExample example = new CustomerExample();
-        CustomerExample.Criteria criteria3 = example.createCriteria();
-        criteria3.andCustomerIdEqualTo(customerId);
-        criteria3.andProductInstIdEqualTo(productInstId);
-        return customerMapper.deleteByExample(example);
     }
 
 }

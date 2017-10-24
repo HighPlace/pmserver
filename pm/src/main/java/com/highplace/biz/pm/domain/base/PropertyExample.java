@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.domain;
+package com.highplace.biz.pm.domain.base;
 
 import java.util.ArrayList;
 import java.util.Date;

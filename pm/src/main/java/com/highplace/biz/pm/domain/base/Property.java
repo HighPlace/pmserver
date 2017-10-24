@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.domain;
+package com.highplace.biz.pm.domain.base;
 
 import com.highplace.biz.pm.service.util.ExcelResources;
 import org.hibernate.validator.constraints.Length;

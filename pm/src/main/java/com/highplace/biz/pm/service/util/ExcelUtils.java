@@ -1,11 +1,11 @@
 package com.highplace.biz.pm.service.util;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.*;
@@ -168,9 +168,17 @@ public class ExcelUtils {
             Row r = sheet.createRow(0);
             List<ExcelHeader> headers = getHeaderList(clz);
             Collections.sort(headers);
-            //写标题
+            //写标题，并设置样式为居中加粗
+            CellStyle style = wb.createCellStyle();
+            Font font = wb.createFont();
+            font.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+            style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+            style.setFont(font);
+            Cell cell;
             for(int i=0;i<headers.size();i++) {
-                r.createCell(i).setCellValue(headers.get(i).getTitle());
+                cell = r.createCell(i);
+                cell.setCellValue(headers.get(i).getTitle());
+                cell.setCellStyle(style);
             }
             //写数据
             Object obj = null;
