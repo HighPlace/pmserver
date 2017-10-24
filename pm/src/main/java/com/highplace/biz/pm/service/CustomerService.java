@@ -351,7 +351,7 @@ public class CustomerService {
 
                             //1 更新relation表
                             relation.setModifyTime(new Date()); //防止update失败
-                            if( relationMapper.updateByPrimaryKeyWithBLOBs(relation) != 1) {
+                            if( relationMapper.updateByPrimaryKeySelective(relation) != 1) {
                                 continue; //说明更新失败,relatinoId不对
                             }
 
@@ -377,7 +377,7 @@ public class CustomerService {
                                     for (Car car : carList) {
                                         if (car.getCarId() != null) { //有传入carId，说明是修改car信息
                                             car.setModifyTime(new Date());
-                                            carMapper.updateByPrimaryKeyWithBLOBs(car);
+                                            carMapper.updateByPrimaryKeySelective(car);
                                         } else {  //没有传入carId，是新增car信息
                                             car.setRelationId(relation.getRelationId());
                                             car.setProductInstId(productInstId);
