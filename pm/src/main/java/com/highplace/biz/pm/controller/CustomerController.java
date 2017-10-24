@@ -3,7 +3,6 @@ package com.highplace.biz.pm.controller;
 import com.highplace.biz.pm.domain.base.Customer;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.service.CustomerService;
-import com.highplace.biz.pm.service.CustomerServiceOld;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +18,6 @@ import java.util.Map;
 public class CustomerController {
 
     public static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
-
-    @Autowired
-    private CustomerServiceOld customerServiceOld;
 
     @Autowired
     private CustomerService customerService;
@@ -58,21 +54,21 @@ public class CustomerController {
         logger.debug("post customer:" + customer.toString());
         return customer;
     }
-/*
+
     @RequestMapping(path = "/customer", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/customer;PUT','/customer;ALL','/customer/**;PUT','/customer/**;ALL','ADMIN')")
     public Customer changeCustomer(@RequestBody Customer customer,
                                    Principal principal) throws Exception {
 
-        if(customer.getCustomerId() == null ) throw new Exception("customerId is null");
+        if (customer.getCustomerId() == null) throw new Exception("customerId is null");
 
         logger.debug("pre customer:" + customer.toString());
 
         //插入记录
-        int rows = customerServiceOld.update(SecurityUtils.getCurrentProductInstId(principal), customer);
+        int rows = customerService.update(SecurityUtils.getCurrentProductInstId(principal), customer);
         logger.debug("customer insert return num:" + rows);
         logger.debug("post customer:" + customer.toString());
-        if(rows != 1) throw new Exception("change failed, effected num:" + rows);
+        if (rows != 1) throw new Exception("change failed, effected num:" + rows);
         return customer;
     }
 
@@ -81,10 +77,10 @@ public class CustomerController {
     public void deleteCustomer(@RequestParam(value = "customerId", required = true) Long customerId,
                                Principal principal) throws Exception {
 
-        //删除记录
-        int rows = customerServiceOld.delete(SecurityUtils.getCurrentProductInstId(principal), customerId);
+        //删除客户信息/客户房产关系/客户房产下的车辆信息
+        int rows = customerService.delete(SecurityUtils.getCurrentProductInstId(principal), customerId, null, 0);
         logger.debug("customer delete return num:" + rows);
-        if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
+        if (rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
-    */
+
 }

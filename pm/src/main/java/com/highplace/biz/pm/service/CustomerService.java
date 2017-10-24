@@ -25,6 +25,10 @@ import java.util.regex.Pattern;
 public class CustomerService {
 
     public static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
+    //写入redis的key前缀, 后面加上productInstId
+    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
+    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
+    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
 
     @Autowired
     private PropertyService propertyService;
@@ -37,13 +41,8 @@ public class CustomerService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    //写入redis的key前缀, 后面加上productInstId
-    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
-    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
-    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
-
     //返回空的查询结果
-    public static Map<String, Object> queryEmpty () {
+    public static Map<String, Object> queryEmpty() {
         List<Object> data = new ArrayList<>();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalCount", 0);
@@ -58,11 +57,11 @@ public class CustomerService {
         stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId(), customer.getCustomerName());
         stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId(), customer.getPhone());
         List<Relation> relationList = customer.getRelationList();
-        if(relationList != null ) {
-            for(Relation relation : relationList) {
+        if (relationList != null) {
+            for (Relation relation : relationList) {
                 List<Car> carList = relation.getCarList();
-                if(carList != null) {
-                    for(Car car : carList) {
+                if (carList != null) {
+                    for (Car car : carList) {
                         stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + customer.getProductInstId(), car.getPlateNo());
                     }
                 }
@@ -75,11 +74,11 @@ public class CustomerService {
     public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue) {
 
         String redisKey;
-        if(entity.equals("name")) {
+        if (entity.equals("name")) {
             redisKey = PREFIX_CUSTOMER_NAME_KEY + productInstId;
-        } else if(entity.equals("phone")) {
+        } else if (entity.equals("phone")) {
             redisKey = PREFIX_CUSTOMER_PHONE_KEY + productInstId;
-        } else if(entity.equals("plateNo")) {
+        } else if (entity.equals("plateNo")) {
             redisKey = PREFIX_CUSTOMER_PLATENO_KEY + productInstId;
         } else {
             return null;
@@ -91,10 +90,10 @@ public class CustomerService {
         List<String> dataList = new ArrayList();
         Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
         int i = 0;
-        for (String entityValue: sEntity) {
-            i ++;
-            if(pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
-            if(i >= 10) break; //匹配到超过10条记录，退出
+        for (String entityValue : sEntity) {
+            i++;
+            if (pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
+            if (i >= 10) break; //匹配到超过10条记录，退出
         }
 
         Map<String, Object> result = new HashMap<String, Object>();
@@ -118,11 +117,11 @@ public class CustomerService {
         boolean hasustomerIdListByCar = false;
 
         //如果有传入房产相关查询信息,查出对应的客户ID List
-        if ( StringUtils.isNotEmpty(searchBean.getZoneId())
-                ||  StringUtils.isNotEmpty(searchBean.getBuildingId())
-                ||  StringUtils.isNotEmpty(searchBean.getUnitId())
-                ||  StringUtils.isNotEmpty(searchBean.getRoomId())
-                ||  searchBean.getStatus() != null ) {
+        if (StringUtils.isNotEmpty(searchBean.getZoneId())
+                || StringUtils.isNotEmpty(searchBean.getBuildingId())
+                || StringUtils.isNotEmpty(searchBean.getUnitId())
+                || StringUtils.isNotEmpty(searchBean.getRoomId())
+                || searchBean.getStatus() != null) {
 
             //1 从property表中查询所有的property ID
             List<Property> propertyList;
@@ -134,10 +133,10 @@ public class CustomerService {
                 return queryEmpty();
             }
             //如果没有查到房产信息，直接返回
-            if(propertyList.size() == 0) return queryEmpty();
+            if (propertyList.size() == 0) return queryEmpty();
 
             List<Long> propertyIdList = new ArrayList<>();
-            for (Property property: propertyList) {
+            for (Property property : propertyList) {
                 propertyIdList.add(property.getPropertyId());
             }
 
@@ -147,9 +146,9 @@ public class CustomerService {
             criteria1.andPropertyIdIn(propertyIdList);
             List<Relation> relationList = relationMapper.selectByExample(relationExample);
             //如果没有查到房产和客户的对应关系，直接返回
-            if(relationList.size() == 0)  return queryEmpty();
+            if (relationList.size() == 0) return queryEmpty();
 
-            for (Relation relation: relationList) {
+            for (Relation relation : relationList) {
                 customerIdListByProperty.add(relation.getCustomerId());
             }
             hasCustomerIdListByProperty = true;
@@ -157,16 +156,16 @@ public class CustomerService {
         }
 
         //如果有传入汽车相关查询信息,查出对应的客户ID List
-        if ( StringUtils.isNotEmpty(searchBean.getPlateNo())) {
+        if (StringUtils.isNotEmpty(searchBean.getPlateNo())) {
 
             CarExample example1 = new CarExample();
             CarExample.Criteria criteria1 = example1.createCriteria();
             criteria1.andPlateNoLike("%" + searchBean.getPlateNo() + "%"); //模糊查询
             List<Car> carList = carMapper.selectByExampleWithRelation(example1);
             //如果没有查到车，直接返回
-            if(carList.size() == 0)  return queryEmpty();
+            if (carList.size() == 0) return queryEmpty();
 
-            for (Car car: carList) {
+            for (Car car : carList) {
                 customerIdListByCar.add(car.getRelation().getCustomerId());
             }
             hasustomerIdListByCar = true;
@@ -174,7 +173,7 @@ public class CustomerService {
         }
 
         //加入客户ID List的and条件查询
-        if( hasCustomerIdListByProperty) {
+        if (hasCustomerIdListByProperty) {
             if (hasustomerIdListByCar) {
                 //求两个客户id list的交集
                 customerIdListByProperty.retainAll(customerIdListByCar);
@@ -189,15 +188,15 @@ public class CustomerService {
             if (hasustomerIdListByCar) criteria.andCustomerIdIn(customerIdListByCar);
         }
 
-        if( StringUtils.isNotEmpty(searchBean.getCustomerName())) {
-            criteria.andCustomerNameLike("%"  + searchBean.getCustomerName() + "%" ); //模糊查询
+        if (StringUtils.isNotEmpty(searchBean.getCustomerName())) {
+            criteria.andCustomerNameLike("%" + searchBean.getCustomerName() + "%"); //模糊查询
         }
-        if( StringUtils.isNotEmpty(searchBean.getPhone())) {
-            criteria.andPhoneLike("%"  + searchBean.getPhone() + "%" ); //模糊查询
+        if (StringUtils.isNotEmpty(searchBean.getPhone())) {
+            criteria.andPhoneLike("%" + searchBean.getPhone() + "%"); //模糊查询
         }
 
         //如果noPageSortFlag 不为true
-        if(!noPageSortFlag) {
+        if (!noPageSortFlag) {
             //设置分页参数
             if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
                 PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
@@ -219,7 +218,7 @@ public class CustomerService {
         long totalCount;
 
         //判断是否有分页
-        if ( !noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
+        if (!noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
             totalCount = ((Page) customerList).getTotal();
         } else {
             totalCount = customerList.size();
@@ -233,25 +232,26 @@ public class CustomerService {
 
     //插入客户信息
     //多表插入，需要增加事务
+    //interalFlag: true 内部调用，需要判断对应的主键id是否为null，为null则不插入
     @Transactional
     public int insert(String productInstId, Customer customer) {
 
         //设置产品实例ID
         customer.setProductInstId(productInstId);
         int num = customerMapper.insertSelective(customer);
-        if(num == 1) {
+        if (num == 1) {
             //批量插入客户和房产对应关系以及客户房产下的车辆信息
             List<Relation> relationList = customer.getRelationList();
-            if(relationList != null) {
-                for(Relation relation : relationList) {
+            if (relationList != null) {
+                for (Relation relation : relationList) {
 
                     relation.setProductInstId(productInstId);
                     relation.setCustomerId(customer.getCustomerId());
                     relationMapper.insertSelective(relation);
 
                     List<Car> carList = relation.getCarList();
-                    if(carList != null) {
-                        for(Car car : carList) {
+                    if (carList != null) {
+                        for (Car car : carList) {
                             car.setProductInstId(productInstId);
                             car.setRelationId(relation.getRelationId());
                             carMapper.insertSelective(car);
@@ -259,9 +259,188 @@ public class CustomerService {
                     }
                 }
             }
-
             //更新redis
             addRedisValue(customer);
+        }
+        return num;
+    }
+
+
+    //通过层级删除客户信息
+    // level: 0:删除客户信息/客户房产关系/客户房产下的车辆信息
+    // level: 1:客户房产关系/客户房产下的车辆信息
+    // level: 2:客户房产下的车辆信息
+    @Transactional
+    public int delete(String productInstId, Long customerId, Long relationId, int level) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        //to-do
+
+        CustomerExample customerExample = new CustomerExample();
+        CustomerExample.Criteria criteria = customerExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andCustomerIdEqualTo(customerId);
+        List<Customer> customerList = customerMapper.selectByExampleWithRelationAndCarWithBLOBs(customerExample);
+
+        if (customerList.size() == 1) {
+            List<Relation> relationList = customerList.get(0).getRelationList();
+            if (relationList != null) {
+                for (Relation relation : relationList) {
+
+                    List<Car> carList = relation.getCarList();
+                    if (carList != null) {
+                        for (Car car : carList) {
+                            if (relationId == null) {
+                                carMapper.deleteByPrimaryKey(car.getCarId());
+                            } else if (relationId.longValue() == car.getRelationId().longValue()) {
+                                carMapper.deleteByPrimaryKey(car.getCarId());
+                            }
+                        }
+                    }
+                    if (level == 0 || level == 1) relationMapper.deleteByPrimaryKey(relation.getRelationId());
+                }
+            }
+            return (level == 0) ? customerMapper.deleteByPrimaryKey(customerList.get(0).getCustomerId()) : 0;
+        } else {
+            return 0;
+        }
+    }
+
+    //修改客户信息
+    @Transactional
+    public int update(String productInstId, Customer customer) {
+
+        //先更新客户信息表
+        CustomerExample example = new CustomerExample();
+        CustomerExample.Criteria criteria = example.createCriteria();
+        criteria.andCustomerIdEqualTo(customer.getCustomerId()); //客户ID
+        criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
+        int num = customerMapper.updateByExampleSelective(customer, example);
+
+        //如果更新成功,则继续更新客户和房产关系，以及客户房产下的车辆信息
+        if (num == 1) {
+
+            //获取提交的客户和房产关系列表
+            List<Relation> relationList = customer.getRelationList();
+
+            //如果列表不为null，则进行更新操作
+            if (relationList != null) {
+
+                //如果relationList内容为空,则清掉所有客户和房产对应关系，以及客户房产下的车辆信息
+                if (relationList.size() == 0) {
+                    delete(productInstId, customer.getCustomerId(), null, 1);
+
+                    //否则，进行更新操作
+                } else {
+
+                    //记录更新前的所有relationID列表
+                    List<Long> beforeRelationIdList = new ArrayList<>();
+                    List<Long> afterRelationIdList = new ArrayList<>();
+                    for (Relation relation : relationList) {
+                        //为空是属于新增的relation
+                        if (relation.getRelationId() != null) {
+                            beforeRelationIdList.add(relation.getRelationId());
+                        }
+                    }
+
+                    //遍历relatinoList，进行更新操作
+                    for (Relation relation : relationList) {
+
+                        //不为null 表示修改relation信息
+                        if (relation.getRelationId() != null) {
+
+                            //1 更新relation表
+                            relation.setModifyTime(new Date()); //防止update失败
+                            relationMapper.updateByPrimaryKeyWithBLOBs(relation);
+
+                            //2 更新relation下的carList表
+                            List<Car> carList = relation.getCarList();
+                            if (carList != null) {
+                                //传入了carList，但内容为空，,则清掉客户在该房产下的车辆信息
+                                if (carList.size() == 0) {
+                                    delete(productInstId, customer.getCustomerId(), relation.getRelationId(), 2);
+                                } else {
+
+                                    List<Long> beforeCarIdList = new ArrayList<>();
+                                    List<Long> afterCarIdList = new ArrayList<>();
+
+                                    //更新前的所有carId列表
+                                    for (Car car : carList) {
+                                        if (car.getCarId() != null) {
+                                            beforeCarIdList.add(car.getCarId());
+                                        }
+                                    }
+
+                                    //更新car信息
+                                    for (Car car : carList) {
+                                        if (car.getCarId() != null) { //有传入carId，说明是修改car信息
+                                            car.setModifyTime(new Date());
+                                            carMapper.updateByPrimaryKeyWithBLOBs(car);
+                                        } else {  //没有传入carId，是新增car信息
+                                            car.setRelationId(relation.getRelationId());
+                                            car.setProductInstId(productInstId);
+                                            carMapper.insertSelective(car);
+                                            beforeCarIdList.add(car.getCarId());
+                                        }
+                                    }
+
+                                    //更新后的所有carId列表
+                                    List<Car> afterCarList = carMapper.selectByRelationId(relation.getRelationId());
+                                    for (Car car : afterCarList) {
+                                        afterCarIdList.add(car.getCarId());
+                                    }
+
+                                    //求补集，删除afterCarIdList多余的部分
+                                    afterCarIdList.removeAll(beforeCarIdList);
+                                    CarExample example1 = new CarExample();
+                                    CarExample.Criteria criteria1 = example1.createCriteria();
+                                    criteria1.andProductInstIdEqualTo(productInstId);
+                                    criteria1.andCarIdIn(afterCarIdList);
+                                    carMapper.deleteByExample(example1);
+                                }
+                            }
+
+
+                            //为null 表示新增relation信息
+                        } else {
+
+                            //1 新增relation表
+                            relation.setProductInstId(productInstId);
+                            relation.setCustomerId(customer.getCustomerId());
+                            relationMapper.insertSelective(relation);
+
+                            //将新增的relationId加入到beforeRelationIdList列表中
+                            beforeRelationIdList.add(relation.getRelationId());
+
+                            //2 新增relation下的carList表
+                            List<Car> carList = relation.getCarList();
+                            if (carList != null) {
+                                for (Car car : carList) {
+                                    car.setRelationId(relation.getRelationId());
+                                    car.setProductInstId(productInstId);
+                                    carMapper.insertSelective(car);
+                                }
+                            }
+                        }
+                    }
+
+                    //更新后的所有relatinoId列表
+                    List<Relation> afterRelationList = relationMapper.selectByCustomerIdWithCar(customer.getCustomerId());
+                    for (Relation relation : afterRelationList) {
+                        afterRelationIdList.add(relation.getRelationId());
+                    }
+
+                    //求补集，删除afterCarIdList多余的部分
+                    afterRelationIdList.removeAll(beforeRelationIdList);
+                    RelationExample example1 = new RelationExample();
+                    RelationExample.Criteria criteria1 = example1.createCriteria();
+                    criteria1.andProductInstIdEqualTo(productInstId);
+                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
+                    criteria1.andRelationIdIn(afterRelationIdList);
+                    relationMapper.deleteByExample(example1);
+
+                }
+            }
         }
         return num;
     }
