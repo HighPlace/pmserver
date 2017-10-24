@@ -392,11 +392,13 @@ public class CustomerService {
 
                                     //求补集，删除afterCarIdList多余的部分
                                     afterCarIdList.removeAll(beforeCarIdList);
-                                    CarExample example1 = new CarExample();
-                                    CarExample.Criteria criteria1 = example1.createCriteria();
-                                    criteria1.andProductInstIdEqualTo(productInstId);
-                                    criteria1.andCarIdIn(afterCarIdList);
-                                    carMapper.deleteByExample(example1);
+                                    if(afterCarIdList.size() >0 ) {
+                                        CarExample example1 = new CarExample();
+                                        CarExample.Criteria criteria1 = example1.createCriteria();
+                                        criteria1.andProductInstIdEqualTo(productInstId);
+                                        criteria1.andCarIdIn(afterCarIdList);
+                                        carMapper.deleteByExample(example1);
+                                    }
                                 }
                             }
 
@@ -432,15 +434,20 @@ public class CustomerService {
 
                     //求补集，删除afterCarIdList多余的部分
                     afterRelationIdList.removeAll(beforeRelationIdList);
-                    RelationExample example1 = new RelationExample();
-                    RelationExample.Criteria criteria1 = example1.createCriteria();
-                    criteria1.andProductInstIdEqualTo(productInstId);
-                    criteria1.andCustomerIdEqualTo(customer.getCustomerId());
-                    criteria1.andRelationIdIn(afterRelationIdList);
-                    relationMapper.deleteByExample(example1);
+                    if(afterRelationIdList.size() > 0) {
+                        RelationExample example1 = new RelationExample();
+                        RelationExample.Criteria criteria1 = example1.createCriteria();
+                        criteria1.andProductInstIdEqualTo(productInstId);
+                        criteria1.andCustomerIdEqualTo(customer.getCustomerId());
+                        criteria1.andRelationIdIn(afterRelationIdList);
+                        relationMapper.deleteByExample(example1);
+                    }
 
                 }
             }
+
+            //更新redis
+            addRedisValue(customer);
         }
         return num;
     }
