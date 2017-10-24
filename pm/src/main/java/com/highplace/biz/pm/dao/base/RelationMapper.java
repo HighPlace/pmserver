@@ -13,7 +13,7 @@ public interface RelationMapper {
     @Select({
             "select",
             "a.relation_id, a.product_inst_id, a.customer_id, a.property_id, a.type, a.status, a.start_date, ",
-            "a.end_date, a.create_time, a.modify_time, a.remark",
+            "a.end_date, a.create_time, a.modify_time, a.remark, ",
             "concat(b.zone_id, b.building_id, b.unit_id, b.room_id) as property_name",
             "from t_relation a, t_property b",
             "where a.customer_id = #{customerId,jdbcType=BIGINT}",
