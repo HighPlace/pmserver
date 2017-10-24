@@ -7,7 +7,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 
-public interface CustomerMapper {
+public interface CustomerMapperOld {
 
 
     @SelectProvider(type=CustomerSqlProvider.class, method="selectByExample")

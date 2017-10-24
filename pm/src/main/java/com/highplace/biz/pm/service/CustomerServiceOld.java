@@ -3,7 +3,7 @@ package com.highplace.biz.pm.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.CustomerCarMapper;
-import com.highplace.biz.pm.dao.CustomerMapper;
+import com.highplace.biz.pm.dao.CustomerMapperOld;
 import com.highplace.biz.pm.dao.CustomerPropertyRelMapper;
 import com.highplace.biz.pm.domain.*;
 import com.highplace.biz.pm.domain.base.Property;
@@ -30,7 +30,7 @@ public class CustomerServiceOld {
     @Autowired
     private PropertyService propertyService;
     @Autowired
-    private CustomerMapper customerMapper;
+    private CustomerMapperOld customerMapperOld;
     @Autowired
     private CustomerPropertyRelMapper customerPropertyRelMapper;
     @Autowired
@@ -208,7 +208,7 @@ public class CustomerServiceOld {
         }
 
         //查询结果
-        List<Customer> customerList = customerMapper.selectByExampleWithPropertyAndCar(example);
+        List<Customer> customerList = customerMapperOld.selectByExampleWithPropertyAndCar(example);
 
         //总记录数
         long totalCount;
@@ -233,7 +233,7 @@ public class CustomerServiceOld {
 
         //设置产品实例ID
         customer.setProductInstId(productInstId);
-        int num = customerMapper.insertSelective(customer);
+        int num = customerMapperOld.insertSelective(customer);
         if(num == 1) {
             //批量插入客户和房产对应关系信息
             List<CustomerPropertyRel> customerPropertyRelList = customer.getCustomerPropertyRels();
@@ -270,7 +270,7 @@ public class CustomerServiceOld {
         criteria.andCustomerIdEqualTo(customer.getCustomerId()); //客户ID
         criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
 
-        int num = customerMapper.updateByExampleSelective(customer, example);
+        int num = customerMapperOld.updateByExampleSelective(customer, example);
         if(num == 1) {
 
             //批量更新客户和房产对应关系信息
@@ -426,6 +426,6 @@ public class CustomerServiceOld {
         CustomerExample.Criteria criteria3 = example.createCriteria();
         criteria3.andCustomerIdEqualTo(customerId);
         criteria3.andProductInstIdEqualTo(productInstId);
-        return customerMapper.deleteByExample(example);
+        return customerMapperOld.deleteByExample(example);
     }
 }
