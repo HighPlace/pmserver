@@ -19,12 +19,15 @@ class GlobalControllerExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     public RestServiceError handleValidationException(ConstraintViolationException ex) {
+        /*
         Set<ConstraintViolation<?>> errors = ex.getConstraintViolations();
         StringBuilder strBuilder = new StringBuilder();
         for (ConstraintViolation<?> violation : errors) {
             strBuilder.append(violation.getMessage() + "\n");
         }
         return RestServiceError.build(RestServiceError.Type.VALIDATION_ERROR, strBuilder.toString());
+        */
+        return RestServiceError.build(RestServiceError.Type.VALIDATION_ERROR, ex.getMessage());
     }
 
     // 通用异常的处理，返回500

@@ -53,7 +53,7 @@ public class CustomerController {
         logger.debug("pre customer:" + customer.toString());
 
         //插入记录
-        int rows = customerServiceOld.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
+        int rows = customerService.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
         logger.debug("customer insert return num:" + rows);
         logger.debug("post customer:" + customer.toString());
         return customer;
