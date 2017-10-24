@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.base;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class Relation {
 
     private Long customerId;
 
+    @NotNull
     private Long propertyId;
 
     private Integer type;

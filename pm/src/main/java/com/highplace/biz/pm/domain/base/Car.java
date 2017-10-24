@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.base;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class Car {
 
     private Long relationId;
 
+    @NotNull
     private String plateNo;
 
     private Integer type;

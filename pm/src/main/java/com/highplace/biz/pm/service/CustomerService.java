@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.*;
@@ -230,4 +231,38 @@ public class CustomerService {
         return result;
     }
 
+    //插入客户信息
+    //多表插入，需要增加事务
+    @Transactional
+    public int insert(String productInstId, Customer customer) {
+
+        //设置产品实例ID
+        customer.setProductInstId(productInstId);
+        int num = customerMapper.insertSelective(customer);
+        if(num == 1) {
+            //批量插入客户和房产对应关系以及客户房产下的车辆信息
+            List<Relation> relationList = customer.getRelationList();
+            if(relationList != null) {
+                for(Relation relation : relationList) {
+
+                    relation.setProductInstId(productInstId);
+                    relation.setCustomerId(customer.getCustomerId());
+                    relationMapper.insertSelective(relation);
+
+                    List<Car> carList = relation.getCarList();
+                    if(carList != null) {
+                        for(Car car : carList) {
+                            car.setProductInstId(productInstId);
+                            car.setRelationId(relation.getRelationId());
+                            carMapper.insertSelective(car);
+                        }
+                    }
+                }
+            }
+
+            //更新redis
+            addRedisValue(customer);
+        }
+        return num;
+    }
 }
