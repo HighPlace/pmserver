@@ -1,6 +1,6 @@
 package com.highplace.biz.pm.controller;
 
-import com.highplace.biz.pm.domain.Customer;
+import com.highplace.biz.pm.domain.base.Customer;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.service.CustomerService;
 import com.highplace.biz.pm.service.CustomerServiceOld;
@@ -58,7 +58,7 @@ public class CustomerController {
         logger.debug("post customer:" + customer.toString());
         return customer;
     }
-
+/*
     @RequestMapping(path = "/customer", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/customer;PUT','/customer;ALL','/customer/**;PUT','/customer/**;ALL','ADMIN')")
     public Customer changeCustomer(@RequestBody Customer customer,
@@ -86,4 +86,5 @@ public class CustomerController {
         logger.debug("customer delete return num:" + rows);
         if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
+    */
 }
