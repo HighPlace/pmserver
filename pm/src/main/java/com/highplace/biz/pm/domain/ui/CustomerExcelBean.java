@@ -36,7 +36,7 @@ public class CustomerExcelBean {
 
     @ExcelResources(title="客户类型(业主/租户/其他)",order=2)
     public String getRelationType() {
-        return Relation.transferTypeToDesc(relation.getType());
+        return (relation.getType()!=null) ? Relation.transferTypeToDesc(relation.getType()) : null;
     }
 
     @ExcelResources(title="客户姓名",order=3)
@@ -91,7 +91,7 @@ public class CustomerExcelBean {
 
     @ExcelResources(title="车位类型(公共产权/自有产权)",order=13)
     public String getParkType() {
-        return Car.transferTypeToDesc(car.getType());
+        return (car.getType() !=null) ? Car.transferTypeToDesc(car.getType()) : null;
     }
 
 }
