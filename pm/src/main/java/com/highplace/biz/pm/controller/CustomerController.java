@@ -95,12 +95,20 @@ public class CustomerController {
         return result;
     }
 
-    @RequestMapping(path = "/property/{taskType}", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('/property;GET','/property;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
-    public Map<Object, Object> getTaskResult(@PathVariable String taskType,
+    @RequestMapping(path = "/customer/import", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/customer/import;GET','/customer/import;ALL','/customer/**;GET','/customer/**;ALL','ADMIN')")
+    public Map<Object, Object> getImportTaskResult(@PathVariable String taskType,
                                              @RequestParam(value = "taskId", required = true) String taskId,
                                              Principal principal) {
-        return customerService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, taskType);
+        return customerService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "import");
+    }
+
+    @RequestMapping(path = "/customer/export", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/customer/export;GET','/customer/export;ALL','/customer/**;GET','/customer/**;ALL','ADMIN')")
+    public Map<Object, Object> getExportTaskResult(@PathVariable String taskType,
+                                             @RequestParam(value = "taskId", required = true) String taskId,
+                                             Principal principal) {
+        return customerService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "export");
     }
 
 
