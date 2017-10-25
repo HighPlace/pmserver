@@ -16,6 +16,14 @@ public class Car {
     public void setRelation(Relation relation) {
         this.relation = relation;
     }
+
+    //车位产权类型: 0:公共产权 1:自有产权
+    public static String transferTypeToDesc(int type) {
+
+        if (type == 0) return "公共产权";
+        if (type == 1) return "自有产权";
+        return "未知";
+    }
     // ----- end ------ //
 
     private Long carId;

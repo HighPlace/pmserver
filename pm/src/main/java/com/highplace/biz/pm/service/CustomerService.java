@@ -8,6 +8,7 @@ import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.RelationMapper;
 import com.highplace.biz.pm.domain.base.*;
+import com.highplace.biz.pm.domain.ui.CustomerExcelBean;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.common.MQService;
@@ -598,10 +599,24 @@ public class CustomerService {
         CustomerExample.Criteria criteria = customerExample.createCriteria();
         criteria.andProductInstIdEqualTo(productInstId);
         //OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
-        List<Customer> customerList = customerMapper.selectByExample(customerExample);
+        List<Customer> customerList = customerMapper.selectByExampleWithRelationAndCarWithBLOBs(customerExample);
+        List<CustomerExcelBean> customerExcelBeanList = new ArrayList<>();
+        for (Customer customer : customerList) {
+            List<Relation> relationList = customer.getRelationList();
+            if (relationList != null) {
+                for (Relation relation : relationList) {
+                    List<Car> carList = relation.getCarList();
+                    if (carList != null) {
+                        for (Car car : carList) {
+                            customerExcelBeanList.add(new CustomerExcelBean(customer, relation, car));
+                        }
+                    }
+                }
+            }
+        }
 
         //不按模板导出excel, 基于注解
-        ExcelUtils.getInstance().exportObj2Excel(localFilePath, customerList, Customer.class);
+        ExcelUtils.getInstance().exportObj2Excel(localFilePath, customerExcelBeanList, CustomerExcelBean.class);
 
         //按模板导出excel
         //Map<String, String> map = new HashMap<String, String>();

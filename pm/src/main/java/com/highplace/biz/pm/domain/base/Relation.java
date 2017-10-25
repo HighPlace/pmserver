@@ -23,6 +23,14 @@ public class Relation {
         this.propertyName = propertyName;
     }
 
+    //客户和房产的关系类型: 0:业主 1:租户 2:其他
+    public static String transferTypeToDesc(int type) {
+
+        if (type == 0) return "业主";
+        if (type == 1) return "租户";
+        return "其他";
+    }
+
 // ----- end ------ //
 
     private Long relationId;
