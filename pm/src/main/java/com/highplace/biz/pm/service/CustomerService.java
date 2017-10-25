@@ -6,6 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
+import com.highplace.biz.pm.dao.base.PropertyMapper;
 import com.highplace.biz.pm.dao.base.RelationMapper;
 import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.ui.CustomerExcelBean;
@@ -17,6 +18,12 @@ import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelUtils;
 import com.highplace.biz.pm.service.util.QCloudCosHelper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -50,6 +60,8 @@ public class CustomerService {
     private RelationMapper relationMapper;
     @Autowired
     private CarMapper carMapper;
+    @Autowired
+    private PropertyMapper propertyMapper;
     @Autowired
     private TaskStatusService taskStatusService;
     @Autowired
@@ -538,6 +550,374 @@ public class CustomerService {
 
     public void batchImport(JSONObject jsonObject) {
 
+        //获取任务ID
+        String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
+
+        //获取productInstID
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
+
+        //获取文件在cos上的路径
+        String cosFilePath = jsonObject.getString(MQService.MSG_KEY_FILEURL);
+
+        //设置本地存储路径
+        String localFilePath = "/tmp/" + cosFilePath;
+
+        //设置任务状态为处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DOING,
+                null);
+
+        //处理结果Map
+        Map<String, Object> result = new HashMap<>();
+
+        //创建qcloud cos操作Helper对象
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+
+        //下载文件到本地
+        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        int code = jsonGetFileResult.getIntValue("code");
+
+        if (code != 0) {
+            //写结果数据,返回失败
+            String errMsg = jsonGetFileResult.getString("message");
+            String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //处理结果为失败
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
+        } else {
+
+            //解析本地文件并导入数据库
+            JSONObject jsonResult = readExcel(productInstId, localFilePath);
+            logger.debug("readExcel result:" + jsonResult.toJSONString());
+
+            //从cos应答中获取处理结果
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
+
+            //删除本地文件
+            File localFile = new File(localFilePath);
+            localFile.delete();
+
+            //删除远程的文件
+            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
+        }
+
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+    }
+
+    //读取Excel文件
+    public JSONObject readExcel(String productInstID, String localFilePath) {
+
+        //初始化输入流
+        InputStream is = null;
+
+        try {
+            is = new FileInputStream(localFilePath);
+
+            //根据版本选择创建Workbook的方式
+            Workbook wb = null;
+            //根据文件名判断文件是2003版本还是2007版本
+            if (ExcelUtils.isExcel2007(localFilePath)) {
+                wb = new XSSFWorkbook(is);
+            } else if (ExcelUtils.isExcel2003(localFilePath)) {
+                wb = new HSSFWorkbook(is);
+            } else {
+                JSONObject j = new JSONObject();
+                j.put("code", 101);
+                j.put("message", "文件格式错误");
+                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                return j;
+            }
+            return loadExcelValue(productInstID, wb);
+
+        } catch (Exception e) {
+
+            JSONObject j = new JSONObject();
+            j.put("code", 102);
+            j.put("message", "文件读取错误");
+            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            e.printStackTrace();
+            return j;
+
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    is = null;
+                    logger.error("readExcel finally:" + e.getMessage());
+                }
+            }
+        }
+    }
+
+    //从excel文件读取数据,并导入到数据库中
+    //如果解析文件出错，将不会导入数据
+    //批处理增加事务
+    @Transactional
+    protected JSONObject loadExcelValue(String productInstID, Workbook wb) {
+
+        JSONObject result = new JSONObject();
+        String errorMsg = "";
+        String br = "<br/>";
+
+        //得到第一个shell
+        Sheet sheet = wb.getSheetAt(0);
+        //总行数
+        int totalRows = sheet.getPhysicalNumberOfRows();
+        //总列数
+        int totalCells = 0;
+        //得到Excel的列数(前提是有行数)，从第二行算起
+        if (totalRows >= 2 && sheet.getRow(1) != null) {
+            totalCells = sheet.getRow(0).getPhysicalNumberOfCells();
+        }
+
+        List<CustomerExcelBean> customerExcelBeanList = new ArrayList<>();
+        CustomerExcelBean tempCustomerExcelBean;
+
+        boolean errorFlag = false; //只要出现错误,都跳出循环
+
+        //循环Excel行数,从第二行开始。标题不入库
+        for (int r = 1; r < totalRows; r++) {
+
+            Row row = sheet.getRow(r);
+            if (row == null) {
+                errorMsg += "第" + (r + 1) + "行数据有问题, 请仔细检查.";
+                errorFlag = true;
+                break;  //跳出循环
+            }
+
+            tempCustomerExcelBean = new CustomerExcelBean();
+
+            //循环Excel的列
+            String cellValue;
+            for (int c = 0; c < totalCells; c++) {
+                Cell cell = row.getCell(c);
+
+                if (cell == null) {  //null的列,默认为空
+                    cellValue = "";
+                } else {
+                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                    cellValue = cell.getStringCellValue().trim();
+                }
+
+                switch (c) {
+                    case 0:  //房产名(分区+楼号+单元+房号)(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.relation.setPropertyName(cellValue);
+                            Property property = propertyMapper.selectByPropertyName(productInstID, 0, cellValue);
+                            if(property == null) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产记录不存在, 请先创建房产档案;";
+                                errorFlag = true;
+                            } else {
+                                //设置房产ID
+                                tempCustomerExcelBean.relation.setPropertyId(property.getPropertyId());
+                            }
+                        } else {
+                            errorFlag = true;
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产名不能为空, 请仔细检查;";
+                        }
+                        break;
+
+                    case 1:  //客户类型(业主/租户/其他)(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.relation.setType(Relation.transferDescToType(cellValue));
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题,客户类型请填写(业主/租户/其他),请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 2:  //客户姓名(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setCustomerName(cellValue);
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题,客户姓名不能为空,请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 3:  //证件类型(居民身份证/护照/港澳回乡证/台胞证) (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setIdentityType(Customer.transferDescToIdentityType(cellValue));
+                        }
+                        break;
+
+                    case 4:  //证件号码 (必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setIdentityNo(cellValue);
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题,证件号码不能为空,请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 5:  //联系电话 (必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setPhone(cellValue);
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题,联系电话不能为空,请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 6:  //备用联系电话 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setBackupPhone1(cellValue);
+                        }
+                        break;
+
+                    case 7:  //电子邮箱地址 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setEmail(cellValue);
+                        }
+                        break;
+
+                    case 8:  //国籍 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setNation(cellValue);
+                        }
+                        break;
+
+                    case 9:  //性别 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.customer.setGender(cellValue);
+                        }
+                        break;
+
+                    case 10:  //车牌号 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.car.setPlateNo(cellValue);
+                        }
+                        break;
+
+                    case 11:  //车位信息 (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.car.setParkInfo(cellValue);
+                        }
+                        break;
+
+                    case 12:  //车位类型(公共产权/自有产权) (非必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempCustomerExcelBean.car.setType(Car.transferDescToType(cellValue));
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            if (errorFlag) {
+                break;  //只要出现错误，跳出循环
+            }
+            customerExcelBeanList.add(tempCustomerExcelBean);
+        }
+
+        if (errorFlag) {
+            result.put("code", 103);
+            result.put("message", errorMsg);
+            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+        } else {
+            int number = 0;
+            CustomerExample example;
+            for (CustomerExcelBean customerExcelBean : customerExcelBeanList) {
+
+                //根据组合主键查询是否存在记录
+                example = new CustomerExample();
+                CustomerExample.Criteria criteria = example.createCriteria();
+                criteria.andProductInstIdEqualTo(productInstID);
+                criteria.andIdentityTypeEqualTo(customerExcelBean.customer.getIdentityType());
+                criteria.andIdentityNoEqualTo(customerExcelBean.customer.getIdentityNo());
+                List<Customer> find = customerMapper.selectByExample(example);
+
+                if (find.size() == 0) {  //不存在记录,直接insert
+                    number += insert(productInstID, customerExcelBean.customer);
+
+                    //插入客户房产关系表
+                    customerExcelBean.relation.setCustomerId(customerExcelBean.customer.getCustomerId());
+                    relationMapper.insertSelective(customerExcelBean.relation);
+
+                    //如果有写入车牌号信息，插入客户房产下的车辆信息表
+                    if(customerExcelBean.car.getPlateNo() != null ) {
+                        customerExcelBean.car.setRelationId(customerExcelBean.relation.getRelationId());
+                        carMapper.insertSelective(customerExcelBean.car);
+                    }
+
+                } else if (find.size() == 1) { //存在记录,进行update
+
+                    //写入customId
+                    customerExcelBean.customer.setCustomerId(find.get(0).getCustomerId());
+                    //进行更新
+                    number += update(productInstID, customerExcelBean.customer);
+
+                    //查看是否已经存在房产和客户的关系
+                    customerExcelBean.relation.setCustomerId(customerExcelBean.customer.getCustomerId());
+
+                    RelationExample relationExample = new RelationExample();
+                    RelationExample.Criteria relationCriteria = relationExample.createCriteria();
+                    relationCriteria.andProductInstIdEqualTo(productInstID);
+                    relationCriteria.andCustomerIdEqualTo(customerExcelBean.relation.getCustomerId());
+                    relationCriteria.andPropertyIdEqualTo(customerExcelBean.relation.getPropertyId());
+                    List<Relation> relationList = relationMapper.selectByExample(relationExample);
+
+                    if (relationList.size() == 0) {
+                        //没有房产和客户的关系，插入记录
+                        relationMapper.insertSelective(customerExcelBean.relation);
+                    } else {
+                        //有记录，写入relationId, update
+                        customerExcelBean.relation.setRelationId(relationList.get(0).getRelationId());
+                        customerExcelBean.relation.setModifyTime(new Date());
+                        relationMapper.updateByPrimaryKeySelective(customerExcelBean.relation);
+                    }
+
+                    //如果有写入车牌号信息，先查看是否存在房产下的车牌号信息
+                    if(customerExcelBean.car.getPlateNo() != null ) {
+                        customerExcelBean.car.setRelationId(customerExcelBean.relation.getRelationId());
+                        CarExample carExample = new CarExample();
+                        CarExample.Criteria carCriteria = carExample.createCriteria();
+                        carCriteria.andProductInstIdEqualTo(productInstID);
+                        carCriteria.andRelationIdEqualTo(customerExcelBean.car.getRelationId());
+                        carCriteria.andPlateNoEqualTo(customerExcelBean.car.getPlateNo());
+                        List<Car> carList = carMapper.selectByExample(carExample);
+                        if(carList.size() == 0) {
+                            //没有记录，插入
+                            carMapper.insertSelective(customerExcelBean.car);
+                        } else {
+                            //有记录，update
+                            customerExcelBean.car.setCarId(carList.get(0).getCarId());
+                            customerExcelBean.car.setModifyTime(new Date());
+                            carMapper.updateByPrimaryKeySelective(customerExcelBean.car);
+                        }
+                    }
+                }
+
+            }
+            if (number < customerExcelBeanList.size()) {
+                errorMsg = "导入成功，共" + number + "条数据, 重复" + (customerExcelBeanList.size() - number) + "条数据";
+            } else {
+                errorMsg = "导入成功，共" + number + "条数据";
+            }
+            result.put("code", 0);
+            result.put("message", errorMsg);
+            result.put("totalNum", customerExcelBeanList.size());
+            result.put("insertNum", number);
+            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+        }
+
+        return result;
     }
 
     //从消息队列接收消息后进行导出数据库操作

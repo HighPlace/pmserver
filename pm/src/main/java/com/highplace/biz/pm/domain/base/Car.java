@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +26,18 @@ public class Car {
         if (type == 1) return "自有产权";
         return "未知";
     }
+
+    //车位产权类型: 0:公共产权 1:自有产权
+    //说明转换成id
+    public static int transferDescToType(String typeDesc) {
+        if (StringUtils.isNotEmpty(typeDesc)) {
+            if (typeDesc.equals("公共产权")) return 0;
+            if (typeDesc.equals("自有产权")) return 1;
+            return 0;
+        }
+        return 0;
+    }
+
     // ----- end ------ //
 
     private Long carId;

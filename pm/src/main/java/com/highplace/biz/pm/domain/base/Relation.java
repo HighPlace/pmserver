@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +31,17 @@ public class Relation {
         if (type == 0) return "业主";
         if (type == 1) return "租户";
         return "其他";
+    }
+
+    //客户和房产的关系类型: 0:业主 1:租户 2:其他
+    //说明转换成id
+    public static int transferDescToType(String typeDesc) {
+        if (StringUtils.isNotEmpty(typeDesc)) {
+            if (typeDesc.equals("业主")) return 0;
+            if (typeDesc.equals("租户")) return 1;
+            return 2;
+        }
+        return 2;
     }
 
 // ----- end ------ //

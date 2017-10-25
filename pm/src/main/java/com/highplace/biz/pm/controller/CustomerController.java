@@ -84,6 +84,18 @@ public class CustomerController {
         if (rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
 
+    @RequestMapping(path = "/customer/import", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/customer/import;POST','/customer/import;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
+    public Map<String, String> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
+                                             @RequestParam(value = "vendor", required = false) Integer vendor,
+                                             Principal principal) {
+        if(vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        String taskId = customerService.batchImportCall(SecurityUtils.getCurrentProductInstId(principal), fileUrl, vendor);
+        Map<String, String> result = new HashMap<>();
+        result.put("taskId", taskId);
+        return result;
+    }
+
     @RequestMapping(path = "/customer/export", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/customer/export;POST','/customer/export;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
     public Map<String, String> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,

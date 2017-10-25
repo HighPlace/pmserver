@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
 import com.highplace.biz.pm.service.util.ExcelResources;
+import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -28,6 +29,20 @@ public class Customer {
         if (type == 3) return "台胞证";
         if (type == 4) return "其他";
         return "未知";
+    }
+
+    //证件类型: 0:居民身份证 1:护照 2:港澳回乡证 3:台胞证 4:其他
+    //说明转换成id
+    public static int transferDescToIdentityType(String desc) {
+        if (StringUtils.isNotEmpty(desc)) {
+            if (desc.equals("居民身份证")) return 0;
+            if (desc.equals("护照")) return 1;
+            if (desc.equals("港澳回乡证")) return 2;
+            if (desc.equals("台胞证")) return 3;
+            if (desc.equals("其他")) return 4;
+            return 0;
+        }
+        return 0;
     }
 
     @ExcelResources(title="证件类型",order=2)

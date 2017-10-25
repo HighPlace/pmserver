@@ -7,9 +7,15 @@ import com.highplace.biz.pm.service.util.ExcelResources;
 
 public class CustomerExcelBean {
 
-    private Customer customer;
-    private Relation relation;
-    private Car car;
+    public Customer customer;
+    public Relation relation;
+    public Car car;
+
+    public CustomerExcelBean() {
+        this.customer = new Customer();
+        this.relation = new Relation();
+        this.car = new Car();
+    }
 
     public CustomerExcelBean(Customer customer) {
         this.customer = customer;
