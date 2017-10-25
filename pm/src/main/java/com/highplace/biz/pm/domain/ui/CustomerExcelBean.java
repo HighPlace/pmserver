@@ -73,7 +73,7 @@ public class CustomerExcelBean {
         return customer.getBackupPhone1();
     }
 
-    @ExcelResources(title="电子邮箱地址",order=8)
+    @ExcelResources(title="电子邮箱",order=8)
     public String getEmail() {
         return customer.getEmail();
     }
