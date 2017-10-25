@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
+import com.highplace.biz.pm.service.util.ExcelResources;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -16,6 +18,23 @@ public class Customer {
     public void setRelationList(List<Relation> relationList) {
         this.relationList = relationList;
     }
+
+    //证件类型: 0:居民身份证 1:护照 2:港澳回乡证 3:台胞证 4:其他
+    public static String transferIdentityTypeToDesc(int type) {
+
+        if (type == 0) return "居民身份证";
+        if (type == 1) return "护照";
+        if (type == 2) return "港澳回乡证";
+        if (type == 3) return "台胞证";
+        if (type == 4) return "其他";
+        return "未知";
+    }
+
+    @ExcelResources(title="证件类型",order=2)
+    public String getIdentityTypeDesc(){
+        return transferIdentityTypeToDesc(getIdentityType());
+    }
+
     // ----- end ------ //
 
 
@@ -84,6 +103,7 @@ public class Customer {
         this.productInstId = productInstId == null ? null : productInstId.trim();
     }
 
+    @ExcelResources(title="客户姓名",order=1)
     public String getCustomerName() {
         return customerName;
     }
@@ -100,6 +120,7 @@ public class Customer {
         this.identityType = identityType;
     }
 
+    @ExcelResources(title="证件号码",order=3)
     public String getIdentityNo() {
         return identityNo;
     }
@@ -108,6 +129,7 @@ public class Customer {
         this.identityNo = identityNo == null ? null : identityNo.trim();
     }
 
+    @ExcelResources(title="联系电话",order=4)
     public String getPhone() {
         return phone;
     }
@@ -124,6 +146,7 @@ public class Customer {
         this.aliasName = aliasName == null ? null : aliasName.trim();
     }
 
+    @ExcelResources(title="电子邮箱地址",order=6)
     public String getEmail() {
         return email;
     }
@@ -148,6 +171,7 @@ public class Customer {
         this.lang = lang == null ? null : lang.trim();
     }
 
+    @ExcelResources(title="国籍",order=7)
     public String getNation() {
         return nation;
     }
@@ -156,6 +180,7 @@ public class Customer {
         this.nation = nation == null ? null : nation.trim();
     }
 
+    @ExcelResources(title="性别",order=8)
     public String getGender() {
         return gender;
     }
@@ -196,6 +221,7 @@ public class Customer {
         this.identPic = identPic == null ? null : identPic.trim();
     }
 
+    @ExcelResources(title="备用联系电话",order=5)
     public String getBackupPhone1() {
         return backupPhone1;
     }

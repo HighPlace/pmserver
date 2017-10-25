@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -82,5 +83,25 @@ public class CustomerController {
         logger.debug("customer delete return num:" + rows);
         if (rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
+
+    @RequestMapping(path = "/customer/export", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/customer/export;POST','/customer/export;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
+    public Map<String, String> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
+                                             Principal principal) {
+        if (vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        String taskId = customerService.batchExportCall(SecurityUtils.getCurrentProductInstId(principal), vendor);
+        Map<String, String> result = new HashMap<>();
+        result.put("taskId", taskId);
+        return result;
+    }
+
+    @RequestMapping(path = "/property/{taskType}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property;GET','/property;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<Object, Object> getTaskResult(@PathVariable String taskType,
+                                             @RequestParam(value = "taskId", required = true) String taskId,
+                                             Principal principal) {
+        return customerService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, taskType);
+    }
+
 
 }

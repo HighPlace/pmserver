@@ -1,14 +1,20 @@
 package com.highplace.biz.pm.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.RelationMapper;
 import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
+import com.highplace.biz.pm.service.common.MQService;
+import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
+import com.highplace.biz.pm.service.util.ExcelUtils;
+import com.highplace.biz.pm.service.util.QCloudCosHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -25,11 +33,9 @@ import java.util.regex.Pattern;
 public class CustomerService {
 
     public static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
-    //写入redis的key前缀, 后面加上productInstId
-    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
-    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
-    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
 
+    @Autowired
+    QCloudConfig qCloudConfig;
     @Autowired
     private PropertyService propertyService;
     @Autowired
@@ -39,7 +45,16 @@ public class CustomerService {
     @Autowired
     private CarMapper carMapper;
     @Autowired
+    private TaskStatusService taskStatusService;
+    @Autowired
+    private MQService mqService;
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
+
+    //写入redis的key前缀, 后面加上productInstId
+    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
+    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
+    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
 
     //返回空的查询结果
     public static Map<String, Object> queryEmpty() {
@@ -351,7 +366,7 @@ public class CustomerService {
 
                             //1 更新relation表
                             relation.setModifyTime(new Date()); //防止update失败
-                            if( relationMapper.updateByPrimaryKeySelective(relation) != 1) {
+                            if (relationMapper.updateByPrimaryKeySelective(relation) != 1) {
                                 continue; //说明更新失败,relatinoId不对
                             }
 
@@ -394,7 +409,7 @@ public class CustomerService {
 
                                     //求补集，删除afterCarIdList多余的部分
                                     afterCarIdList.removeAll(beforeCarIdList);
-                                    if(afterCarIdList.size() >0 ) {
+                                    if (afterCarIdList.size() > 0) {
                                         CarExample example1 = new CarExample();
                                         CarExample.Criteria criteria1 = example1.createCriteria();
                                         criteria1.andProductInstIdEqualTo(productInstId);
@@ -436,7 +451,7 @@ public class CustomerService {
 
                     //求补集，删除afterCarIdList多余的部分
                     afterRelationIdList.removeAll(beforeRelationIdList);
-                    if(afterRelationIdList.size() > 0) {
+                    if (afterRelationIdList.size() > 0) {
                         RelationExample example1 = new RelationExample();
                         RelationExample.Criteria criteria1 = example1.createCriteria();
                         criteria1.andProductInstIdEqualTo(productInstId);
@@ -453,4 +468,171 @@ public class CustomerService {
         }
         return num;
     }
+
+    //将批量导入请求通过消息队列发出
+    public String batchImportCall(String productInstId, String fileUrl, Integer vendor) {
+
+        //生成消息和任务ID，使用同一个ID
+        String msgAndTaskId = UUID.randomUUID().toString();
+
+        //发送请求到消息队列
+        mqService.sendImportMessage(msgAndTaskId,
+                productInstId,
+                TaskStatusService.TASK_TARGET_CUSTOMER,
+                fileUrl,
+                vendor);
+
+        //设置任务为等待处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                msgAndTaskId,
+                TaskStatusService.TaskStatusEnum.WAIT,
+                null);
+
+        return msgAndTaskId;
+    }
+
+    //将批量导出请求通过消息队列发出
+    public String batchExportCall(String productInstId, Integer vendor) {
+
+        //生成消息和任务ID，使用同一个ID
+        String msgAndTaskId = UUID.randomUUID().toString();
+
+        //发送请求到消息队列
+        mqService.sendExportMessage(msgAndTaskId,
+                productInstId,
+                TaskStatusService.TASK_TARGET_CUSTOMER,
+                vendor);
+
+        //设置任务为等待处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                msgAndTaskId,
+                TaskStatusService.TaskStatusEnum.WAIT,
+                null);
+
+        return msgAndTaskId;
+    }
+
+    //查询task状态
+    //flag: 0:import 1:export
+    public Map<Object, Object> getTaskStatus(String productInstId, String taskId, String taskType) {
+
+        if (taskType.equals("import")) {
+            return taskStatusService.getTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                    TaskStatusService.TaskTypeEnum.IMPORT,
+                    productInstId,
+                    taskId);
+
+        } else if (taskType.equals("export")) {
+            return taskStatusService.getTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                    TaskStatusService.TaskTypeEnum.EXPORT,
+                    productInstId,
+                    taskId);
+        } else {
+            return null;
+        }
+    }
+
+    public void batchImport(JSONObject jsonObject) {
+
+    }
+
+    //从消息队列接收消息后进行导出数据库操作
+    public void batchExport(JSONObject jsonObject) {
+
+        //获取任务ID
+        String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
+
+        //获取productInstID
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
+
+        //设置任务为处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DOING,
+                null);
+
+        //处理结果Map
+        Map<String, Object> result = new HashMap<>();
+
+        //读取到excel并上传到cos
+        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId);
+        int code = jsonResult.getIntValue("code");
+        if (code != 0) {
+            String errMsg = jsonResult.getString("message");
+            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //处理结果为失败
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
+
+        } else {
+            //处理结果为成功
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 0);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, "SUCCESS");
+            result.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, jsonResult.getString(TaskStatusService.TASK_RESULT_FILEURL_KEY));
+        }
+
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
+    }
+
+    //读取房产资料并上传到cos,基于注解方式
+    private JSONObject writeExcelAndUploadCosNew(String productInstId) {
+
+        String targetFilename = "customer_" + productInstId + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
+        String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
+        String cosFilePath = cosFolder + targetFilename;
+        String localFilePath = "/tmp/" + targetFilename;
+
+        //获取数据
+        CustomerExample customerExample = new CustomerExample();
+        CustomerExample.Criteria criteria = customerExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        //OrderByHelper.orderBy(" property_type, zone_id, building_id, unit_id, room_id asc");
+        List<Customer> customerList = customerMapper.selectByExample(customerExample);
+
+        //不按模板导出excel, 基于注解
+        ExcelUtils.getInstance().exportObj2Excel(localFilePath, customerList, Customer.class);
+
+        //按模板导出excel
+        //Map<String, String> map = new HashMap<String, String>();
+        //map.put("title", "房产档案");
+        //map.put("total", propertyList.size()+" 条");
+        //map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
+        //ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath, propertyList, Property.class, true);
+
+        //创建qcloud cos操作Helper对象
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        //创建cos folder
+        qCloudCosHelper.createFolder(qCloudConfig.getCosBucketName(), cosFolder);
+        //上传文件
+        JSONObject jsonUploadResult = qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+
+        if (jsonUploadResult.getIntValue("code") == 0) {
+            //生成下载导出结果文件的url
+            String downloadUrl = qCloudCosHelper.getDownLoadUrl(qCloudConfig.getCosBucketName(), cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
+            jsonUploadResult.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, downloadUrl);
+        }
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+
+        //删除本地文件
+        File localFile = new File(localFilePath);
+        localFile.delete();
+
+        return jsonUploadResult;
+    }
+
 }

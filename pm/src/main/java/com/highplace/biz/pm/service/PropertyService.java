@@ -343,7 +343,7 @@ public class PropertyService {
 
     //从消息队列接收消息后进行导入数据库操作
     //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v4/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
-    public void batchImportHandler(JSONObject jsonObject) {
+    public void batchImport(JSONObject jsonObject) {
 
         //获取任务ID
         String taskId = jsonObject.getString("msgId");
@@ -644,7 +644,7 @@ public class PropertyService {
     }
 
     //从消息队列接收消息后进行导出数据库操作
-    public void batchExportHandler(JSONObject jsonObject) {
+    public void batchExport(JSONObject jsonObject) {
 
         //获取任务ID
         String taskId = jsonObject.getString("msgId");
