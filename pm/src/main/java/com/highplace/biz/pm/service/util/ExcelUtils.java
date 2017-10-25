@@ -182,7 +182,7 @@ public class ExcelUtils {
                 cell.setCellValue(headers.get(i).getTitle());
                 cell.setCellStyle(style);
                 //sheet.autoSizeColumn(i);//自适应列宽度
-                sheet.setColumnWidth(i, headers.get(i).getTitle().getBytes().length*2*256);//中文适用
+                sheet.setColumnWidth(i, headers.get(i).getTitle().getBytes().length*1*256);//中文适用
             }
             //写数据
             Object obj = null;
@@ -193,7 +193,7 @@ public class ExcelUtils {
                 for(int j=0;j<headers.size();j++) {
                     cellValue = BeanUtils.getProperty(obj, getMethodName(headers.get(j)));
                     r.createCell(j).setCellValue(cellValue);
-                    sheet.setColumnWidth(i, headers.get(i).getTitle().getBytes().length*2*256);//中文适用
+                    sheet.setColumnWidth(j, cellValue.getBytes().length*1*256);//中文适用
                 }
             }
         } catch (IllegalAccessException e) {
