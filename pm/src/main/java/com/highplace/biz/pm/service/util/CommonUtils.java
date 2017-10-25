@@ -1,7 +1,9 @@
 package com.highplace.biz.pm.service.util;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class CommonUtils {
@@ -142,4 +144,17 @@ public class CommonUtils {
         }
         return str.toString();
     }
+
+    public static String FORMAT_SECOND = "yyyy-MM-dd HH:mm:ss";  //按秒
+    public static String FORMAT_MINUTE = "yyyy-MM-dd HH:mm";     //按分钟
+    public static String FORMAT_HOUR =   "yyyy-MM-dd HH";        //按小时
+    public static String FORMAT_DAY =    "yyyy-MM-dd";           //按天
+    public static String FORMAT_MONTH =  "yyyy-MM";              //按月
+
+    //按特定格式获得当前时间字符串
+    public static String getTimeString(String dataFormat) {
+        SimpleDateFormat df = new SimpleDateFormat(dataFormat);
+        return df.format(new Date());
+    }
+
 }
