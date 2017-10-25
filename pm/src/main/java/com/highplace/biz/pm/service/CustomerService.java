@@ -835,10 +835,15 @@ public class CustomerService {
             CustomerExample example;
             for (CustomerExcelBean customerExcelBean : customerExcelBeanList) {
 
+                //重要,先写入productInstId
+                customerExcelBean.customer.setProductInstId(productInstID);
+                customerExcelBean.relation.setProductInstId(productInstID);
+                customerExcelBean.car.setProductInstId(productInstID);
+
                 //根据组合主键查询是否存在记录
                 example = new CustomerExample();
                 CustomerExample.Criteria criteria = example.createCriteria();
-                criteria.andProductInstIdEqualTo(productInstID);
+                criteria.andProductInstIdEqualTo(customerExcelBean.relation.getProductInstId());
                 criteria.andIdentityTypeEqualTo(customerExcelBean.customer.getIdentityType());
                 criteria.andIdentityNoEqualTo(customerExcelBean.customer.getIdentityNo());
                 List<Customer> find = customerMapper.selectByExample(example);
@@ -865,10 +870,9 @@ public class CustomerService {
 
                     //查看是否已经存在房产和客户的关系
                     customerExcelBean.relation.setCustomerId(customerExcelBean.customer.getCustomerId());
-
                     RelationExample relationExample = new RelationExample();
                     RelationExample.Criteria relationCriteria = relationExample.createCriteria();
-                    relationCriteria.andProductInstIdEqualTo(productInstID);
+                    relationCriteria.andProductInstIdEqualTo(customerExcelBean.relation.getProductInstId());
                     relationCriteria.andCustomerIdEqualTo(customerExcelBean.relation.getCustomerId());
                     relationCriteria.andPropertyIdEqualTo(customerExcelBean.relation.getPropertyId());
                     List<Relation> relationList = relationMapper.selectByExample(relationExample);
@@ -886,9 +890,10 @@ public class CustomerService {
                     //如果有写入车牌号信息，先查看是否存在房产下的车牌号信息
                     if(customerExcelBean.car.getPlateNo() != null ) {
                         customerExcelBean.car.setRelationId(customerExcelBean.relation.getRelationId());
+
                         CarExample carExample = new CarExample();
                         CarExample.Criteria carCriteria = carExample.createCriteria();
-                        carCriteria.andProductInstIdEqualTo(productInstID);
+                        carCriteria.andProductInstIdEqualTo(customerExcelBean.car.getProductInstId());
                         carCriteria.andRelationIdEqualTo(customerExcelBean.car.getRelationId());
                         carCriteria.andPlateNoEqualTo(customerExcelBean.car.getPlateNo());
                         List<Car> carList = carMapper.selectByExample(carExample);
