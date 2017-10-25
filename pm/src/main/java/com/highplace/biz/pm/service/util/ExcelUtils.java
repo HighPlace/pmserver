@@ -165,11 +165,9 @@ public class ExcelUtils {
         Workbook wb = new HSSFWorkbook();
         try {
             Sheet sheet = wb.createSheet();
-            sheet.autoSizeColumn(1, true);//自适应列宽度
+            //sheet.autoSizeColumn(1, true);//自适应列宽度,合并的单元格使用
+            //sheet.autoSizeColumn(1);//自适应列宽度
             Row r = sheet.createRow(0);
-            //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
-            sheet.setColumnWidth(2, 12 * 256);
-            sheet.setColumnWidth(3, 17 * 256);
             List<ExcelHeader> headers = getHeaderList(clz);
             Collections.sort(headers);
             //写标题，并设置样式为居中加粗
@@ -183,6 +181,7 @@ public class ExcelUtils {
                 cell = r.createCell(i);
                 cell.setCellValue(headers.get(i).getTitle());
                 cell.setCellStyle(style);
+                sheet.autoSizeColumn(i);//自适应列宽度
             }
             //写数据
             Object obj = null;
