@@ -36,7 +36,7 @@ public class InternalService {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
-    @Scheduled(cron = "0 09 18 * * ?")   //每天1点15分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 12 1 * * ?")   //每天1点12分执行一次，全量更新cache内容
     public void reloadCustomerRedisValue() {
 
         ///// reload 车牌号 cache ////////
@@ -88,7 +88,7 @@ public class InternalService {
         logger.info("reload customer name and phone cache success");
     }
 
-    @Scheduled(cron = "0 08 18 * * ?")   //每天1点15分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 18 1 * * ?")   //每天1点18分执行一次，全量更新cache内容
     public void reloadPropertyRedisValue() {
         ///// reload 分区/楼号/单元号 cache ////////
         long totalCount = propertyMapper.countByExample(new PropertyExample());

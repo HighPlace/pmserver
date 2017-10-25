@@ -167,6 +167,9 @@ public class ExcelUtils {
             Sheet sheet = wb.createSheet();
             sheet.autoSizeColumn(1, true);//自适应列宽度
             Row r = sheet.createRow(0);
+            //设置列宽，setColumnWidth的第二个参数要乘以256，这个参数的单位是1/256个字符宽度
+            sheet.setColumnWidth(2, 12 * 256);
+            sheet.setColumnWidth(3, 17 * 256);
             List<ExcelHeader> headers = getHeaderList(clz);
             Collections.sort(headers);
             //写标题，并设置样式为居中加粗
