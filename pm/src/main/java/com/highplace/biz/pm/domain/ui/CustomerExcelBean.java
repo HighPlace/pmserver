@@ -11,6 +11,18 @@ public class CustomerExcelBean {
     private Relation relation;
     private Car car;
 
+    public CustomerExcelBean(Customer customer) {
+        this.customer = customer;
+        this.relation = new Relation();
+        this.car = new Car();
+    }
+
+    public CustomerExcelBean(Customer customer, Relation relation) {
+        this.customer = customer;
+        this.relation = relation;
+        this.car = new Car();
+    }
+
     public CustomerExcelBean(Customer customer, Relation relation, Car car) {
         this.customer = customer;
         this.relation = relation;

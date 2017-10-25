@@ -178,10 +178,10 @@ public class ExcelUtils {
             style.setFont(font);
             Cell cell;
             for(int i=0;i<headers.size();i++) {
-                sheet.autoSizeColumn(i);//自适应列宽度
                 cell = r.createCell(i);
                 cell.setCellValue(headers.get(i).getTitle());
                 cell.setCellStyle(style);
+                sheet.autoSizeColumn(i);//自适应列宽度
             }
             //写数据
             Object obj = null;
@@ -190,6 +190,7 @@ public class ExcelUtils {
                 obj = objs.get(i);
                 for(int j=0;j<headers.size();j++) {
                     r.createCell(j).setCellValue(BeanUtils.getProperty(obj, getMethodName(headers.get(j))));
+                    sheet.autoSizeColumn(j);//自适应列宽度
                 }
             }
         } catch (IllegalAccessException e) {

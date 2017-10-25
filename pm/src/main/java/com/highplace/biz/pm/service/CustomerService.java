@@ -610,8 +610,12 @@ public class CustomerService {
                         for (Car car : carList) {
                             customerExcelBeanList.add(new CustomerExcelBean(customer, relation, car));
                         }
+                    } else {
+                        customerExcelBeanList.add(new CustomerExcelBean(customer, relation));
                     }
                 }
+            } else {
+                customerExcelBeanList.add(new CustomerExcelBean(customer));
             }
         }
 
