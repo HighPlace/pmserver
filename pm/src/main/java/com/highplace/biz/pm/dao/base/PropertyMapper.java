@@ -23,13 +23,13 @@ public interface PropertyMapper {
     // 通过productInstId+property_type+"分区+楼号+单元+房号" 查询房产信息
     @Select({"select property_id from t_property ",
             "where product_inst_id = #{productInstId,jdbcType=VARCHAR}",
-            "and property_type = #{property_type,jdbcType=INTEGER}",
+            "and property_type = #{propertyType,jdbcType=INTEGER}",
             "and concat(zone_id, building_id, unit_id, room_id) = #{propertyName,jdbcType=VARCHAR}"
     })
     @Results({
             @Result(column = "property_id", property = "propertyId", jdbcType = JdbcType.BIGINT)
     })
-    Property selectByPropertyName(String productInstId, Integer property_type, String propertyName);
+    Property selectByPropertyName(@Param("productInstId") String productInstId, @Param("propertyType") Integer propertyType, @Param("propertyName") String propertyName);
 
     // ----- end ------ //
 
