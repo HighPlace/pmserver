@@ -45,7 +45,6 @@ public class Customer {
         return 0;
     }
 
-    @ExcelResources(title="证件类型",order=2)
     public String getIdentityTypeDesc(){
         return transferIdentityTypeToDesc(getIdentityType());
     }
@@ -118,7 +117,6 @@ public class Customer {
         this.productInstId = productInstId == null ? null : productInstId.trim();
     }
 
-    @ExcelResources(title="客户姓名",order=1)
     public String getCustomerName() {
         return customerName;
     }
@@ -135,7 +133,6 @@ public class Customer {
         this.identityType = identityType;
     }
 
-    @ExcelResources(title="证件号码",order=3)
     public String getIdentityNo() {
         return identityNo;
     }
@@ -144,7 +141,6 @@ public class Customer {
         this.identityNo = identityNo == null ? null : identityNo.trim();
     }
 
-    @ExcelResources(title="联系电话",order=4)
     public String getPhone() {
         return phone;
     }
@@ -161,7 +157,6 @@ public class Customer {
         this.aliasName = aliasName == null ? null : aliasName.trim();
     }
 
-    @ExcelResources(title="电子邮箱地址",order=6)
     public String getEmail() {
         return email;
     }
@@ -186,7 +181,6 @@ public class Customer {
         this.lang = lang == null ? null : lang.trim();
     }
 
-    @ExcelResources(title="国籍",order=7)
     public String getNation() {
         return nation;
     }
@@ -195,7 +189,6 @@ public class Customer {
         this.nation = nation == null ? null : nation.trim();
     }
 
-    @ExcelResources(title="性别",order=8)
     public String getGender() {
         return gender;
     }
@@ -236,7 +229,6 @@ public class Customer {
         this.identPic = identPic == null ? null : identPic.trim();
     }
 
-    @ExcelResources(title="备用联系电话",order=5)
     public String getBackupPhone1() {
         return backupPhone1;
     }
