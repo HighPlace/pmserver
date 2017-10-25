@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.service.util;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
@@ -193,7 +194,7 @@ public class ExcelUtils {
                 for(int j=0;j<headers.size();j++) {
                     cellValue = BeanUtils.getProperty(obj, getMethodName(headers.get(j)));
                     r.createCell(j).setCellValue(cellValue);
-                    sheet.setColumnWidth(j, cellValue.getBytes().length*1*256);//中文适用
+                    if(StringUtils.isNotEmpty(cellValue)) sheet.setColumnWidth(j, cellValue.getBytes().length*1*256);//中文适用
                 }
             }
         } catch (IllegalAccessException e) {
