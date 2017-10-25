@@ -194,7 +194,7 @@ public class ExcelUtils {
                 for(int j=0;j<headers.size();j++) {
                     cellValue = BeanUtils.getProperty(obj, getMethodName(headers.get(j)));
                     r.createCell(j).setCellValue(cellValue);
-                    if(StringUtils.isNotEmpty(cellValue)) sheet.setColumnWidth(j, cellValue.getBytes().length*1*256);//中文适用
+                    //if(StringUtils.isNotEmpty(cellValue)) sheet.setColumnWidth(j, cellValue.getBytes().length*1*256);//中文适用
                 }
             }
         } catch (IllegalAccessException e) {
