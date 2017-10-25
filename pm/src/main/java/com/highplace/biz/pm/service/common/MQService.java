@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+//提供消息发送和消息处理服务
 @Component
 public class MQService {
 

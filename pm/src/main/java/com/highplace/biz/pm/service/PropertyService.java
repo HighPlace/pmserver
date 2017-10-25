@@ -1,20 +1,22 @@
 package com.highplace.biz.pm.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.highplace.biz.pm.config.MQConfig;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
+import com.highplace.biz.pm.dao.base.RelationMapper;
 import com.highplace.biz.pm.domain.base.Property;
 import com.highplace.biz.pm.domain.base.PropertyExample;
+import com.highplace.biz.pm.domain.base.RelationExample;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
+import com.highplace.biz.pm.service.common.MQService;
+import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelUtils;
 import com.highplace.biz.pm.service.util.QCloudCosHelper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -22,18 +24,18 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -46,41 +48,41 @@ public class PropertyService {
     public static final String PREFIX_PROPERTY_BUILDINGID_KEY = "PROPERTY_BUILDINGID_KEY_";
     public static final String PREFIX_PROPERTY_UNITID_KEY = "PROPERTY_UNITID_KEY_";
 
-    //后面加上productInstId_taskID
-    public static final String PREFIX_PROPERTY_IMPORT_KEY = "TASK_IMPORT_PROPERTY_";
-    public static final String PREFIX_PROPERTY_EXPORT_KEY = "TASK_EXPORT_PROPERTY_";
-
-    public static final String TASK_STATUS_KEY = "status"; //0:处理中 1:处理完成
-    public static final String TASK_RESULT_CODE_KEY = "resultCode"; //0:成功 非0:失败
-    public static final String TASK_RESULT_MESSAGE_KEY = "resultMessage"; //错误信息
-    public static final String TASK_RESULT_FILEURL_KEY = "fileUrl"; //下载文件url
-
     @Autowired
     QCloudConfig qCloudConfig;
     @Autowired
     private PropertyMapper propertyMapper;
     @Autowired
+    private RelationMapper relationMapper;
+    @Autowired
+    private TaskStatusService taskStatusService;
+    @Autowired
+    private MQService mqService;
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
-    @Autowired
-    private RedisTemplate redisTemplate;
-    @Autowired
-    private AmqpTemplate mqTemplate;
 
-    //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
-    public static int getPropertyStatus(String statusDesc) {
-        if (StringUtils.isNotEmpty(statusDesc)) {
-            if (statusDesc.equals("未售")) return 1;
-            if (statusDesc.equals("未装修")) return 2;
-            if (statusDesc.equals("装修中")) return 3;
-            if (statusDesc.equals("已入住")) return 4;
-            if (statusDesc.equals("已出租")) return 5;
-            return 0;
+    //zoneId/buildingId/unitId以set数据结构缓存到redis中
+    public void addRedisValue(Property property) {
+
+        if (property.getProductInstId() == null) return;
+
+        String redisKeyForZoneId = PREFIX_PROPERTY_ZONEID_KEY + property.getProductInstId();
+        String redisKeyForBuildIdPrefix = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId();
+        String redisKeyForUnitIdPrefix = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId();
+
+        String zoneId = (property.getZoneId() == null) ? "" : (property.getZoneId());
+        String unitId = (property.getUnitId() == null) ? "" : (property.getUnitId());
+
+        stringRedisTemplate.opsForSet().add(redisKeyForZoneId, zoneId);
+
+        if (property.getBuildingId() != null) {
+            stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix + zoneId, property.getBuildingId());
+            stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix + property.getBuildingId(), unitId);
         }
-        return 0;
     }
 
     //从redis中查询房产分区/楼号/单元信息
-    public Map<String, Object> getAllZoneBuildingUnitId(String productInstId) {
+    public Map<String, Object> rapidSearchAllZoneBuildingUnitId(String productInstId) {
 
         String redisKeyForZondId = PREFIX_PROPERTY_ZONEID_KEY + productInstId;
         Set<String> sZoneId = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
@@ -116,20 +118,20 @@ public class PropertyService {
                 Collections.sort(lUnitId);
 
                 Map<String, Object> buildingMap = new LinkedHashMap<>();
-                buildingMap.put("name", buildingId);
-                buildingMap.put("unitIds", lUnitId);
+                buildingMap.put("buildingId", buildingId);
+                buildingMap.put("unitIdList", lUnitId);
 
                 buildingList.add(buildingMap);
             }
 
-            zoneMap.put("name", zoneId);
-            zoneMap.put("buildingIds", buildingList);
+            zoneMap.put("zoneId", zoneId);
+            zoneMap.put("buildingIdList", buildingList);
 
             zoneList.add(zoneMap);
         }
 
         Map<String, Object> result = new HashMap<String, Object>();
-        result.put("zoneIds", zoneList);
+        result.put("zoneIdList", zoneList);
         return result;
 
         /*
@@ -199,7 +201,7 @@ public class PropertyService {
             criteria.andStatusEqualTo(searchBean.getStatus());
 
         //如果noPageSortFlag 不为true
-        if(!noPageSortFlag) {
+        if (!noPageSortFlag) {
             //设置分页参数
             if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
                 PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
@@ -221,7 +223,7 @@ public class PropertyService {
         long totalCount;
 
         //判断是否有分页
-        if ( !noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
+        if (!noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
             totalCount = ((Page) properties).getTotal();
         } else {
             totalCount = properties.size();
@@ -239,10 +241,35 @@ public class PropertyService {
         //设置产品实例ID
         property.setProductInstId(productInstId);
 
-        //更新redis
-        addRedisValue(property);
+        int num = propertyMapper.insertSelective(property);
+        if (num == 1) {
+            //更新redis
+            addRedisValue(property);
+        }
+        return num;
+    }
 
-        return propertyMapper.insertSelective(property);
+    //删除房产信息
+    public int delete(String productInstId, Long propertyId) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        //判断客户和房产关系是否存在，如果存在，则不能删除房产
+        RelationExample relationExample = new RelationExample();
+        RelationExample.Criteria criteria = relationExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andPropertyIdEqualTo(propertyId);
+
+        //如果不存在客户房产关系，则可以删除
+        if (relationMapper.countByExample(relationExample) == 0) {
+            PropertyExample example = new PropertyExample();
+            PropertyExample.Criteria criteria1 = example.createCriteria();
+            criteria1.andPropertyIdEqualTo(propertyId);
+            criteria1.andProductInstIdEqualTo(productInstId);
+            return propertyMapper.deleteByExample(example);
+
+        } else {
+            return -1;
+        }
     }
 
     //修改房产信息
@@ -255,87 +282,76 @@ public class PropertyService {
         //产品实例ID，必须填入
         criteria.andProductInstIdEqualTo(productInstId);
 
-        //更新redis
-        addRedisValue(property);
-        return propertyMapper.updateByExampleSelective(property, example);
-    }
-
-    //删除房产信息
-    public int delete(String productInstId, Long propertyId) {
-
-        //删除之前需要加入业务逻辑判断,不能随便删除
-        //to-do
-
-        PropertyExample example = new PropertyExample();
-        PropertyExample.Criteria criteria = example.createCriteria();
-        criteria.andPropertyIdEqualTo(propertyId);
-        criteria.andProductInstIdEqualTo(productInstId);
-        return propertyMapper.deleteByExample(example);
-    }
-
-    //zoneId/buildingId/unitId以set数据结构缓存到redis中
-    public void addRedisValue(Property property) {
-
-        if (property.getProductInstId() == null) return;
-
-        String redisKeyForZoneId = PREFIX_PROPERTY_ZONEID_KEY + property.getProductInstId();
-        String redisKeyForBuildIdPrefix = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId();
-        String redisKeyForUnitIdPrefix = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId();
-
-        String zoneId = (property.getZoneId() == null) ? "" : (property.getZoneId());
-        String unitId = (property.getUnitId() == null) ? "" : (property.getUnitId());
-
-        stringRedisTemplate.opsForSet().add(redisKeyForZoneId, zoneId);
-
-        if (property.getBuildingId() != null) {
-            stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix + zoneId, property.getBuildingId());
-            stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix + property.getBuildingId(), unitId);
+        int num = propertyMapper.updateByExampleSelective(property, example);
+        if (num == 1) {
+            //更新redis
+            addRedisValue(property);
         }
-
+        return num;
     }
 
     //将批量导入请求通过消息队列发出
     public String batchImportCall(String productInstId, String fileUrl, Integer vendor) {
 
-        String msgId = UUID.randomUUID().toString();
-        Map<String, Object> msgMap = new HashMap<String, Object>();
-        msgMap.put("msgId", msgId);
-        msgMap.put("productInstId", productInstId);
-        msgMap.put("fileUrl", fileUrl);
-        msgMap.put("target", "property");
-        msgMap.put("vendor", vendor);
+        //生成消息和任务ID，使用同一个ID
+        String msgAndTaskId = UUID.randomUUID().toString();
 
-        String msg = JSON.toJSONString(msgMap);
-        logger.debug("Send MQ batchImport message: " + msg);
-        mqTemplate.convertAndSend(MQConfig.BATCH_IMPORT_QUEUE_NAME, msg);
-        return msgId;
+        //发送请求到消息队列
+        mqService.sendImportMessage(msgAndTaskId,
+                productInstId,
+                TaskStatusService.TASK_TARGET_PROPERTY,
+                fileUrl,
+                vendor);
+
+        //设置任务为等待处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                msgAndTaskId,
+                TaskStatusService.TaskStatusEnum.WAIT,
+                null);
+
+        return msgAndTaskId;
     }
 
     //将批量导出请求通过消息队列发出
     public String batchExportCall(String productInstId, Integer vendor) {
 
-        String msgId = UUID.randomUUID().toString();
-        Map<String, Object> msgMap = new HashMap<String, Object>();
-        msgMap.put("msgId", msgId);
-        msgMap.put("productInstId", productInstId);
-        msgMap.put("target", "property");
-        msgMap.put("vendor", vendor);
+        //生成消息和任务ID，使用同一个ID
+        String msgAndTaskId = UUID.randomUUID().toString();
 
-        String msg = JSON.toJSONString(msgMap);
-        logger.debug("Send MQ batchExport message: " + msg);
-        mqTemplate.convertAndSend(MQConfig.BATCH_EXPORT_QUEUE_NAME, msg);
-        return msgId;
+        //发送请求到消息队列
+        mqService.sendExportMessage(msgAndTaskId,
+                productInstId,
+                TaskStatusService.TASK_TARGET_PROPERTY,
+                vendor);
+
+        //设置任务为等待处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                msgAndTaskId,
+                TaskStatusService.TaskStatusEnum.WAIT,
+                null);
+
+        return msgAndTaskId;
     }
 
     //查询task状态
     //flag: 0:import 1:export
-    public Map<Object, Object> getTaskStatus(String productInstId, String taskId, int flag) {
-        if (flag == 0) {
-            String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstId + "_" + taskId;
-            return redisTemplate.opsForHash().entries(redisKey);
-        } else if (flag == 1) {
-            String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstId + "_" + taskId;
-            return redisTemplate.opsForHash().entries(redisKey);
+    public Map<Object, Object> getTaskStatus(String productInstId, String taskId, String taskType) {
+
+        if (taskType.equals("import")) {
+            return taskStatusService.getTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                    TaskStatusService.TaskTypeEnum.IMPORT,
+                    productInstId,
+                    taskId);
+
+        } else if (taskType.equals("export")) {
+            return taskStatusService.getTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                    TaskStatusService.TaskTypeEnum.EXPORT,
+                    productInstId,
+                    taskId);
         } else {
             return null;
         }
@@ -346,25 +362,27 @@ public class PropertyService {
     public void batchImport(JSONObject jsonObject) {
 
         //获取任务ID
-        String taskId = jsonObject.getString("msgId");
-
-        //获取文件在cos上的路径
-        String cosFilePath = jsonObject.getString("fileUrl");
+        String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
 
         //获取productInstID
-        String productInstID = jsonObject.getString("productInstId");
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
+
+        //获取文件在cos上的路径
+        String cosFilePath = jsonObject.getString(MQService.MSG_KEY_FILEURL);
 
         //设置本地存储路径
         String localFilePath = "/tmp/" + cosFilePath;
 
-        String redisKey = PREFIX_PROPERTY_IMPORT_KEY + productInstID + "_" + taskId;
+        //设置任务状态为处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DOING,
+                null);
 
-        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
-
-        //设置任务状态为0:处理中
-        redisKeyMap.put(TASK_STATUS_KEY, 0);
-        redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-        redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
+        //处理结果Map
+        Map<String, Object> result = new HashMap<>();
 
         //创建qcloud cos操作Helper对象
         QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
@@ -378,32 +396,18 @@ public class PropertyService {
             String errMsg = jsonGetFileResult.getString("message");
             String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
 
-            //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, 20000);
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
-            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, "1");
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, "-1");
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, resultMsg);
-
+            //处理结果为失败
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
         } else {
 
             //解析本地文件并导入数据库
-            JSONObject jsonResult = readExcel(productInstID, localFilePath);
-
+            JSONObject jsonResult = readExcel(productInstId, localFilePath);
             logger.debug("readExcel result:" + jsonResult.toJSONString());
 
-            //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
-            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_STATUS_KEY, 1);
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
-            //stringRedisTemplate.opsForHash().put(redisKey, TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
+            //从cos应答中获取处理结果
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
 
             //删除本地文件
             File localFile = new File(localFilePath);
@@ -412,6 +416,14 @@ public class PropertyService {
             //删除远程的文件
             qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
         }
+
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
 
         // 关闭释放资源
         qCloudCosHelper.releaseCosClient();
@@ -467,7 +479,7 @@ public class PropertyService {
     //如果解析文件出错，将不会导入数据
     //批处理增加事务
     @Transactional
-    public JSONObject loadExcelValue(String productInstID, Workbook wb) {
+    protected JSONObject loadExcelValue(String productInstID, Workbook wb) {
 
         JSONObject result = new JSONObject();
         String errorMsg = "";
@@ -586,7 +598,7 @@ public class PropertyService {
 
                     case 7:  //房产状态(未售/未装修/装修中/已入住/已出租) (非必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
-                            tempProperty.setStatus(getPropertyStatus(cellValue));
+                            tempProperty.setStatus(Property.transferDescToStatus(cellValue));
                         }
                         break;
 
@@ -647,48 +659,55 @@ public class PropertyService {
     public void batchExport(JSONObject jsonObject) {
 
         //获取任务ID
-        String taskId = jsonObject.getString("msgId");
+        String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
 
         //获取productInstID
-        String productInstID = jsonObject.getString("productInstId");
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
 
-        //设置任务状态为0:处理中
-        String redisKey = PREFIX_PROPERTY_EXPORT_KEY + productInstID + "_" + taskId;
-        Map<String, Object> redisKeyMap = new HashMap<String, Object>();
-        redisKeyMap.put(TASK_STATUS_KEY, 0);
-        redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-        redisTemplate.expire(redisKey, 24, TimeUnit.HOURS); //24小时有效
+        //设置任务为处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DOING,
+                null);
+
+        //处理结果Map
+        Map<String, Object> result = new HashMap<>();
+
+        //读取到excel并上传到cos
+        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId);
+        int code = jsonResult.getIntValue("code");
+        if (code != 0) {
+            String errMsg = jsonResult.getString("message");
+            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //处理结果为失败
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
+        } else {
+            //处理结果为成功
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 0);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, "SUCCESS");
+            result.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, jsonResult.getString(TaskStatusService.TASK_RESULT_FILEURL_KEY));
+        }
+
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
+    }
+
+    //读取房产资料并上传到cos,基于注解方式
+    private JSONObject writeExcelAndUploadCosNew(String productInstID) {
 
         String targetFilename = "property_" + productInstID + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
         String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
         String cosFilePath = cosFolder + targetFilename;
         String localFilePath = "/tmp/" + targetFilename;
-
-        //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstID, cosFolder, cosFilePath, localFilePath);
-        int code = jsonResult.getIntValue("code");
-        if (code != 0) {
-
-            String errMsg = jsonResult.getString("message");
-            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
-
-            //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, 20000);
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, resultMsg);
-            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-        } else {
-            //设置任务状态为1:处理完成
-            redisKeyMap.put(TASK_STATUS_KEY, 1);
-            redisKeyMap.put(TASK_RESULT_CODE_KEY, 0);
-            redisKeyMap.put(TASK_RESULT_MESSAGE_KEY, "SUCCESS");
-            redisKeyMap.put(TASK_RESULT_FILEURL_KEY, jsonResult.getString(TASK_RESULT_FILEURL_KEY));
-            redisTemplate.opsForHash().putAll(redisKey, redisKeyMap);
-        }
-    }
-
-    //读取房产资料并上传到cos,基于注解方式
-    private JSONObject writeExcelAndUploadCosNew(String productInstID, String cosFolder, String cosFilePath, String localFilePath) {
 
         //获取数据
         PropertyExample propertyExample = new PropertyExample();
@@ -712,13 +731,11 @@ public class PropertyService {
         //创建cos folder
         qCloudCosHelper.createFolder(qCloudConfig.getCosBucketName(), cosFolder);
         //上传文件
-        JSONObject jsonUploadResult =  qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
-        //JSONObject jsonUploadResult = qCloudCosHelper.uploadBuffer(qCloudConfig.getCosBucketName(), cosFilePath, workbook.getBytes());
-
-        if(jsonUploadResult.getIntValue("code") == 0 ){
+        JSONObject jsonUploadResult = qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        if (jsonUploadResult.getIntValue("code") == 0) {
             //生成下载url
             String downloadUrl = qCloudCosHelper.getDownLoadUrl(qCloudConfig.getCosBucketName(), cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
-            jsonUploadResult.put(TASK_RESULT_FILEURL_KEY, downloadUrl);
+            jsonUploadResult.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, downloadUrl);
         }
 
         // 关闭释放资源

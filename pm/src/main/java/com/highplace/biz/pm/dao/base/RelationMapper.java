@@ -36,7 +36,6 @@ public interface RelationMapper {
     })
     List<Relation> selectByCustomerIdWithCar(Long customerId);
 
-
     // ----- end ------ //
 
     @SelectProvider(type=RelationSqlProvider.class, method="countByExample")

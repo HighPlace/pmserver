@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+//消息处理接口的业务实现
 @Service
 public class MQServiceHandlerImpl implements MQServiceHandler {
 

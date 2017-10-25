@@ -165,6 +165,7 @@ public class ExcelUtils {
         Workbook wb = new HSSFWorkbook();
         try {
             Sheet sheet = wb.createSheet();
+            sheet.autoSizeColumn(1, true);//自适应列宽度
             Row r = sheet.createRow(0);
             List<ExcelHeader> headers = getHeaderList(clz);
             Collections.sort(headers);

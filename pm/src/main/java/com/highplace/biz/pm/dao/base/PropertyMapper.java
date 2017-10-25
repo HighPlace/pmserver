@@ -18,6 +18,20 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface PropertyMapper {
+
+    // ----- mybatis generator外新增的方法------ //
+    @Select("select distinct product_inst_id, zone_id, building_id, unit_id from t_property")
+    @Results({
+            @Result(column = "product_inst_id", property = "productInstId", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "zone_id", property = "zoneId", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "building_id", property = "buildingId", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "unit_id", property = "unitId", jdbcType = JdbcType.VARCHAR)
+    })
+    List<Property> selectDistinctProductInstIdAndIDs();
+
+    // ----- end ------ //
+
+
     @SelectProvider(type=PropertySqlProvider.class, method="countByExample")
     long countByExample(PropertyExample example);
 

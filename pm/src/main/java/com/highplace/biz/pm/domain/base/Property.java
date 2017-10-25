@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
 import com.highplace.biz.pm.service.util.ExcelResources;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
@@ -174,6 +175,7 @@ public class Property {
     }
 
     //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
+    //id转换为说明
     public static String transferStatusToDesc(int status) {
 
         if (status == 1) return "未售";
@@ -182,5 +184,19 @@ public class Property {
         if (status == 4) return "已入住";
         if (status == 5) return "已出租";
         return "未知";
+    }
+
+    //0:未知 1:未售 2:未装修 3:装修中 4:已入住 5:已出租
+    //说明转换成id
+    public static int transferDescToStatus(String statusDesc) {
+        if (StringUtils.isNotEmpty(statusDesc)) {
+            if (statusDesc.equals("未售")) return 1;
+            if (statusDesc.equals("未装修")) return 2;
+            if (statusDesc.equals("装修中")) return 3;
+            if (statusDesc.equals("已入住")) return 4;
+            if (statusDesc.equals("已出租")) return 5;
+            return 0;
+        }
+        return 0;
     }
 }

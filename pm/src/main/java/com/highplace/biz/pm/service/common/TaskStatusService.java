@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+//异步任务状态服务
 @Service
 public class TaskStatusService {
 

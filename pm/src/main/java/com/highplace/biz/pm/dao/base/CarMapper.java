@@ -46,6 +46,13 @@ public interface CarMapper {
     })
     List<Car> selectByRelationId(Long relationId);
 
+    @Select("select product_inst_id, plate_no from t_car")
+    @Results({
+            @Result(column = "product_inst_id", property = "productInstId", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "plate_no", property = "plateNo", jdbcType = JdbcType.VARCHAR)
+    })
+    List<Car> selectAllProductInstIdAndPlateNo();
+
     // ----- end ------ //
 
     @SelectProvider(type=CarSqlProvider.class, method="countByExample")

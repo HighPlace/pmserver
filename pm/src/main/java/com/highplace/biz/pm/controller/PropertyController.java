@@ -72,14 +72,20 @@ public class PropertyController {
         //删除记录
         int rows = propertyService.delete(SecurityUtils.getCurrentProductInstId(principal), propertyId);
         logger.debug("property delete return num:" + rows);
-        if(rows != 1) throw new Exception("delete failed, effected num:" + rows);
+        if(rows != 1) {
+            if (rows == -1)
+                throw new Exception("该房产存在客户关系,请先删除客户关系");
+            else
+                throw new Exception("delete failed, effected num:" + rows);
+        }
+
     }
 
     @RequestMapping(path = "/property/catalog", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property/catalog;GET','/property/catalog;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<String, Object> getPropertyCatalog(Principal principal) {
 
-        return propertyService.getAllZoneBuildingUnitId(SecurityUtils.getCurrentProductInstId(principal));
+        return propertyService.rapidSearchAllZoneBuildingUnitId(SecurityUtils.getCurrentProductInstId(principal));
 
     }
 
@@ -95,13 +101,6 @@ public class PropertyController {
         return result;
     }
 
-    @RequestMapping(path = "/property/import", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
-    public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
-                                             Principal principal) {
-        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, 0);
-    }
-
     @RequestMapping(path = "/property/export", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property/export;POST','/property/export;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
     public Map<String, String> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
@@ -113,10 +112,17 @@ public class PropertyController {
         return result;
     }
 
+    @RequestMapping(path = "/property/import", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
+    public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
+                                                   Principal principal) {
+        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "import");
+    }
+
     @RequestMapping(path = "/property/export", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property/export;GET','/property/export;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<Object, Object> getExportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
                                                    Principal principal) {
-        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, 1);
+        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "export");
     }
 }

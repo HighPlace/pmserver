@@ -34,6 +34,11 @@ public class CustomerService {
 
     public static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
 
+    //写入redis的key前缀, 后面加上productInstId
+    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
+    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
+    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
+
     @Autowired
     QCloudConfig qCloudConfig;
     @Autowired
@@ -50,11 +55,6 @@ public class CustomerService {
     private MQService mqService;
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-
-    //写入redis的key前缀, 后面加上productInstId
-    public static final String PREFIX_CUSTOMER_NAME_KEY = "CUSTOMER_NAME_KEY_";
-    public static final String PREFIX_CUSTOMER_PHONE_KEY = "CUSTOMER_PHONE_KEY_";
-    public static final String PREFIX_CUSTOMER_PLATENO_KEY = "CUSTOMER_PLATENO_KEY_";
 
     //返回空的查询结果
     public static Map<String, Object> queryEmpty() {
@@ -116,7 +116,7 @@ public class CustomerService {
         return result;
     }
 
-    //查询房产信息列表
+    //查询客户信息列表
     public Map<String, Object> query(String productInstId, CustomerSearchBean searchBean, boolean noPageSortFlag) {
 
         CustomerExample example = new CustomerExample();
@@ -279,7 +279,6 @@ public class CustomerService {
         }
         return num;
     }
-
 
     //通过层级删除客户信息
     // level: 0:删除客户信息/客户房产关系/客户房产下的车辆信息
@@ -570,7 +569,6 @@ public class CustomerService {
             //处理结果为失败
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
             result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
-
         } else {
             //处理结果为成功
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 0);
@@ -618,7 +616,6 @@ public class CustomerService {
         qCloudCosHelper.createFolder(qCloudConfig.getCosBucketName(), cosFolder);
         //上传文件
         JSONObject jsonUploadResult = qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
-
         if (jsonUploadResult.getIntValue("code") == 0) {
             //生成下载导出结果文件的url
             String downloadUrl = qCloudCosHelper.getDownLoadUrl(qCloudConfig.getCosBucketName(), cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
@@ -634,5 +631,4 @@ public class CustomerService {
 
         return jsonUploadResult;
     }
-
 }

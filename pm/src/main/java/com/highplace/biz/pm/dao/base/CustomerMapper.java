@@ -39,7 +39,13 @@ public interface CustomerMapper {
     })
     List<Customer> selectByExampleWithRelationAndCarWithBLOBs(CustomerExample example);
 
-
+    @Select("select product_inst_id, customer_name, phone from t_customer")
+    @Results({
+            @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="customer_name", property="customerName", jdbcType=JdbcType.VARCHAR),
+            @Result(column="phone", property="phone", jdbcType=JdbcType.VARCHAR)
+    })
+    List<Customer> selectAllProductInstIdAndNameAndPhone();
 
     // ----- end ------ //
 
