@@ -603,10 +603,10 @@ public class CustomerService {
         List<CustomerExcelBean> customerExcelBeanList = new ArrayList<>();
         for (Customer customer : customerList) {
             List<Relation> relationList = customer.getRelationList();
-            if (relationList != null) {
+            if (relationList != null && relationList.size()>0 )  {
                 for (Relation relation : relationList) {
                     List<Car> carList = relation.getCarList();
-                    if (carList != null) {
+                    if (carList != null && carList.size()>0 ) {
                         for (Car car : carList) {
                             customerExcelBeanList.add(new CustomerExcelBean(customer, relation, car));
                         }
