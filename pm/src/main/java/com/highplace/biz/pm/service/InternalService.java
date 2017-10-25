@@ -36,7 +36,7 @@ public class InternalService {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
-    @Scheduled(cron = "0 38 17 * * ?")   //每天1点15分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 09 18 * * ?")   //每天1点15分执行一次，全量更新cache内容
     public void reloadCustomerRedisValue() {
 
         ///// reload 车牌号 cache ////////
@@ -54,7 +54,7 @@ public class InternalService {
 
                 //如果已经清除了cache的productInstId列表不包含当前id，则清除cache，并加入到列表中
                 if(!emptyProductInstIdSet.contains(car.getProductInstId())) {
-                    stringRedisTemplate.opsForSet().remove(PREFIX_CUSTOMER_PLATENO_KEY + car.getProductInstId());
+                    stringRedisTemplate.delete(PREFIX_CUSTOMER_PLATENO_KEY + car.getProductInstId());
                     emptyProductInstIdSet.add(car.getProductInstId());
                 }
                 stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + car.getProductInstId(), car.getPlateNo());
@@ -77,8 +77,8 @@ public class InternalService {
 
                 //如果已经清除了cache的productInstId列表不包含当前id，则清除cache，并加入到列表中
                 if(!emptyProductInstIdSet.contains(customer.getProductInstId())) {
-                    stringRedisTemplate.opsForSet().remove(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId());
-                    stringRedisTemplate.opsForSet().remove(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId());
+                    stringRedisTemplate.delete(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId());
+                    stringRedisTemplate.delete(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId());
                     emptyProductInstIdSet.add(customer.getProductInstId());
                 }
                 stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId(), customer.getCustomerName());
@@ -88,7 +88,7 @@ public class InternalService {
         logger.info("reload customer name and phone cache success");
     }
 
-    @Scheduled(cron = "0 40 17 * * ?")   //每天1点15分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 08 18 * * ?")   //每天1点15分执行一次，全量更新cache内容
     public void reloadPropertyRedisValue() {
         ///// reload 分区/楼号/单元号 cache ////////
         long totalCount = propertyMapper.countByExample(new PropertyExample());
@@ -111,21 +111,21 @@ public class InternalService {
 
                 //zoneId
                 if(!emptyZoneKeySet.contains(redisKeyForZoneId)) {
-                    stringRedisTemplate.opsForSet().remove(redisKeyForZoneId);
+                    stringRedisTemplate.delete(redisKeyForZoneId);
                     emptyZoneKeySet.add(redisKeyForZoneId);
                 }
                 stringRedisTemplate.opsForSet().add(redisKeyForZoneId, property.getZoneId());
 
                 //buildingId
                 if(!emptyZoneBuildingKeySet.contains(redisKeyForBuildIdPrefix)) {
-                    stringRedisTemplate.opsForSet().remove(redisKeyForBuildIdPrefix);
+                    stringRedisTemplate.delete(redisKeyForBuildIdPrefix);
                     emptyZoneKeySet.add(redisKeyForBuildIdPrefix);
                 }
                 stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix, property.getBuildingId());
 
                 //unitId
                 if(!emptyZoneBuildingUnitIdKeySet.contains(redisKeyForUnitIdPrefix)) {
-                    stringRedisTemplate.opsForSet().remove(redisKeyForUnitIdPrefix);
+                    stringRedisTemplate.delete(redisKeyForUnitIdPrefix);
                     emptyZoneKeySet.add(redisKeyForUnitIdPrefix);
                 }
                 stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix, property.getUnitId());
