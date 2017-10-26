@@ -35,17 +35,23 @@ public class DepartmentService {
     private RedisTemplate redisTemplate;
 
     //depamrtment ID 和 name 以hash数据结构缓存到redis中
-    public void addRedisValue(Department department) {
+    public void addRedisValue(String productInstId, Long deptId) {
 
-        if (department.getDeptId() == null) return;
         String redisKey;
-        if (department.getLevel() == 1) {  //一级部门
-            redisKey = PREFIX_DEPARTMENT_NAME_KEY + department.getProductInstId();
-        } else {
-            if (department.getSuperiorDeptId() == null) return;
-            redisKey = PREFIX_DEPARTMENT_NAME_KEY + department.getProductInstId() + "_" + department.getSuperiorDeptId();
+        DepartmentExample example = new DepartmentExample();
+        DepartmentExample.Criteria criteria = example.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andDeptIdEqualTo(deptId);
+        List<Department> departmentList = departmentMapper.selectByExample(example);
+        if(departmentList.size()>0) {
+            if (departmentList.get(0).getLevel() == 1) {  //一级部门
+                redisKey = PREFIX_DEPARTMENT_NAME_KEY + departmentList.get(0).getProductInstId();
+            } else {
+                if (departmentList.get(0).getSuperiorDeptId() == null) return;
+                redisKey = PREFIX_DEPARTMENT_NAME_KEY + departmentList.get(0).getProductInstId() + "_" + departmentList.get(0).getSuperiorDeptId();
+            }
+            redisTemplate.opsForHash().put(redisKey, departmentList.get(0).getDeptId(), departmentList.get(0).getDeptName());
         }
-        redisTemplate.opsForHash().put(redisKey, department.getDeptId(), department.getDeptName());
     }
 
     public void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
@@ -133,7 +139,7 @@ public class DepartmentService {
         int num = departmentMapper.insertSelective(department);
         if (num == 1) {
             //更新redis
-            addRedisValue(department);
+            addRedisValue(productInstId, department.getDeptId());
         }
         return num;
     }
@@ -141,15 +147,19 @@ public class DepartmentService {
     //删除部门信息
     public int delete(String productInstId, Long deptId) {
 
-        //删除之前需要加入业务逻辑判断,不能随便删除
-        //判断客户和房产关系是否存在，如果存在，则不能删除房产
+        DepartmentExample departmentExample = new DepartmentExample();
+        DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
+        dCriteria.andProductInstIdEqualTo(productInstId);
+        dCriteria.andSuperiorDeptIdEqualTo(deptId);
+
         EmployeeExample employeeExample = new EmployeeExample();
         EmployeeExample.Criteria criteria = employeeExample.createCriteria();
         criteria.andProductInstIdEqualTo(productInstId);
         criteria.andDeptIdEqualTo(deptId);
 
-        //如果不存在部门和员工关系，则可以删除
-        if (employeeMapper.countByExample(employeeExample) == 0) {
+        //如果不存在该部门的下级部门，并且不存在该部门下的员工关系，则可以删除
+        if ( departmentMapper.countByExample(departmentExample) == 0 && employeeMapper.countByExample(employeeExample) == 0) {
+
             DepartmentExample example = new DepartmentExample();
             DepartmentExample.Criteria criteria1 = example.createCriteria();
             criteria1.andDeptIdEqualTo(deptId);
@@ -172,7 +182,7 @@ public class DepartmentService {
         int num = departmentMapper.updateByExampleSelective(department, example);
         if (num == 1) {
             //更新redis
-            addRedisValue(department);
+            addRedisValue(productInstId, department.getDeptId());
         }
         return num;
     }

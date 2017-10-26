@@ -76,7 +76,7 @@ public class DepartmentController {
         logger.debug("department delete return num:" + rows);
         if (rows != 1) {
             if (rows == -1)
-                throw new Exception("该部门存在员工关系,请先删除员工关系");
+                throw new Exception("不能删除该部门,请检查该部门是否存在下级部门,或该部门下是否存在员工?");
             else
                 throw new Exception("delete failed, effected num:" + rows);
         }
