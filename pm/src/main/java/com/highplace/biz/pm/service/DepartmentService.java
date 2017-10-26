@@ -55,7 +55,7 @@ public class DepartmentService {
         }
     }
 
-    public void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
+    private void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
 
         String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId + "_" + superiorDeptId;
 
@@ -136,7 +136,7 @@ public class DepartmentService {
 
         //设置产品实例ID
         department.setProductInstId(productInstId);
-        
+
         //如果有传入superiorDeptId,要先查看superiorDeptId是否存在，并获取到superiorDept的level
         if( department.getSuperiorDeptId() != null) {
 

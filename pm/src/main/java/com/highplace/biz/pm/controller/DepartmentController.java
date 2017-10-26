@@ -30,9 +30,10 @@ public class DepartmentController {
 
     @RequestMapping(path = "/department", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/department;GET','/department;ALL','/department/**;GET','/department/**;ALL','ADMIN')")
-    public Map<String, Object> getDepartment(Principal principal) {
+    public Map<String, Object> getDepartment(@RequestParam(value = "superiorDeptId", required = false) Long superiorDeptId,
+                                             Principal principal) {
 
-        return departmentService.query(SecurityUtils.getCurrentProductInstId(principal), null);
+        return departmentService.query(SecurityUtils.getCurrentProductInstId(principal), superiorDeptId);
     }
 
     @RequestMapping(path = "/department", method = RequestMethod.POST)

@@ -4,11 +4,15 @@ import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
+import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.domain.base.*;
+import com.highplace.biz.pm.domain.org.Department;
+import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.highplace.biz.pm.service.CustomerService.*;
+import static com.highplace.biz.pm.service.DepartmentService.PREFIX_DEPARTMENT_NAME_KEY;
 import static com.highplace.biz.pm.service.PropertyService.*;
 
 @Component
@@ -34,11 +39,20 @@ public class InternalService {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
     @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
     private CarMapper carMapper;
     @Autowired
     private CustomerMapper customerMapper;
     @Autowired
     private PropertyMapper propertyMapper;
+    @Autowired
+    private DepartmentMapper departmentMapper;
+
+    //定时任务周期
+    public static enum TASK_PERIOD_ENUM {
+        PER_SECOND, PER_MINUTE, PER_HOUR, PER_DAY, PER_MONTH;
+    }
 
     //可能存在多实例的情况，为避免多实例的定时任务重复执行，需要加一个全局锁
     public boolean canRun(String taskName, TASK_PERIOD_ENUM taskPeriod) {
@@ -101,7 +115,7 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 12 1 * * ?")   //每天1点12分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 12 1 * * ?")   //每天1点12分执行一次，全量更新客户资料相关cache内容
     public void reloadCustomerRedisValue() {
 
         if (canRun("reloadCustomerRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
@@ -155,7 +169,7 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 18 1 * * ?")   //每天1点18分执行一次，全量更新cache内容
+    @Scheduled(cron = "0 18 1 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
     public void reloadPropertyRedisValue() {
 
         if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
@@ -204,8 +218,37 @@ public class InternalService {
         }
     }
 
-    //定时任务周期
-    public static enum TASK_PERIOD_ENUM {
-        PER_SECOND, PER_MINUTE, PER_HOUR, PER_DAY, PER_MONTH;
+    @Scheduled(cron = "0 42 20 * * ?")   //每天1点24分执行一次，全量更新部门资料相关cache内容
+    public void reloadDepartmentRedisValue() {
+
+        if (canRun("reloadDepartmentRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+            ///// reload 部门名称和ID cache ////////
+            long totalCount = departmentMapper.countByExample(new DepartmentExample());
+            long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
+
+            //清空所有的部门key
+            Set<String> keys = redisTemplate.keys(PREFIX_DEPARTMENT_NAME_KEY + "*");
+            redisTemplate.delete(keys);
+
+            List<Department> departmentList;
+            String redisKey;
+            for (int i = 1; i <= pages; i++) {
+                PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                departmentList = departmentMapper.selectByExample(new DepartmentExample());
+                for (Department department : departmentList) {
+
+                    if (department.getLevel() == 1) {  //一级部门
+                        redisKey = PREFIX_DEPARTMENT_NAME_KEY + department.getProductInstId();
+                    } else {
+                        if (department.getSuperiorDeptId() == null) return;
+                        redisKey = PREFIX_DEPARTMENT_NAME_KEY + department.getProductInstId() + "_" + department.getSuperiorDeptId();
+                    }
+                    redisTemplate.opsForHash().put(redisKey, department.getDeptId(), department.getDeptName());
+                }
+            }
+            logger.info("reload department cache success");
+        }
     }
+
+
 }
