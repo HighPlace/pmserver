@@ -218,7 +218,7 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 42 20 * * ?")   //每天1点24分执行一次，全量更新部门资料相关cache内容
+    @Scheduled(cron = "0 43 21 * * ?")   //每天1点24分执行一次，全量更新部门资料相关cache内容
     public void reloadDepartmentRedisValue() {
 
         if (canRun("reloadDepartmentRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
