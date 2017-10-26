@@ -46,6 +46,8 @@ public class DepartmentController {
         int rows = departmentService.insert(SecurityUtils.getCurrentProductInstId(principal), department);
         logger.debug("department insert return num:" + rows);
         logger.debug("post department:" + department.toString());
+        if (rows == -1)
+            throw new Exception("上级部门不存在,请检查");
         return department;
     }
 
@@ -62,7 +64,11 @@ public class DepartmentController {
         int rows = departmentService.update(SecurityUtils.getCurrentProductInstId(principal), department);
         logger.debug("department insert return num:" + rows);
         logger.debug("post department:" + department.toString());
-        if (rows != 1) throw new Exception("change failed, effected num:" + rows);
+        if (rows == -1)
+            throw new Exception("上级部门不存在,请检查");
+        else if (rows != 1)
+            throw new Exception("change failed, effected num:" + rows);
+
         return department;
     }
 
@@ -76,7 +82,7 @@ public class DepartmentController {
         logger.debug("department delete return num:" + rows);
         if (rows != 1) {
             if (rows == -1)
-                throw new Exception("不能删除该部门,请检查该部门是否存在下级部门,或该部门下是否存在员工?");
+                throw new Exception("不能删除该部门,请检查该部门是否存在下级部门,或该部门下是否存在员工");
             else
                 throw new Exception("delete failed, effected num:" + rows);
         }

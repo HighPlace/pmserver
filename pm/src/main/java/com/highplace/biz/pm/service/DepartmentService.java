@@ -5,6 +5,7 @@ import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +136,23 @@ public class DepartmentService {
 
         //设置产品实例ID
         department.setProductInstId(productInstId);
+        
+        //如果有传入superiorDeptId,要先查看superiorDeptId是否存在，并获取到superiorDept的level
+        if( department.getSuperiorDeptId() != null) {
+
+            DepartmentExample departmentExample = new DepartmentExample();
+            DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
+            dCriteria.andProductInstIdEqualTo(productInstId);
+            dCriteria.andDeptIdEqualTo(department.getSuperiorDeptId());
+            List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
+            if(departmentList.size() == 0){
+                //没有superiorDeptId部门存在
+                return -1;
+            } else {
+                //有,计算出level
+                department.setLevel(departmentList.get(0).getLevel() + 1);
+            }
+        }
 
         int num = departmentMapper.insertSelective(department);
         if (num == 1) {
@@ -173,6 +191,23 @@ public class DepartmentService {
 
     //修改部门信息
     public int update(String productInstId, Department department) {
+
+        //如果有传入superiorDeptId,要先查看superiorDeptId是否存在，并获取到superiorDept的level
+        if( department.getSuperiorDeptId() != null) {
+
+            DepartmentExample departmentExample = new DepartmentExample();
+            DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
+            dCriteria.andProductInstIdEqualTo(productInstId);
+            dCriteria.andDeptIdEqualTo(department.getSuperiorDeptId());
+            List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
+            if(departmentList.size() == 0){
+                //没有superiorDeptId部门存在
+                return -1;
+            } else {
+                //有,计算出level
+                department.setLevel(departmentList.get(0).getLevel() + 1);
+            }
+        }
 
         DepartmentExample example = new DepartmentExample();
         DepartmentExample.Criteria criteria = example.createCriteria();
