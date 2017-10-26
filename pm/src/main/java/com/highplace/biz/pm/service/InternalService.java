@@ -249,6 +249,4 @@ public class InternalService {
             logger.info("reload department cache success");
         }
     }
-
-
 }
