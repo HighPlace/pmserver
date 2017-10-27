@@ -18,6 +18,14 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface DepartmentMapper {
+
+    // ----- mybatis generator外新增的属性------ //
+
+    @Select("select dept_name from t_department where dept_id = #{deptId,jdbcType=BIGINT}")
+    String selectDeptNameByPrimaryKey(Long deptId);
+
+    // ----- end ------ //
+
     @SelectProvider(type=DepartmentSqlProvider.class, method="countByExample")
     long countByExample(DepartmentExample example);
 

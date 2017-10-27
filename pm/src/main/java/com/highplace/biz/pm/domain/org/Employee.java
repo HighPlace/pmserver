@@ -1,8 +1,71 @@
 package com.highplace.biz.pm.domain.org;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Date;
 
 public class Employee {
+
+    // ----- mybatis generator外新增的属性------ //
+    private String deptName;   //员工所属的部门信息
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
+    }
+
+    //证件类型: 0:居民身份证 1:护照 2:港澳回乡证 3:台胞证 4:其他
+    public static String transferIdentityTypeToDesc(int type) {
+
+        if (type == 0) return "居民身份证";
+        if (type == 1) return "护照";
+        if (type == 2) return "港澳回乡证";
+        if (type == 3) return "台胞证";
+        if (type == 4) return "其他";
+        return "未知";
+    }
+
+    //证件类型: 0:居民身份证 1:护照 2:港澳回乡证 3:台胞证 4:其他
+    //说明转换成id
+    public static int transferDescToIdentityType(String desc) {
+        if (StringUtils.isNotEmpty(desc)) {
+            if (desc.equals("居民身份证")) return 0;
+            if (desc.equals("护照")) return 1;
+            if (desc.equals("港澳回乡证")) return 2;
+            if (desc.equals("台胞证")) return 3;
+            if (desc.equals("其他")) return 4;
+            return 0;
+        }
+        return 0;
+    }
+
+    //员工状态: 0:在岗 1:不在岗 2:离职
+    public static String transferStatusToDesc(int status) {
+
+        if (status == 0) return "在岗";
+        if (status == 1) return "不在岗";
+        if (status == 2) return "离职";
+        return "其他";
+    }
+
+    //员工状态: 0:在岗 1:不在岗 2:离职  默认o
+    //说明转换成id
+    public static int transferDescToStatus(String statusDesc) {
+        if (StringUtils.isNotEmpty(statusDesc)) {
+            if (statusDesc.equals("在岗")) return 0;
+            if (statusDesc.equals("不在岗")) return 1;
+            if (statusDesc.equals("离职")) return 2;
+            return 0;
+        }
+        return 0;
+    }
+
+    // ----- end ------ //
+
+
     private Long employeeId;
 
     private String productInstId;
