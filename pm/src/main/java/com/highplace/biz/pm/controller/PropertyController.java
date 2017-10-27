@@ -4,6 +4,7 @@ import com.highplace.biz.pm.domain.base.Property;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.PropertyService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +40,15 @@ public class PropertyController {
                                     Principal principal) throws Exception {
 
         logger.debug("pre property:" + property.toString());
+        if (StringUtils.isEmpty(property.getBuildingId())) throw new Exception("buildingId is empty");
+        if (StringUtils.isEmpty(property.getRoomId())) throw new Exception("roomId is empty");
 
         //插入记录
         int rows = propertyService.insert(SecurityUtils.getCurrentProductInstId(principal), property);
         logger.debug("property insert return num:" + rows);
         logger.debug("post property:" + property.toString());
+        if (rows != 1)
+            throw new Exception("create failed, effected num:" + rows);
         return property;
     }
 

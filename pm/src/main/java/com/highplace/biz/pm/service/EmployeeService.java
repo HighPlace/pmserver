@@ -42,8 +42,13 @@ public class EmployeeService {
     public void addRedisValue(String productInstId, Employee employee) {
         if (productInstId == null) return;
 
-        if (StringUtils.isNotEmpty(employee.getPosition()))
+        if (StringUtils.isNotEmpty(employee.getPosition())) {
             stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + productInstId, employee.getPosition());
+
+            //如果部门id不为空，还加上部门ID对应的职位
+            if( employee.getDeptId() != null )
+                stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + productInstId + "_" + employee.getDeptId(), employee.getPosition());
+        }
 
         if (StringUtils.isNotEmpty(employee.getEmployeeName()))
             stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_NAME_KEY + productInstId, employee.getEmployeeName());
@@ -53,33 +58,52 @@ public class EmployeeService {
     }
 
     //从redis中查询position/employeeName/phone列表，用于前端在检索时快速提示(模糊查询)
-    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue) {
+    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue , String deptId) {
 
         String redisKey;
+        //对于position,如果传入了deptId，则查对应deptId下的position
         if (entity.equals("position")) {
+
             redisKey = PREFIX_EMPLOYEE_POSITION_KEY + productInstId;
+            if( deptId!=null )
+                redisKey = PREFIX_EMPLOYEE_POSITION_KEY + productInstId + "_" + deptId;
+
         } else if (entity.equals("name")) {
+
             redisKey = PREFIX_EMPLOYEE_NAME_KEY + productInstId;
+
         } else if (entity.equals("phone")) {
+
             redisKey = PREFIX_EMPLOYEE_PHONE_KEY + productInstId;
+
         } else {
             return null;
         }
 
-        Set<String> sEntity = stringRedisTemplate.opsForSet().members(redisKey);
-        if (sEntity == null) return null;
-
-        List<String> dataList = new ArrayList();
-        Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
-        int i = 0;
-        for (String entityValue : sEntity) {
-            i++;
-            if (pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
-            if (i >= 10) break; //匹配到超过10条记录，退出
-        }
-
         Map<String, Object> result = new HashMap<String, Object>();
-        result.put("data", dataList);
+
+        Set<String> sEntity = stringRedisTemplate.opsForSet().members(redisKey);
+        if (sEntity == null) {
+
+            result.put("data", null);
+        } else {
+
+            //对于position,如果传入了deptId，则返回该deptId下的全量position列表
+            if (entity.equals("position") && (deptId != null)) {
+                result.put("data", sEntity);
+
+            } else {
+                List<String> dataList = new ArrayList();
+                Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
+                int i = 0;
+                for (String entityValue : sEntity) {
+                    i++;
+                    if (pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
+                    if (i >= 10) break; //匹配到超过10条记录，退出
+                }
+                result.put("data", dataList);
+            }
+        }
         return result;
     }
 

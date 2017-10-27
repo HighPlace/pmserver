@@ -4,6 +4,7 @@ import com.highplace.biz.pm.domain.org.Employee;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import com.highplace.biz.pm.service.EmployeeService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,10 @@ public class EmployeeController {
     @PreAuthorize("hasAnyAuthority('/employee;GET','/employee;ALL','/employee/**;GET','/employee/**;ALL','ADMIN')")
     public Map<String, Object> getEntityList(@PathVariable String entity,
                                              @RequestParam(value = "input", required = true) String input,
+                                             @RequestParam(value = "deptId", required = false) String deptId,
                                              Principal principal) {
         //entity 支持position/name/phone 三种
-        return employeeService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal), entity, input);
+        return employeeService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal), entity, input, deptId);
     }
 
     @RequestMapping(path = "/employee", method = RequestMethod.POST)
@@ -47,6 +49,7 @@ public class EmployeeController {
                                    Principal principal) throws Exception {
 
         logger.debug("pre employee:" + employee.toString());
+        if (StringUtils.isEmpty(employee.getEmployeeName())) throw new Exception("employeeName is empty");
 
         //插入记录
         int rows = employeeService.insert(SecurityUtils.getCurrentProductInstId(principal), employee);
@@ -55,7 +58,7 @@ public class EmployeeController {
         if (rows == -1)
             throw new Exception("部门id不存在,请检查");
         else if (rows != 1)
-            throw new Exception("change failed, effected num:" + rows);
+            throw new Exception("create failed, effected num:" + rows);
         return employee;
     }
 

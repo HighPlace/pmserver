@@ -3,6 +3,7 @@ package com.highplace.biz.pm.controller;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.service.DepartmentService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ public class DepartmentController {
                                        Principal principal) throws Exception {
 
         logger.debug("pre Department:" + department.toString());
+        if (StringUtils.isEmpty(department.getDeptName())) throw new Exception("deptName is empty");
 
         //插入记录
         int rows = departmentService.insert(SecurityUtils.getCurrentProductInstId(principal), department);
@@ -49,6 +51,8 @@ public class DepartmentController {
         logger.debug("post department:" + department.toString());
         if (rows == -1)
             throw new Exception("上级部门不存在,请检查");
+        else if (rows != 1)
+            throw new Exception("create failed, effected num:" + rows);
         return department;
     }
 

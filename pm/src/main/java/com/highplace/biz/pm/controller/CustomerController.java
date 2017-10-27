@@ -4,6 +4,7 @@ import com.highplace.biz.pm.domain.base.Customer;
 import com.highplace.biz.pm.domain.ui.CustomerSearchBean;
 import com.highplace.biz.pm.service.CustomerService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +46,17 @@ public class CustomerController {
     @RequestMapping(path = "/customer", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/customer;POST','/customer;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
     public Customer createCustomer(@Valid @RequestBody Customer customer,
-                                   Principal principal) {
+                                   Principal principal) throws Exception {
 
         logger.debug("pre customer:" + customer.toString());
+        if (StringUtils.isEmpty(customer.getCustomerName())) throw new Exception("customerName is empty");
 
         //插入记录
         int rows = customerService.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
         logger.debug("customer insert return num:" + rows);
         logger.debug("post customer:" + customer.toString());
+        if (rows != 1)
+            throw new Exception("create failed, effected num:" + rows);
         return customer;
     }
 

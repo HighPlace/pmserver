@@ -259,7 +259,7 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 05 15 * * ?")   //每天1点24分执行一次，全量更新部门资料相关cache内容
+    @Scheduled(cron = "0 29 1 * * ?")   //每天1点29分执行一次，全量更新员工资料相关cache内容
     public void reloadEmployeeRedisValue() {
 
         if (canRun("reloadEmployeeRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
@@ -267,7 +267,7 @@ public class InternalService {
             long totalCount = employeeMapper.countByExample(new EmployeeExample());
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
-            //清空所有的position key
+            //清空所有的position key(包括全量的 和 部门下的)
             Set<String> keys = redisTemplate.keys(PREFIX_EMPLOYEE_POSITION_KEY + "*");
             redisTemplate.delete(keys);
 
@@ -287,6 +287,9 @@ public class InternalService {
 
                     if (StringUtils.isNotEmpty(employee.getPosition()))
                         stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + employee.getProductInstId(), employee.getPosition());
+
+                    if (employee.getDeptId() != null)
+                        stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + employee.getProductInstId() + "_" + employee.getDeptId(), employee.getPosition());
 
                     if (StringUtils.isNotEmpty(employee.getEmployeeName()))
                         stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_NAME_KEY + employee.getProductInstId(), employee.getEmployeeName());
