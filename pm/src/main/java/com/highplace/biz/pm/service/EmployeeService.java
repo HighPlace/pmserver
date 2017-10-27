@@ -509,7 +509,7 @@ public class EmployeeService {
                     case 9:  //title="入职日期",order=10
                         if (StringUtils.isNotEmpty(cellValue)) {
                             try {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd ");
+                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                                 Date date = sdf.parse(cellValue);
                                 tempEmployee.setEntryDate(date);
                             } catch (ParseException e) {
