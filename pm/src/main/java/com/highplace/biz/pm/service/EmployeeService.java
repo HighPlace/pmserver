@@ -58,7 +58,7 @@ public class EmployeeService {
     }
 
     //从redis中查询position/employeeName/phone列表，用于前端在检索时快速提示(模糊查询)
-    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue , String deptId) {
+    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue , Long deptId) {
 
         String redisKey;
         //对于position,如果传入了deptId，则查对应deptId下的position

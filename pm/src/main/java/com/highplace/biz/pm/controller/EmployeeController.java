@@ -37,7 +37,7 @@ public class EmployeeController {
     @PreAuthorize("hasAnyAuthority('/employee;GET','/employee;ALL','/employee/**;GET','/employee/**;ALL','ADMIN')")
     public Map<String, Object> getEntityList(@PathVariable String entity,
                                              @RequestParam(value = "input", required = true) String input,
-                                             @RequestParam(value = "deptId", required = false) String deptId,
+                                             @RequestParam(value = "deptId", required = false) Long deptId,
                                              Principal principal) {
         //entity 支持position/name/phone 三种
         return employeeService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal), entity, input, deptId);
