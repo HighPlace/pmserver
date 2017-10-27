@@ -513,6 +513,8 @@ public class EmployeeService {
                                 Date date = sdf.parse(cellValue);
                                 tempEmployee.setEntryDate(date);
                             } catch (ParseException e) {
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                e.printStackTrace();
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
                                 errorFlag = true;
                             }
