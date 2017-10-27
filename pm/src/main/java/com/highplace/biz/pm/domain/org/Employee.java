@@ -2,6 +2,7 @@ package com.highplace.biz.pm.domain.org;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 public class Employee {
@@ -70,10 +71,13 @@ public class Employee {
 
     private String productInstId;
 
+    @NotNull
     private Long deptId;
 
+    @NotNull
     private String employeeName;
 
+    @NotNull
     private String phone;
 
     private String sysUsername;

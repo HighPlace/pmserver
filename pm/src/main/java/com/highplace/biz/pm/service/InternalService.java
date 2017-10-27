@@ -5,10 +5,14 @@ import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
 import com.highplace.biz.pm.dao.org.DepartmentMapper;
+import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
+import com.highplace.biz.pm.domain.org.Employee;
+import com.highplace.biz.pm.domain.org.EmployeeExample;
 import com.highplace.biz.pm.service.util.CommonUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.highplace.biz.pm.service.CustomerService.*;
 import static com.highplace.biz.pm.service.DepartmentService.PREFIX_DEPARTMENT_NAME_KEY;
+import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_NAME_KEY;
+import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_PHONE_KEY;
+import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_POSITION_KEY;
 import static com.highplace.biz.pm.service.PropertyService.*;
 
 @Component
@@ -48,6 +55,8 @@ public class InternalService {
     private PropertyMapper propertyMapper;
     @Autowired
     private DepartmentMapper departmentMapper;
+    @Autowired
+    private EmployeeMapper employeeMapper;
 
     //定时任务周期
     public static enum TASK_PERIOD_ENUM {
@@ -247,6 +256,46 @@ public class InternalService {
                 }
             }
             logger.info("reload department cache success");
+        }
+    }
+
+    @Scheduled(cron = "0 05 15 * * ?")   //每天1点24分执行一次，全量更新部门资料相关cache内容
+    public void reloadEmployeeRedisValue() {
+
+        if (canRun("reloadEmployeeRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+            ///// reload position/employeeName/phone cache ////////
+            long totalCount = employeeMapper.countByExample(new EmployeeExample());
+            long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
+
+            //清空所有的position key
+            Set<String> keys = redisTemplate.keys(PREFIX_EMPLOYEE_POSITION_KEY + "*");
+            redisTemplate.delete(keys);
+
+            //清空所有的employeeName key
+            keys = redisTemplate.keys(PREFIX_EMPLOYEE_NAME_KEY + "*");
+            redisTemplate.delete(keys);
+
+            //清空所有的phone key
+            keys = redisTemplate.keys(PREFIX_EMPLOYEE_PHONE_KEY + "*");
+            redisTemplate.delete(keys);
+
+            List<Employee> employeeList;
+            for (int i = 1; i <= pages; i++) {
+                PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                employeeList = employeeMapper.selectByExample(new EmployeeExample());
+                for (Employee employee : employeeList) {
+
+                    if (StringUtils.isNotEmpty(employee.getPosition()))
+                        stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + employee.getProductInstId(), employee.getPosition());
+
+                    if (StringUtils.isNotEmpty(employee.getEmployeeName()))
+                        stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_NAME_KEY + employee.getProductInstId(), employee.getEmployeeName());
+
+                    if (StringUtils.isNotEmpty(employee.getPhone()))
+                        stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_PHONE_KEY + employee.getProductInstId(), employee.getPhone());
+                }
+            }
+            logger.info("reload employee cache success");
         }
     }
 }

@@ -2,7 +2,10 @@ package com.highplace.biz.pm.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.dao.org.EmployeeMapper;
+import com.highplace.biz.pm.domain.org.Department;
+import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.Employee;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
@@ -11,20 +14,74 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 public class EmployeeService {
 
     public static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
+    //写入redis的key前缀, 后面加上productInstId
+    public static final String PREFIX_EMPLOYEE_POSITION_KEY = "EMPLOYEE_POSITION_KEY_";
+    public static final String PREFIX_EMPLOYEE_NAME_KEY = "EMPLOYEE_NAME_KEY_";
+    public static final String PREFIX_EMPLOYEE_PHONE_KEY = "EMPLOYEE_PHONE_KEY_";
+
     @Autowired
     private EmployeeMapper employeeMapper;
+    @Autowired
+    private DepartmentMapper departmentMapper;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    //position/employeeName/phone以set数据结构缓存到redis中
+    public void addRedisValue(String productInstId, Employee employee) {
+        if (productInstId == null) return;
+
+        if (StringUtils.isNotEmpty(employee.getPosition()))
+            stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_POSITION_KEY + productInstId, employee.getPosition());
+
+        if (StringUtils.isNotEmpty(employee.getEmployeeName()))
+            stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_NAME_KEY + productInstId, employee.getEmployeeName());
+
+        if (StringUtils.isNotEmpty(employee.getPhone()))
+            stringRedisTemplate.opsForSet().add(PREFIX_EMPLOYEE_PHONE_KEY + productInstId, employee.getPhone());
+    }
+
+    //从redis中查询position/employeeName/phone列表，用于前端在检索时快速提示(模糊查询)
+    public Map<String, Object> rapidSearch(String productInstId, String entity, String searchValue) {
+
+        String redisKey;
+        if (entity.equals("position")) {
+            redisKey = PREFIX_EMPLOYEE_POSITION_KEY + productInstId;
+        } else if (entity.equals("name")) {
+            redisKey = PREFIX_EMPLOYEE_NAME_KEY + productInstId;
+        } else if (entity.equals("phone")) {
+            redisKey = PREFIX_EMPLOYEE_PHONE_KEY + productInstId;
+        } else {
+            return null;
+        }
+
+        Set<String> sEntity = stringRedisTemplate.opsForSet().members(redisKey);
+        if (sEntity == null) return null;
+
+        List<String> dataList = new ArrayList();
+        Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
+        int i = 0;
+        for (String entityValue : sEntity) {
+            i++;
+            if (pattern.matcher(entityValue).find()) dataList.add(entityValue);  //find()模糊匹配  matches()精确匹配
+            if (i >= 10) break; //匹配到超过10条记录，退出
+        }
+
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("data", dataList);
+        return result;
+    }
 
     //查询房产信息列表
     public Map<String, Object> query(String productInstId, EmployeeSearchBean searchBean, boolean noPageSortFlag) {
@@ -84,5 +141,78 @@ public class EmployeeService {
         result.put("totalCount", totalCount);
         result.put("data", employeeList);
         return result;
+    }
+
+    //插入员工信息
+    public int insert(String productInstId, Employee employee) {
+
+        //设置产品实例ID
+        employee.setProductInstId(productInstId);
+
+        //必须要有部门id
+        if (employee.getDeptId() == 0) return 0;
+
+        //查询部门ID是否存在
+        DepartmentExample departmentExample = new DepartmentExample();
+        DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
+        dCriteria.andProductInstIdEqualTo(productInstId);
+        dCriteria.andDeptIdEqualTo(employee.getDeptId());
+        List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
+
+        //没有deptId部门存在
+        if (departmentList.size() == 0) return -1;
+
+        //有deptId部门存在,插入员工记录
+        int num = employeeMapper.insertSelective(employee);
+        if (num == 1) {
+            //更新redis
+            addRedisValue(productInstId, employee);
+        }
+        return num;
+    }
+
+    //删除员工信息
+    public int delete(String productInstId, Long employeeId) {
+
+        Employee employee = employeeMapper.selectByPrimaryKey(employeeId);
+        //员工状态: 0:在岗 1:不在岗 2:离职, 只有离职的员工才能删除
+        if ((employee != null) && (employee.getStatus() != 2)) return -1;
+
+        //删除员工
+        EmployeeExample employeeExample = new EmployeeExample();
+        EmployeeExample.Criteria criteria = employeeExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andEmployeeIdEqualTo(employeeId);
+        return employeeMapper.deleteByExample(employeeExample);
+    }
+
+    //修改员工信息
+    public int update(String productInstId, Employee employee) {
+
+        //如果有传入deptId,要查看deptid是否存在
+        if (employee.getDeptId() != null) {
+
+            DepartmentExample departmentExample = new DepartmentExample();
+            DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
+            dCriteria.andProductInstIdEqualTo(productInstId);
+            dCriteria.andDeptIdEqualTo(employee.getDeptId());
+            List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
+            if (departmentList.size() == 0) {
+                //没有deptId部门存在
+                return -1;
+            }
+        }
+
+        EmployeeExample example = new EmployeeExample();
+        EmployeeExample.Criteria criteria = example.createCriteria();
+        //产品实例ID，必须填入
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andEmployeeIdEqualTo(employee.getEmployeeId());
+        int num = employeeMapper.updateByExampleSelective(employee, example);
+        if (num == 1) {
+            //更新redis
+            addRedisValue(productInstId, employee);
+        }
+        return num;
     }
 }

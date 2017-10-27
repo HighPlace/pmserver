@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.org;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 public class Department {
@@ -7,6 +8,7 @@ public class Department {
 
     private String productInstId;
 
+    @NotNull
     private String deptName;
 
     private Integer level;

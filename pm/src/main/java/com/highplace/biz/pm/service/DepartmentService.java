@@ -55,42 +55,6 @@ public class DepartmentService {
         }
     }
 
-    private void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
-
-        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId + "_" + superiorDeptId;
-
-        //取下一级所有的部门
-        Map<Long, String> subDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
-
-        if (subDepartmentMap == null) {
-
-            //如果没有下级部门，则返回
-            return;
-
-        } else {
-
-            //有下级部门
-            List<Object> subList = new ArrayList<>(); //list 存放下级部门列表
-            for (Map.Entry<Long, String> entry : subDepartmentMap.entrySet()) {
-
-                //每一个下级部门又生成一个Map
-                Map<String, Object> departmentMap = new HashMap<>();
-                departmentMap.put(MAP_DEPARTMENT_ID, entry.getKey());
-                departmentMap.put(MAP_DEPARTMENT_NAME, entry.getValue());
-
-                //取该部门的再下级部门
-                getSubDepartment(departmentMap, productInstId, entry.getKey());
-
-                //加到list中去
-                subList.add(departmentMap);
-            }
-
-            //加入到上级部门的map中
-            superiorDepartmentMap.put(MAP_DEPARTMENT_SUBDEPARTMENT, subList);
-        }
-
-    }
-
     //从redis中查询所有部门名称，以树形结构返回
     public Map<String, Object> rapidSearchDepartmentTree(String productInstId) {
 
@@ -222,4 +186,39 @@ public class DepartmentService {
         return num;
     }
 
+    private void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
+
+        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId + "_" + superiorDeptId;
+
+        //取下一级所有的部门
+        Map<Long, String> subDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
+
+        if (subDepartmentMap == null) {
+
+            //如果没有下级部门，则返回
+            return;
+
+        } else {
+
+            //有下级部门
+            List<Object> subList = new ArrayList<>(); //list 存放下级部门列表
+            for (Map.Entry<Long, String> entry : subDepartmentMap.entrySet()) {
+
+                //每一个下级部门又生成一个Map
+                Map<String, Object> departmentMap = new HashMap<>();
+                departmentMap.put(MAP_DEPARTMENT_ID, entry.getKey());
+                departmentMap.put(MAP_DEPARTMENT_NAME, entry.getValue());
+
+                //取该部门的再下级部门
+                getSubDepartment(departmentMap, productInstId, entry.getKey());
+
+                //加到list中去
+                subList.add(departmentMap);
+            }
+
+            //加入到上级部门的map中
+            superiorDepartmentMap.put(MAP_DEPARTMENT_SUBDEPARTMENT, subList);
+        }
+
+    }
 }
