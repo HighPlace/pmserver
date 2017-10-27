@@ -25,7 +25,7 @@ public interface DepartmentMapper {
     String selectDeptNameByPrimaryKey(Long deptId);
 
     @Select("select dept_id from t_department where product_inst_id = #{productInstId,jdbcType=VARCHAR} and dept_name = #{deptName,jdbcType=VARCHAR}")
-    Long selectDeptIdByDeptName(String productInstId, String deptName);
+    Long selectDeptIdByDeptName(@Param("productInstId") String productInstId, @Param("deptName") String deptName);
 
     // ----- end ------ //
 

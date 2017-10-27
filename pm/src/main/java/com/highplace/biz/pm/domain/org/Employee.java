@@ -12,7 +12,7 @@ public class Employee {
 
     private String deptName;   //员工所属的部门信息
 
-    @ExcelResources(title="部门",order=2)
+    @ExcelResources(title=" 部门 ",order=2)
     public String getDeptName() {
         return deptName;
     }
@@ -146,7 +146,7 @@ public class Employee {
         this.deptId = deptId;
     }
 
-    @ExcelResources(title="员工姓名",order=1)
+    @ExcelResources(title="姓名",order=1)
     public String getEmployeeName() {
         return employeeName;
     }
@@ -155,7 +155,7 @@ public class Employee {
         this.employeeName = employeeName == null ? null : employeeName.trim();
     }
 
-    @ExcelResources(title="联系电话",order=4)
+    @ExcelResources(title=" 电话 ",order=4)
     public String getPhone() {
         return phone;
     }
@@ -181,7 +181,7 @@ public class Employee {
         this.employeeCode = employeeCode == null ? null : employeeCode.trim();
     }
 
-    @ExcelResources(title="岗位",order=3)
+    @ExcelResources(title=" 岗位 ",order=3)
     public String getPosition() {
         return position;
     }
