@@ -65,8 +65,6 @@ public class CustomerService {
     @Autowired
     private TaskStatusService taskStatusService;
     @Autowired
-    private MQService mqService;
-    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     //返回空的查询结果
@@ -480,6 +478,7 @@ public class CustomerService {
         }
         return num;
     }
+    /*
 
     //将批量导入请求通过消息队列发出
     public String batchImportCall(String productInstId, String fileUrl, Integer vendor) {
@@ -547,6 +546,7 @@ public class CustomerService {
             return null;
         }
     }
+    */
 
     public void batchImport(JSONObject jsonObject) {
 
@@ -563,7 +563,7 @@ public class CustomerService {
         String localFilePath = "/tmp/" + cosFilePath;
 
         //设置任务状态为处理中
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CUSTOMER,
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 productInstId,
                 taskId,
@@ -607,7 +607,7 @@ public class CustomerService {
         }
 
         //设置任务状态为1：处理完成
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CUSTOMER,
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 productInstId,
                 taskId,
@@ -935,7 +935,7 @@ public class CustomerService {
         String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
 
         //设置任务为处理中
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CUSTOMER,
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 productInstId,
                 taskId,
@@ -963,7 +963,7 @@ public class CustomerService {
         }
 
         //设置任务状态为1：处理完成
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_CUSTOMER,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CUSTOMER,
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 productInstId,
                 taskId,

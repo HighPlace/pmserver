@@ -57,8 +57,6 @@ public class PropertyService {
     @Autowired
     private TaskStatusService taskStatusService;
     @Autowired
-    private MQService mqService;
-    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     //zoneId/buildingId/unitId以set数据结构缓存到redis中
@@ -290,6 +288,7 @@ public class PropertyService {
         return num;
     }
 
+    /*
     //将批量导入请求通过消息队列发出
     public String batchImportCall(String productInstId, String fileUrl, Integer vendor) {
 
@@ -356,7 +355,7 @@ public class PropertyService {
             return null;
         }
     }
-
+    */
     //从消息队列接收消息后进行导入数据库操作
     //腾讯云操作,参考https://github.com/tencentyun/cos-java-sdk-v4/blob/master/src/main/java/com/qcloud/cos/demo/Demo.java
     public void batchImport(JSONObject jsonObject) {
@@ -374,7 +373,7 @@ public class PropertyService {
         String localFilePath = "/tmp/" + cosFilePath;
 
         //设置任务状态为处理中
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 productInstId,
                 taskId,
@@ -418,7 +417,7 @@ public class PropertyService {
         }
 
         //设置任务状态为1：处理完成
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 productInstId,
                 taskId,
@@ -665,7 +664,7 @@ public class PropertyService {
         String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
 
         //设置任务为处理中
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 productInstId,
                 taskId,
@@ -693,7 +692,7 @@ public class PropertyService {
         }
 
         //设置任务状态为1：处理完成
-        taskStatusService.setTaskStatus(TaskStatusService.TASK_TARGET_PROPERTY,
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 productInstId,
                 taskId,

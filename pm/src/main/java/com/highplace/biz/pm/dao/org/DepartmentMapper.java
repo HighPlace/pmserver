@@ -24,6 +24,9 @@ public interface DepartmentMapper {
     @Select("select dept_name from t_department where dept_id = #{deptId,jdbcType=BIGINT}")
     String selectDeptNameByPrimaryKey(Long deptId);
 
+    @Select("select dept_id from t_department where product_inst_id = #{productInstId,jdbcType=VARCHAR} and dept_name = #{deptName,jdbcType=VARCHAR}")
+    Long selectDeptIdByDeptName(String productInstId, String deptName);
+
     // ----- end ------ //
 
     @SelectProvider(type=DepartmentSqlProvider.class, method="countByExample")

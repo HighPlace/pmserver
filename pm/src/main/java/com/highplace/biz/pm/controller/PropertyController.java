@@ -3,6 +3,7 @@ package com.highplace.biz.pm.controller;
 import com.highplace.biz.pm.domain.base.Property;
 import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.PropertyService;
+import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.*;
+import java.util.Map;
 
 @RestController
 public class PropertyController {
@@ -23,10 +24,13 @@ public class PropertyController {
     @Autowired
     private PropertyService propertyService;
 
+    @Autowired
+    private TaskStatusService taskStatusService;
+
     @RequestMapping(path = "/property", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property;GET','/property;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<String, Object> getProperty(@Valid PropertySearchBean searchBean,
-                                        Principal principal) {
+                                           Principal principal) {
 
         logger.debug("PropertySearchBean:" + searchBean.toString());
         logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
@@ -37,7 +41,7 @@ public class PropertyController {
     @RequestMapping(path = "/property", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property;POST','/property;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
     public Property createProperty(@Valid @RequestBody Property property,
-                                    Principal principal) throws Exception {
+                                   Principal principal) throws Exception {
 
         logger.debug("pre property:" + property.toString());
         if (StringUtils.isEmpty(property.getBuildingId())) throw new Exception("buildingId is empty");
@@ -57,7 +61,7 @@ public class PropertyController {
     public Property changeProperty(@RequestBody Property property,
                                    Principal principal) throws Exception {
 
-        if(property.getPropertyId() == null ) throw new Exception("propertyId is null");
+        if (property.getPropertyId() == null) throw new Exception("propertyId is null");
 
         logger.debug("pre property:" + property.toString());
 
@@ -65,19 +69,19 @@ public class PropertyController {
         int rows = propertyService.update(SecurityUtils.getCurrentProductInstId(principal), property);
         logger.debug("property insert return num:" + rows);
         logger.debug("post property:" + property.toString());
-        if(rows != 1) throw new Exception("change failed, effected num:" + rows);
+        if (rows != 1) throw new Exception("change failed, effected num:" + rows);
         return property;
     }
 
     @RequestMapping(path = "/property", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/property;DELETE','/property;ALL','/property/**;DELETE','/property/**;ALL','ADMIN')")
     public void deleteProperty(@RequestParam(value = "propertyId", required = true) Long propertyId,
-                                   Principal principal) throws Exception {
+                               Principal principal) throws Exception {
 
         //删除记录
         int rows = propertyService.delete(SecurityUtils.getCurrentProductInstId(principal), propertyId);
         logger.debug("property delete return num:" + rows);
-        if(rows != 1) {
+        if (rows != 1) {
             if (rows == -1)
                 throw new Exception("该房产存在客户关系,请先删除客户关系");
             else
@@ -96,38 +100,53 @@ public class PropertyController {
 
     @RequestMapping(path = "/property/import", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property/import;POST','/property/import;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
-    public Map<String, String> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
+    public Map<String, Object> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
                                              @RequestParam(value = "vendor", required = false) Integer vendor,
-                                                Principal principal) {
-        if(vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
-        String taskId = propertyService.batchImportCall(SecurityUtils.getCurrentProductInstId(principal), fileUrl, vendor);
-        Map<String, String> result = new HashMap<>();
-        result.put("taskId", taskId);
-        return result;
+                                             Principal principal) {
+        //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        if (vendor == null) vendor = new Integer(0);
+
+        return taskStatusService.sendTaskToMQ(TaskStatusService.TaskTargetEnum.PROPERTY,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                fileUrl,
+                vendor);
     }
 
     @RequestMapping(path = "/property/export", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/property/export;POST','/property/export;ALL','/property/**;POST','/property/**;ALL','ADMIN')")
-    public Map<String, String> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
+    public Map<String, Object> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
                                              Principal principal) {
-        if(vendor == null) vendor = new Integer(0); //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
-        String taskId = propertyService.batchExportCall(SecurityUtils.getCurrentProductInstId(principal), vendor);
-        Map<String, String> result = new HashMap<>();
-        result.put("taskId", taskId);
-        return result;
+
+        //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        if (vendor == null) vendor = new Integer(0);
+
+        return taskStatusService.sendTaskToMQ(TaskStatusService.TaskTargetEnum.PROPERTY,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                null,
+                vendor);
     }
 
     @RequestMapping(path = "/property/import", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property/import;GET','/property/import;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
                                                    Principal principal) {
-        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "import");
+
+        return taskStatusService.getTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                taskId);
     }
 
     @RequestMapping(path = "/property/export", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/property/export;GET','/property/export;ALL','/property/**;GET','/property/**;ALL','ADMIN')")
     public Map<Object, Object> getExportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
                                                    Principal principal) {
-        return propertyService.getTaskStatus(SecurityUtils.getCurrentProductInstId(principal), taskId, "export");
+
+        return taskStatusService.getTaskStatus(TaskStatusService.TaskTargetEnum.PROPERTY,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                taskId);
     }
 }

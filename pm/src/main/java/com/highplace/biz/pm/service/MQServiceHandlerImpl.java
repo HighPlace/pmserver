@@ -2,6 +2,7 @@ package com.highplace.biz.pm.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.MQServiceHandler;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import org.slf4j.Logger;
@@ -21,18 +22,32 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private EmployeeService employeeService;
+
     @Override
     public void batchImportQueueHandler(String msg) {
 
         try {
             JSONObject jsonObject = JSON.parseObject(msg);
-            String target = jsonObject.getString("target");
+            String target = jsonObject.getString(MQService.MSG_KEY_TARGET);
 
-            if (target.equals(TaskStatusService.TASK_TARGET_PROPERTY)) {
-                propertyService.batchImport(jsonObject);
+            TaskStatusService.TaskTargetEnum taskTargetEnum = TaskStatusService.TaskTargetEnum.valueOf(target);
+            switch (taskTargetEnum) {
+                case CUSTOMER:
+                    customerService.batchImport(jsonObject);
+                    break;
 
-            } else if (target.equals(TaskStatusService.TASK_TARGET_CUSTOMER)) {
-                customerService.batchImport(jsonObject);
+                case PROPERTY:
+                    propertyService.batchImport(jsonObject);
+                    break;
+
+                case EMPLOYEE:
+                    employeeService.batchImport(jsonObject);
+                    break;
+
+                default:
+                    break;
             }
 
         } catch (Exception e) {
@@ -47,13 +62,24 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
 
         try {
             JSONObject jsonObject = JSON.parseObject(msg);
-            String target = jsonObject.getString("target");
+            String target = jsonObject.getString(MQService.MSG_KEY_TARGET);
 
-            if (target.equals(TaskStatusService.TASK_TARGET_PROPERTY)) {
-                propertyService.batchExport(jsonObject);
+            TaskStatusService.TaskTargetEnum taskTargetEnum = TaskStatusService.TaskTargetEnum.valueOf(target);
+            switch (taskTargetEnum) {
+                case CUSTOMER:
+                    customerService.batchExport(jsonObject);
+                    break;
 
-            } else if (target.equals(TaskStatusService.TASK_TARGET_CUSTOMER)) {
-                customerService.batchExport(jsonObject);
+                case PROPERTY:
+                    propertyService.batchExport(jsonObject);
+                    break;
+
+                case EMPLOYEE:
+                    employeeService.batchExport(jsonObject);
+                    break;
+
+                default:
+                    break;
             }
 
         } catch (Exception e) {

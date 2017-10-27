@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.org;
 
+import com.highplace.biz.pm.service.util.ExcelResources;
 import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotNull;
@@ -8,8 +9,10 @@ import java.util.Date;
 public class Employee {
 
     // ----- mybatis generator外新增的属性------ //
+
     private String deptName;   //员工所属的部门信息
 
+    @ExcelResources(title="部门",order=2)
     public String getDeptName() {
         return deptName;
     }
@@ -65,7 +68,6 @@ public class Employee {
     }
 
     // ----- end ------ //
-
 
     private Long employeeId;
 
@@ -144,6 +146,7 @@ public class Employee {
         this.deptId = deptId;
     }
 
+    @ExcelResources(title="员工姓名",order=1)
     public String getEmployeeName() {
         return employeeName;
     }
@@ -152,6 +155,7 @@ public class Employee {
         this.employeeName = employeeName == null ? null : employeeName.trim();
     }
 
+    @ExcelResources(title="联系电话",order=4)
     public String getPhone() {
         return phone;
     }
@@ -168,6 +172,7 @@ public class Employee {
         this.sysUsername = sysUsername == null ? null : sysUsername.trim();
     }
 
+    @ExcelResources(title="工号",order=6)
     public String getEmployeeCode() {
         return employeeCode;
     }
@@ -176,6 +181,7 @@ public class Employee {
         this.employeeCode = employeeCode == null ? null : employeeCode.trim();
     }
 
+    @ExcelResources(title="岗位",order=3)
     public String getPosition() {
         return position;
     }
@@ -187,6 +193,12 @@ public class Employee {
     public Integer getStatus() {
         return status;
     }
+
+    @ExcelResources(title="状态",order=11)
+    public String getStatusDesc() {
+        return Employee.transferStatusToDesc(status);
+    }
+
 
     public void setStatus(Integer status) {
         this.status = status;
@@ -208,6 +220,13 @@ public class Employee {
         this.identityType = identityType;
     }
 
+    //@ExcelResources(title="证件类型(居民身份证/护照/港澳回乡证/台胞证)",order=)
+    @ExcelResources(title="证件类型",order=7)
+    public String getIdentityTypeDesc(){
+        return Employee.transferIdentityTypeToDesc(identityType);
+    }
+
+    @ExcelResources(title="证件号码",order=8)
     public String getIdentityNo() {
         return identityNo;
     }
@@ -224,6 +243,7 @@ public class Employee {
         this.identPic = identPic == null ? null : identPic.trim();
     }
 
+    @ExcelResources(title="电子邮箱",order=12)
     public String getEmail() {
         return email;
     }
@@ -240,6 +260,7 @@ public class Employee {
         this.wechat = wechat == null ? null : wechat.trim();
     }
 
+    @ExcelResources(title="备用电话",order=5)
     public String getBackupPhone1() {
         return backupPhone1;
     }
@@ -272,6 +293,7 @@ public class Employee {
         this.emergencyContactPhone = emergencyContactPhone == null ? null : emergencyContactPhone.trim();
     }
 
+    @ExcelResources(title="性别",order=9)
     public String getGender() {
         return gender;
     }
@@ -280,6 +302,7 @@ public class Employee {
         this.gender = gender == null ? null : gender.trim();
     }
 
+    @ExcelResources(title="入职日期",order=10)
     public Date getEntryDate() {
         return entryDate;
     }
