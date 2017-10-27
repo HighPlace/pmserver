@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.org;
 
+import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelResources;
 import org.apache.commons.lang.StringUtils;
 
@@ -303,6 +304,10 @@ public class Employee {
     }
 
     @ExcelResources(title="入职日期",order=10)
+    public String getFormatEntryDate() {
+        return (entryDate!=null)? CommonUtils.getTimeString(entryDate, CommonUtils.FORMAT_DAY):null;
+    }
+
     public Date getEntryDate() {
         return entryDate;
     }

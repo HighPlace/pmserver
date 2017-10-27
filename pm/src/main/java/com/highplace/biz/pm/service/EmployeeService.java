@@ -509,9 +509,7 @@ public class EmployeeService {
                     case 9:  //title="入职日期",order=10
                         if (StringUtils.isNotEmpty(cellValue)) {
                             try {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                                Date date = sdf.parse(cellValue);
-                                tempEmployee.setEntryDate(date);
+                                tempEmployee.setEntryDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
                             } catch (ParseException e) {
                                 logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
                                 e.printStackTrace();
@@ -562,7 +560,7 @@ public class EmployeeService {
                 criteria.andProductInstIdEqualTo(employee.getProductInstId());
                 criteria.andDeptIdEqualTo(employee.getDeptId());
                 criteria.andEmployeeNameEqualTo(employee.getEmployeeName());
-                criteria.andEmployeeCodeEqualTo(employee.getEmployeeCode());
+                //criteria.andEmployeeCodeEqualTo(employee.getEmployeeCode());
 
                 List<Employee> find = employeeMapper.selectByExample(example);
                 if (find.size() == 0) {  //不存在记录,直接insert

@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.service.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -155,6 +156,18 @@ public class CommonUtils {
     public static String getTimeString(String dataFormat) {
         SimpleDateFormat df = new SimpleDateFormat(dataFormat);
         return df.format(new Date());
+    }
+
+    //按特定格式获得给定时间字符串
+    public static String getTimeString(Date date, String dataFormat) {
+        SimpleDateFormat df = new SimpleDateFormat(dataFormat);
+        return df.format(date);
+    }
+
+    //按特定格式获得给定时间字符串
+    public static Date getDate(String dateStr, String dataFormat) throws ParseException{
+        SimpleDateFormat df = new SimpleDateFormat(dataFormat);
+        return df.parse(dateStr);
     }
 
 }
