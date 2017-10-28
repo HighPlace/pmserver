@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.domain.ui;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 public class NoticeSearchBean extends PageBean {
@@ -8,8 +10,10 @@ public class NoticeSearchBean extends PageBean {
 
     private String type;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date publishDateFrom;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date publishDateTo;
 
     public String getTitle() {
