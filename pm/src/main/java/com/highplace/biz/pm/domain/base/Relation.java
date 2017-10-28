@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -59,8 +60,10 @@ public class Relation {
 
     private Integer status;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date startDate;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date endDate;
 
     private Date createTime;

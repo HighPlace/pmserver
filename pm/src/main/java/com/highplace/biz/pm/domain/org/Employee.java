@@ -3,6 +3,8 @@ package com.highplace.biz.pm.domain.org;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelResources;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -78,9 +80,11 @@ public class Employee {
     private Long deptId;
 
     @NotNull
+    @Length(min = 1)
     private String employeeName;
 
     @NotNull
+    @Length(min = 1)
     private String phone;
 
     private String sysUsername;
@@ -113,8 +117,10 @@ public class Employee {
 
     private String gender;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date entryDate;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date leaveDate;
 
     private Date createTime;

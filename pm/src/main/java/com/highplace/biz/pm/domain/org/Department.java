@@ -1,5 +1,7 @@
 package com.highplace.biz.pm.domain.org;
 
+import org.hibernate.validator.constraints.Length;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
@@ -9,6 +11,7 @@ public class Department {
     private String productInstId;
 
     @NotNull
+    @Length(min = 1)
     private String deptName;
 
     private Integer level;

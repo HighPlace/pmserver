@@ -18,11 +18,13 @@ public class Property {
 
     @NotNull
     //@Length(min = 3, max = 30)
+    @Length(min = 1)
     private String buildingId;
 
     private String unitId;
 
     @NotNull
+    @Length(min = 1)
     private String roomId;
 
     private Integer areaUnit;

@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.domain.base;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -47,6 +48,7 @@ public class Car {
     private Long relationId;
 
     @NotNull
+    @Length(min = 1)
     private String plateNo;
 
     private Integer type;

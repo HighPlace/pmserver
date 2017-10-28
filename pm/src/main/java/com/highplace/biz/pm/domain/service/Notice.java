@@ -1,5 +1,8 @@
 package com.highplace.biz.pm.domain.service;
 
+import org.hibernate.validator.constraints.Length;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
@@ -9,15 +12,20 @@ public class Notice {
     private String productInstId;
 
     @NotNull
+    //@Length(min = 1, max = 30)
+    @Length(min = 1)
     private String title;
 
     @NotNull
+    @Length(min = 1)
     private String type;
 
     private Integer status;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date publishDate;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date validDate;
 
     private String publisher;
@@ -41,6 +49,7 @@ public class Notice {
     private Date modifyTime;
 
     @NotNull
+    @Length(min = 1)
     private String content;
 
     private String remark;

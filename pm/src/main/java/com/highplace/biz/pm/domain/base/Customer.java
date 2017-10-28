@@ -2,6 +2,8 @@ package com.highplace.biz.pm.domain.base;
 
 import com.highplace.biz.pm.service.util.ExcelResources;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.validator.constraints.Length;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -57,14 +59,17 @@ public class Customer {
     private String productInstId;
 
     @NotNull
+    @Length(min = 1)
     private String customerName;
 
     private Integer identityType;
 
     @NotNull
+    @Length(min = 1)
     private String identityNo;
 
     @NotNull
+    @Length(min = 1)
     private String phone;
 
     private String aliasName;
@@ -79,10 +84,13 @@ public class Customer {
 
     private String gender;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date birth;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date identStartDate;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date identEndDate;
 
     private String identPic;
