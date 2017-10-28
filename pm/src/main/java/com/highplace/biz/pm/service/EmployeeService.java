@@ -130,7 +130,7 @@ public class EmployeeService {
         return result;
     }
 
-    //查询房产信息列表
+    //查询员工信息列表
     public Map<String, Object> query(String productInstId, EmployeeSearchBean searchBean, boolean noPageSortFlag) {
 
         EmployeeExample example = new EmployeeExample();
