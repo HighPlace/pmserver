@@ -112,6 +112,8 @@ public class InternalService {
         }
 
         String redisKey = redisKeyPrefix + periodKey;
+
+        /* 改代码解决不了分布式问题,get后,可能有多个client set
         String value = stringRedisTemplate.opsForValue().get(redisKey);
         //如果没有锁,则加锁
         if (value == null) {
@@ -119,6 +121,19 @@ public class InternalService {
             logger.info(taskName + " get lock, can run");
             return true;
         } else { //有锁,则返回false
+            logger.info(taskName + " lock exists, can't run");
+            return false;
+        }
+        */
+
+        //引入分布式锁机制
+        if (stringRedisTemplate.opsForValue().setIfAbsent(redisKey, "locked")) {
+            //setIfAbsent成功，说明没有锁，可以执行
+            stringRedisTemplate.expire(redisKey, expireTime, expireTimeUnit);
+            logger.info(taskName + " get lock, can run");
+            return true;
+        } else {
+            //否则，不可执行
             logger.info(taskName + " lock exists, can't run");
             return false;
         }
