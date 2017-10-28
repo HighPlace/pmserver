@@ -4,7 +4,6 @@ import com.highplace.biz.pm.domain.service.Notice;
 import com.highplace.biz.pm.domain.ui.NoticeSearchBean;
 import com.highplace.biz.pm.service.NoticeService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +25,13 @@ public class NoticeController {
     @RequestMapping(path = "/notice", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/notice;GET','/notice;ALL','/notice/**;GET','/notice/**;ALL','ADMIN')")
     public Map<String, Object> getNotice(@Valid NoticeSearchBean searchBean,
-                                           Principal principal) throws Exception{
+                                         Principal principal) throws Exception {
 
         logger.debug("NoticeSearchBean:" + searchBean.toString());
 
         //注意：公告的信息量比较大，必须设置分页
-        if(searchBean.getPageNum() == null)  throw new Exception("pageNum is null");
-        if(searchBean.getPageSize() == null)  throw new Exception("pageSize is null");
+        if (searchBean.getPageNum() == null) throw new Exception("pageNum is null");
+        if (searchBean.getPageSize() == null) throw new Exception("pageSize is null");
 
         return noticeService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
     }
@@ -40,7 +39,7 @@ public class NoticeController {
     @RequestMapping(path = "/notice", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/notice;POST','/notice;ALL','/notice/**;POST','/notice/**;ALL','ADMIN')")
     public Notice creatNotice(@Valid @RequestBody Notice notice,
-                                   Principal principal) throws Exception {
+                              Principal principal) throws Exception {
 
         logger.debug("pre notice:" + notice.toString());
 
@@ -57,7 +56,7 @@ public class NoticeController {
     @RequestMapping(path = "/notice", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/notice;DELETE','/notice;ALL','/notice/**;DELETE','/notice/**;ALL','ADMIN')")
     public void deleteNotice(@RequestParam(value = "noticeId", required = true) Long noticeId,
-                               Principal principal) throws Exception {
+                             Principal principal) throws Exception {
 
         //删除记录
         int rows = noticeService.delete(SecurityUtils.getCurrentProductInstId(principal), noticeId);
@@ -70,7 +69,7 @@ public class NoticeController {
     @RequestMapping(path = "/notice", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/notice;PUT','/notice;ALL','/notice/**;PUT','/notice/**;ALL','ADMIN')")
     public Notice changeNotice(@RequestBody Notice notice,
-                                   Principal principal) throws Exception {
+                               Principal principal) throws Exception {
 
         if (notice.getNoticeId() == null) throw new Exception("noticeId is null");
 
