@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.dao.notice;
+package com.highplace.biz.pm.dao.service;
 
 import com.highplace.biz.pm.domain.service.Notice;
 import com.highplace.biz.pm.domain.service.NoticeExample;

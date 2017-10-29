@@ -2,7 +2,7 @@ package com.highplace.biz.pm.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.highplace.biz.pm.dao.notice.NoticeMapper;
+import com.highplace.biz.pm.dao.service.NoticeMapper;
 import com.highplace.biz.pm.domain.service.Notice;
 import com.highplace.biz.pm.domain.service.NoticeExample;
 import com.highplace.biz.pm.domain.ui.NoticeSearchBean;
@@ -26,6 +26,9 @@ public class NoticeService {
     //写入redis的key前缀, 后面加上productInstId
     public static final String PREFIX_NOTICE_TYPE_KEY = "NOTICE_TYPE_KEY_";
     public static final String PREFIX_NOTICE_TITLE_KEY = "NOTICE_TITLE_KEY_";
+
+    public static final String DEFAULT_NOTICE_TYPE1 = "管理通知";
+    public static final String DEFAULT_NOTICE_TYPE2 = "物业公告";
 
     @Autowired
     private NoticeMapper noticeMapper;
@@ -134,8 +137,12 @@ public class NoticeService {
         if (StringUtils.isNotEmpty(notice.getTitle()))
             stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TITLE_KEY + productInstId, notice.getTitle());
 
-        if (StringUtils.isNotEmpty(notice.getType()))
+        if (StringUtils.isNotEmpty(notice.getType())) {
+            //先设置缺省的
+            stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + productInstId, DEFAULT_NOTICE_TYPE1);
+            stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + productInstId, DEFAULT_NOTICE_TYPE2);
             stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + productInstId, notice.getType());
+        }
     }
 
     //从redis中查询title/type列表，用于前端在检索时快速提示(title为模糊匹配10条,type为全量信息)
@@ -145,6 +152,10 @@ public class NoticeService {
         //对于position,如果传入了deptId，则查对应deptId下的position
         if (entity.equals("type")) {
             redisKey = PREFIX_NOTICE_TYPE_KEY + productInstId;
+            if(!stringRedisTemplate.hasKey(redisKey)){  //如果key不存在,加入缺省type
+                stringRedisTemplate.opsForSet().add(redisKey, DEFAULT_NOTICE_TYPE1);
+                stringRedisTemplate.opsForSet().add(redisKey, DEFAULT_NOTICE_TYPE2);
+            }
         } else if (entity.equals("title")) {
             redisKey = PREFIX_NOTICE_TITLE_KEY + productInstId;
         } else {
