@@ -23,8 +23,8 @@ public class DateTimeJsonDeserializer extends JsonDeserializer<Date> {
             return sdf.parse(parser.getValueAsString());
         } catch (Exception e) {
             e.printStackTrace();
+            throw new IOException(e.getMessage());
         }
-        return null;
     }
 
 }
