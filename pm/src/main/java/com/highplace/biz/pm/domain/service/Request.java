@@ -1,5 +1,10 @@
 package com.highplace.biz.pm.domain.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.DateJsonDeserializer;
+import com.highplace.biz.pm.service.util.DateJsonSerializer;
 import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -36,19 +41,25 @@ public class Request {
 
     private Integer priority;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date startTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date assignTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date acceptTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date finishTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonIgnore
     private Date rateTime;
 
     private Long dealEmployeeId;
