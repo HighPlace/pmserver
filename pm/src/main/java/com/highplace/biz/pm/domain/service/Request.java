@@ -35,13 +35,13 @@ public class Request {
 
     private Integer priority;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date assignTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private Date acceptTime;
 
     @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
