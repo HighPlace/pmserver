@@ -44,10 +44,10 @@ public class Request {
     @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
     private Date acceptTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSSZ")
     private Date finishTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
     private Date rateTime;
 
     private Long dealEmployeeId;
