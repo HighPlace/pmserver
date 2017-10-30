@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.service;
 
+import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -38,16 +39,16 @@ public class Request {
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date assignTime;
 
-    @DateTimeFormat(pattern = "yyyy/MM/dd hh:mm:ss")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date acceptTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSSZ")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date finishTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date rateTime;
 
     private Long dealEmployeeId;
