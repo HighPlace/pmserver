@@ -35,19 +35,19 @@ public class Request {
 
     private Integer priority;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date startTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date assignTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date acceptTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date finishTime;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @DateTimeFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date rateTime;
 
     private Long dealEmployeeId;
