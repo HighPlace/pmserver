@@ -18,6 +18,17 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface NoticeMapper {
+
+    // ----- mybatis generator外新增的属性------ //
+
+    @Select("select distinct product_inst_id, type from t_notice")
+    @Results({
+            @Result(column = "product_inst_id", property = "productInstId", jdbcType = JdbcType.VARCHAR),
+            @Result(column = "type", property = "type", jdbcType = JdbcType.VARCHAR)
+    })
+    List<Notice> selectDistinctProductInstIdAndType();
+    // ----- end ------ //
+
     @SelectProvider(type=NoticeSqlProvider.class, method="countByExample")
     long countByExample(NoticeExample example);
 

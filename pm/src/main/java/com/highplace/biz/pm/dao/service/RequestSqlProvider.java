@@ -92,6 +92,10 @@ public class RequestSqlProvider {
             sql.VALUES("rate_time", "#{rateTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getDealEmployeeId() != null) {
+            sql.VALUES("deal_employee_id", "#{dealEmployeeId,jdbcType=BIGINT}");
+        }
+        
         if (record.getDealDesc() != null) {
             sql.VALUES("deal_desc", "#{dealDesc,jdbcType=VARCHAR}");
         }
@@ -158,6 +162,7 @@ public class RequestSqlProvider {
         sql.SELECT("accept_time");
         sql.SELECT("finish_time");
         sql.SELECT("rate_time");
+        sql.SELECT("deal_employee_id");
         sql.SELECT("deal_desc");
         sql.SELECT("rate_level");
         sql.SELECT("rate_num");
@@ -201,6 +206,7 @@ public class RequestSqlProvider {
         sql.SELECT("accept_time");
         sql.SELECT("finish_time");
         sql.SELECT("rate_time");
+        sql.SELECT("deal_employee_id");
         sql.SELECT("deal_desc");
         sql.SELECT("rate_level");
         sql.SELECT("rate_num");
@@ -293,6 +299,10 @@ public class RequestSqlProvider {
             sql.SET("rate_time = #{record.rateTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getDealEmployeeId() != null) {
+            sql.SET("deal_employee_id = #{record.dealEmployeeId,jdbcType=BIGINT}");
+        }
+        
         if (record.getDealDesc() != null) {
             sql.SET("deal_desc = #{record.dealDesc,jdbcType=VARCHAR}");
         }
@@ -358,6 +368,7 @@ public class RequestSqlProvider {
         sql.SET("accept_time = #{record.acceptTime,jdbcType=TIMESTAMP}");
         sql.SET("finish_time = #{record.finishTime,jdbcType=TIMESTAMP}");
         sql.SET("rate_time = #{record.rateTime,jdbcType=TIMESTAMP}");
+        sql.SET("deal_employee_id = #{record.dealEmployeeId,jdbcType=BIGINT}");
         sql.SET("deal_desc = #{record.dealDesc,jdbcType=VARCHAR}");
         sql.SET("rate_level = #{record.rateLevel,jdbcType=INTEGER}");
         sql.SET("rate_num = #{record.rateNum,jdbcType=INTEGER}");
@@ -395,6 +406,7 @@ public class RequestSqlProvider {
         sql.SET("accept_time = #{record.acceptTime,jdbcType=TIMESTAMP}");
         sql.SET("finish_time = #{record.finishTime,jdbcType=TIMESTAMP}");
         sql.SET("rate_time = #{record.rateTime,jdbcType=TIMESTAMP}");
+        sql.SET("deal_employee_id = #{record.dealEmployeeId,jdbcType=BIGINT}");
         sql.SET("deal_desc = #{record.dealDesc,jdbcType=VARCHAR}");
         sql.SET("rate_level = #{record.rateLevel,jdbcType=INTEGER}");
         sql.SET("rate_num = #{record.rateNum,jdbcType=INTEGER}");
@@ -474,6 +486,10 @@ public class RequestSqlProvider {
         
         if (record.getRateTime() != null) {
             sql.SET("rate_time = #{rateTime,jdbcType=TIMESTAMP}");
+        }
+        
+        if (record.getDealEmployeeId() != null) {
+            sql.SET("deal_employee_id = #{dealEmployeeId,jdbcType=BIGINT}");
         }
         
         if (record.getDealDesc() != null) {

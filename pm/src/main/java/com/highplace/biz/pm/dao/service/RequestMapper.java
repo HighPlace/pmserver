@@ -18,6 +18,18 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface RequestMapper {
+
+    // ----- mybatis generator外新增的属性------ //
+
+    @Select(" select distinct product_inst_id, type, sub_type from t_request")
+    @Results({
+            @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="type", property="type", jdbcType=JdbcType.VARCHAR),
+            @Result(column="sub_type", property="subType", jdbcType=JdbcType.VARCHAR)
+    })
+    List<Request> selectDistinctProductInstIdAndTypeAndSubType();
+    // ----- end ------ //
+
     @SelectProvider(type=RequestSqlProvider.class, method="countByExample")
     long countByExample(RequestExample example);
 
@@ -39,11 +51,12 @@ public interface RequestMapper {
         "priority, start_time, ",
         "assign_time, accept_time, ",
         "finish_time, rate_time, ",
-        "deal_desc, rate_level, ",
-        "rate_num, rate_attachment, ",
-        "rate_username, create_time, ",
-        "modify_time, content, ",
-        "rate_desc, remark)",
+        "deal_employee_id, deal_desc, ",
+        "rate_level, rate_num, ",
+        "rate_attachment, rate_username, ",
+        "create_time, modify_time, ",
+        "content, rate_desc, ",
+        "remark)",
         "values (#{productInstId,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, ",
         "#{subType,jdbcType=VARCHAR}, #{source,jdbcType=INTEGER}, ",
         "#{status,jdbcType=INTEGER}, #{attachment1,jdbcType=VARCHAR}, ",
@@ -52,11 +65,12 @@ public interface RequestMapper {
         "#{priority,jdbcType=INTEGER}, #{startTime,jdbcType=TIMESTAMP}, ",
         "#{assignTime,jdbcType=TIMESTAMP}, #{acceptTime,jdbcType=TIMESTAMP}, ",
         "#{finishTime,jdbcType=TIMESTAMP}, #{rateTime,jdbcType=TIMESTAMP}, ",
-        "#{dealDesc,jdbcType=VARCHAR}, #{rateLevel,jdbcType=INTEGER}, ",
-        "#{rateNum,jdbcType=INTEGER}, #{rateAttachment,jdbcType=VARCHAR}, ",
-        "#{rateUsername,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, ",
-        "#{modifyTime,jdbcType=TIMESTAMP}, #{content,jdbcType=LONGVARCHAR}, ",
-        "#{rateDesc,jdbcType=LONGVARCHAR}, #{remark,jdbcType=LONGVARCHAR})"
+        "#{dealEmployeeId,jdbcType=BIGINT}, #{dealDesc,jdbcType=VARCHAR}, ",
+        "#{rateLevel,jdbcType=INTEGER}, #{rateNum,jdbcType=INTEGER}, ",
+        "#{rateAttachment,jdbcType=VARCHAR}, #{rateUsername,jdbcType=VARCHAR}, ",
+        "#{createTime,jdbcType=TIMESTAMP}, #{modifyTime,jdbcType=TIMESTAMP}, ",
+        "#{content,jdbcType=LONGVARCHAR}, #{rateDesc,jdbcType=LONGVARCHAR}, ",
+        "#{remark,jdbcType=LONGVARCHAR})"
     })
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="requestId", before=false, resultType=Long.class)
     int insert(Request record);
@@ -84,6 +98,7 @@ public interface RequestMapper {
         @Result(column="accept_time", property="acceptTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="finish_time", property="finishTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="rate_time", property="rateTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_employee_id", property="dealEmployeeId", jdbcType=JdbcType.BIGINT),
         @Result(column="deal_desc", property="dealDesc", jdbcType=JdbcType.VARCHAR),
         @Result(column="rate_level", property="rateLevel", jdbcType=JdbcType.INTEGER),
         @Result(column="rate_num", property="rateNum", jdbcType=JdbcType.INTEGER),
@@ -116,6 +131,7 @@ public interface RequestMapper {
         @Result(column="accept_time", property="acceptTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="finish_time", property="finishTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="rate_time", property="rateTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_employee_id", property="dealEmployeeId", jdbcType=JdbcType.BIGINT),
         @Result(column="deal_desc", property="dealDesc", jdbcType=JdbcType.VARCHAR),
         @Result(column="rate_level", property="rateLevel", jdbcType=JdbcType.INTEGER),
         @Result(column="rate_num", property="rateNum", jdbcType=JdbcType.INTEGER),
@@ -130,8 +146,8 @@ public interface RequestMapper {
         "select",
         "request_id, product_inst_id, type, sub_type, source, status, attachment1, attachment2, ",
         "property_id, submitter, contact_info, priority, start_time, assign_time, accept_time, ",
-        "finish_time, rate_time, deal_desc, rate_level, rate_num, rate_attachment, rate_username, ",
-        "create_time, modify_time, content, rate_desc, remark",
+        "finish_time, rate_time, deal_employee_id, deal_desc, rate_level, rate_num, rate_attachment, ",
+        "rate_username, create_time, modify_time, content, rate_desc, remark",
         "from t_request",
         "where request_id = #{requestId,jdbcType=BIGINT}"
     })
@@ -153,6 +169,7 @@ public interface RequestMapper {
         @Result(column="accept_time", property="acceptTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="finish_time", property="finishTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="rate_time", property="rateTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_employee_id", property="dealEmployeeId", jdbcType=JdbcType.BIGINT),
         @Result(column="deal_desc", property="dealDesc", jdbcType=JdbcType.VARCHAR),
         @Result(column="rate_level", property="rateLevel", jdbcType=JdbcType.INTEGER),
         @Result(column="rate_num", property="rateNum", jdbcType=JdbcType.INTEGER),
@@ -196,6 +213,7 @@ public interface RequestMapper {
           "accept_time = #{acceptTime,jdbcType=TIMESTAMP},",
           "finish_time = #{finishTime,jdbcType=TIMESTAMP},",
           "rate_time = #{rateTime,jdbcType=TIMESTAMP},",
+          "deal_employee_id = #{dealEmployeeId,jdbcType=BIGINT},",
           "deal_desc = #{dealDesc,jdbcType=VARCHAR},",
           "rate_level = #{rateLevel,jdbcType=INTEGER},",
           "rate_num = #{rateNum,jdbcType=INTEGER},",
@@ -228,6 +246,7 @@ public interface RequestMapper {
           "accept_time = #{acceptTime,jdbcType=TIMESTAMP},",
           "finish_time = #{finishTime,jdbcType=TIMESTAMP},",
           "rate_time = #{rateTime,jdbcType=TIMESTAMP},",
+          "deal_employee_id = #{dealEmployeeId,jdbcType=BIGINT},",
           "deal_desc = #{dealDesc,jdbcType=VARCHAR},",
           "rate_level = #{rateLevel,jdbcType=INTEGER},",
           "rate_num = #{rateNum,jdbcType=INTEGER},",

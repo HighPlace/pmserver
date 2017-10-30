@@ -1205,6 +1205,66 @@ public class RequestExample {
             return (Criteria) this;
         }
 
+        public Criteria andDealEmployeeIdIsNull() {
+            addCriterion("deal_employee_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdIsNotNull() {
+            addCriterion("deal_employee_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdEqualTo(Long value) {
+            addCriterion("deal_employee_id =", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdNotEqualTo(Long value) {
+            addCriterion("deal_employee_id <>", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdGreaterThan(Long value) {
+            addCriterion("deal_employee_id >", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("deal_employee_id >=", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdLessThan(Long value) {
+            addCriterion("deal_employee_id <", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdLessThanOrEqualTo(Long value) {
+            addCriterion("deal_employee_id <=", value, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdIn(List<Long> values) {
+            addCriterion("deal_employee_id in", values, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdNotIn(List<Long> values) {
+            addCriterion("deal_employee_id not in", values, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdBetween(Long value1, Long value2) {
+            addCriterion("deal_employee_id between", value1, value2, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealEmployeeIdNotBetween(Long value1, Long value2) {
+            addCriterion("deal_employee_id not between", value1, value2, "dealEmployeeId");
+            return (Criteria) this;
+        }
+
         public Criteria andDealDescIsNull() {
             addCriterion("deal_desc is null");
             return (Criteria) this;

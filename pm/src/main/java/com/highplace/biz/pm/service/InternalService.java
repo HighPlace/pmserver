@@ -6,11 +6,15 @@ import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
 import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.dao.org.EmployeeMapper;
+import com.highplace.biz.pm.dao.service.NoticeMapper;
+import com.highplace.biz.pm.dao.service.RequestMapper;
 import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.Employee;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
+import com.highplace.biz.pm.domain.service.Notice;
+import com.highplace.biz.pm.domain.service.Request;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -28,10 +32,10 @@ import java.util.concurrent.TimeUnit;
 
 import static com.highplace.biz.pm.service.CustomerService.*;
 import static com.highplace.biz.pm.service.DepartmentService.PREFIX_DEPARTMENT_NAME_KEY;
-import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_NAME_KEY;
-import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_PHONE_KEY;
-import static com.highplace.biz.pm.service.EmployeeService.PREFIX_EMPLOYEE_POSITION_KEY;
+import static com.highplace.biz.pm.service.EmployeeService.*;
+import static com.highplace.biz.pm.service.NoticeService.*;
 import static com.highplace.biz.pm.service.PropertyService.*;
+import static com.highplace.biz.pm.service.util.RequestService.*;
 
 @Component
 public class InternalService {
@@ -57,11 +61,10 @@ public class InternalService {
     private DepartmentMapper departmentMapper;
     @Autowired
     private EmployeeMapper employeeMapper;
-
-    //定时任务周期
-    public static enum TASK_PERIOD_ENUM {
-        PER_SECOND, PER_MINUTE, PER_HOUR, PER_DAY, PER_MONTH;
-    }
+    @Autowired
+    private NoticeMapper noticeMapper;
+    @Autowired
+    private RequestMapper requestMapper;
 
     //可能存在多实例的情况，为避免多实例的定时任务重复执行，需要加一个全局锁
     public boolean canRun(String taskName, TASK_PERIOD_ENUM taskPeriod) {
@@ -315,5 +318,60 @@ public class InternalService {
             }
             logger.info("reload employee cache success");
         }
+    }
+
+    @Scheduled(cron = "0 34 1 * * ?")   //每天1点34分执行一次，全量更新公告类型相关cache内容
+    public void reloadNoticeRedisValue() {
+
+        if (canRun("reloadNoticeRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+
+            List<Notice> noticeList = noticeMapper.selectDistinctProductInstIdAndType();
+
+            //维护一个已加了缺省值的productInstId列表
+            Set<String> defaultProductInstIdSet = new HashSet<>();
+            for (Notice notice : noticeList) {
+
+                stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), notice.getType());
+
+                //设置缺省的type
+                if(!defaultProductInstIdSet.contains(notice.getProductInstId())) {
+                    stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), DEFAULT_NOTICE_TYPE1);
+                    stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), DEFAULT_NOTICE_TYPE2);
+                    defaultProductInstIdSet.add(notice.getProductInstId());
+                }
+            }
+        }
+        logger.info("reload notice cache success");
+    }
+
+    @Scheduled(cron = "0 39 1 * * ?")   //每天1点39分执行一次，全量更新服务工单大类和小类相关cache内容
+    public void reloadRequestRedisValue() {
+
+        if (canRun("reloadRequestRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+
+            List<Request> requestList = requestMapper.selectDistinctProductInstIdAndTypeAndSubType();
+
+            //维护一个已加了缺省值的productInstId列表
+            Set<String> defaultProductInstIdSet = new HashSet<>();
+            for (Request request : requestList) {
+
+                stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), request.getType());
+                stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_SUB_TYPE_KEY + request.getProductInstId() + "_" + request.getType(), request.getSubType());
+
+                //设置缺省的type
+                if(!defaultProductInstIdSet.contains(request.getProductInstId())) {
+                    stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE1);
+                    stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE2);
+                    stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE3);
+                    defaultProductInstIdSet.add(request.getProductInstId());
+                }
+            }
+        }
+        logger.info("reload request cache success");
+    }
+
+    //定时任务周期
+    public static enum TASK_PERIOD_ENUM {
+        PER_SECOND, PER_MINUTE, PER_HOUR, PER_DAY, PER_MONTH;
     }
 }

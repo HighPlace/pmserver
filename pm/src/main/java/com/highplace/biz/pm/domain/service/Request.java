@@ -37,6 +37,8 @@ public class Request {
 
     private Date rateTime;
 
+    private Long dealEmployeeId;
+
     private String dealDesc;
 
     private Integer rateLevel;
@@ -191,6 +193,14 @@ public class Request {
 
     public void setRateTime(Date rateTime) {
         this.rateTime = rateTime;
+    }
+
+    public Long getDealEmployeeId() {
+        return dealEmployeeId;
+    }
+
+    public void setDealEmployeeId(Long dealEmployeeId) {
+        this.dealEmployeeId = dealEmployeeId;
     }
 
     public String getDealDesc() {
