@@ -1,5 +1,9 @@
 package com.highplace.biz.pm.domain.org;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
@@ -24,8 +28,12 @@ public class Department {
 
     private String aliasName;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     private String deptDesc;

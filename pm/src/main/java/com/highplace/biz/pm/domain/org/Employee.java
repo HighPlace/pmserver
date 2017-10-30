@@ -1,7 +1,13 @@
 package com.highplace.biz.pm.domain.org;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.ExcelResources;
+import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -117,14 +123,22 @@ public class Employee {
 
     private String gender;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd")
+    //@DateTimeFormat(pattern="yyyy-MM-dd")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date entryDate;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd")
+    //@DateTimeFormat(pattern="yyyy-MM-dd")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date leaveDate;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     private String remark;

@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.service.util;
+package com.highplace.biz.pm.service.util.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,7 +19,7 @@ public class DateJsonDeserializer extends JsonDeserializer<Date> {
     public Date deserialize(JsonParser parser, DeserializationContext context)
             throws IOException, JsonProcessingException {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             return sdf.parse(parser.getValueAsString());
         } catch (Exception e) {
             e.printStackTrace();

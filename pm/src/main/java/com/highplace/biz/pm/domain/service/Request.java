@@ -1,13 +1,12 @@
 package com.highplace.biz.pm.domain.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.highplace.biz.pm.service.util.DateJsonDeserializer;
-import com.highplace.biz.pm.service.util.DateJsonSerializer;
-import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
+import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -41,24 +40,24 @@ public class Request {
 
     private Integer priority;
 
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date startTime;
 
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date assignTime;
 
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date acceptTime;
 
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date finishTime;
 
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     //@JsonIgnore
     private Date rateTime;
 
@@ -74,8 +73,12 @@ public class Request {
 
     private String rateUsername;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     @NotNull

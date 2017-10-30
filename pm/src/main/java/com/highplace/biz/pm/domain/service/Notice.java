@@ -1,5 +1,11 @@
 package com.highplace.biz.pm.domain.service;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -22,10 +28,14 @@ public class Notice {
 
     private Integer status;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd")
+    //@DateTimeFormat(pattern="yyyy-MM-dd")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date publishDate;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd")
+    //@DateTimeFormat(pattern="yyyy-MM-dd")
+    @JsonSerialize(using = DateJsonSerializer.class)
+    @JsonDeserialize(using = DateJsonDeserializer.class)
     private Date validDate;
 
     private String publisher;
@@ -44,8 +54,12 @@ public class Notice {
 
     private String specifyRoomIdList;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     @NotNull

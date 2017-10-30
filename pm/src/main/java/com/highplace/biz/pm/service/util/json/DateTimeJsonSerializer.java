@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.service.util;
+package com.highplace.biz.pm.service.util.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DateJsonSerializer extends JsonSerializer<Date> {
+public class DateTimeJsonSerializer extends JsonSerializer<Date> {
 
     /**
      * @see com.fasterxml.jackson.databind.JsonSerializer#serialize(java.lang.Object,

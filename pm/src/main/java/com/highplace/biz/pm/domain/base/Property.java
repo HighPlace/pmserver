@@ -1,6 +1,10 @@
 package com.highplace.biz.pm.domain.base;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.ExcelResources;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.Length;
 
@@ -38,8 +42,12 @@ public class Property {
 
     private Integer status;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     private String remark;
