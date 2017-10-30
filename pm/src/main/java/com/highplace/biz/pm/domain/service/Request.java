@@ -1,5 +1,9 @@
 package com.highplace.biz.pm.domain.service;
 
+import org.hibernate.validator.constraints.Length;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 public class Request {
@@ -7,8 +11,12 @@ public class Request {
 
     private String productInstId;
 
+    @NotNull
+    @Length(min = 1)
     private String type;
 
+    @NotNull
+    @Length(min = 1)
     private String subType;
 
     private Integer source;
@@ -27,14 +35,19 @@ public class Request {
 
     private Integer priority;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date assignTime;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date acceptTime;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date finishTime;
 
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private Date rateTime;
 
     private Long dealEmployeeId;
@@ -53,6 +66,8 @@ public class Request {
 
     private Date modifyTime;
 
+    @NotNull
+    @Length(min = 1)
     private String content;
 
     private String rateDesc;
