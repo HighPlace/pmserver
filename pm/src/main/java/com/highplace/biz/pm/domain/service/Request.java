@@ -36,7 +36,7 @@ public class Request {
 
     private Integer priority;
 
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date startTime;
 
     @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
