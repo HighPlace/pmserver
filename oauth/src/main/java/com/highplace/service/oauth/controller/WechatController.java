@@ -13,7 +13,7 @@ import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@CrossOrigin(origins = "*",maxAge = 3600)
+//@CrossOrigin(origins = "*",maxAge = 3600)
 @Controller
 public class WechatController {
 
