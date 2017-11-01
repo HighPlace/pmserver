@@ -35,12 +35,12 @@ public class Account {
     @NotNull
     private List<Role> roles; //可以修改
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     public static class Role{
