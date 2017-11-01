@@ -56,7 +56,7 @@ public class AccountController {
     public Account changeDepartment(@RequestBody Account account,
                                        Principal principal) throws Exception {
 
-        if (account.getUsername() == null) throw new Exception("username is null");
+        if ( StringUtils.isEmpty(account.getUsername())) throw new Exception("username is null");
         logger.debug("pre account:" + account.toString());
 
         //插入记录

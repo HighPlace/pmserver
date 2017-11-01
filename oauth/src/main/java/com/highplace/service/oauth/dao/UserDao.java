@@ -120,7 +120,7 @@ public interface UserDao {
     int updateCertainByUserId(User user);
 
     //用于用户注册
-    @Insert("INSERT INTO t_user(product_inst_id, username, password, create_time) VALUES(#{productInstId}, #{username}, #{password}, now())")
+    @Insert("INSERT INTO t_user(product_inst_id, username, password, mobile_no, email, create_time) VALUES(#{productInstId}, #{username}, #{password}, #{mobileNo}, #{email}, now())")
     @Options(useGeneratedKeys = true, keyProperty = "userId", keyColumn = "user_id")
     int insertUser(User user);
 

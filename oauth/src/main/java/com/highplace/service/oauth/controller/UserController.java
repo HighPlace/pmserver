@@ -80,7 +80,8 @@ public class UserController {
     @PreAuthorize("#oauth2.hasScope('server')")
     @RequestMapping(path = "/user", method = RequestMethod.PUT)
     @Transactional
-    public void modifyUser(@Valid @RequestBody User user) {
+    public void modifyUser(@RequestBody User user) throws Exception {
+        if(StringUtils.isEmpty(user.getUsername())) throw new Exception("username is null");
         User existing = userDao.findByUsernameAndProductInstId(user.getUsername(), user.getProductInstId());
         Assert.notNull(existing, "user not exists: " + user.getUsername());
 

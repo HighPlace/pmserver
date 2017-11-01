@@ -38,6 +38,7 @@ public class User implements UserDetails, CredentialsContainer {
     @Column(name = "wx_open_id" )
     private String wxOpenId;
 
+    @NotNull
     @Column(name = "password" )
     private String password;
 
@@ -65,6 +66,7 @@ public class User implements UserDetails, CredentialsContainer {
     @Column(name = "remark" )
     private String remark;
 
+    @NotNull
     private List<Role> roles;   //用户下的所有角色
 
     private List<Action> actions; //用户角色对应的所有可以操作的资源

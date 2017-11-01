@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +81,15 @@ public class AccountService {
             account.setPassword(CommonUtils.createPassWord(8));
         }
 
+        //创建账户
         oAuthServiceClient.createUserAccount(account);
+
+        //将账户名更新到员工信息中
+        Employee employee = new Employee();
+        employee.setEmployeeId(account.getEmployeeId());
+        employee.setSysUsername(account.getUsername());
+        employeeMapper.updateByPrimaryKeySelective(employee);
+
         return 1;
     }
 
