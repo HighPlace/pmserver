@@ -81,7 +81,7 @@ public class UserController {
     @RequestMapping(path = "/user", method = RequestMethod.PUT)
     @Transactional
     public void modifyUser(@Valid @RequestBody User user) {
-        User existing = userDao.findByUsername(user.getUsername());
+        User existing = userDao.findByUsernameAndProductInstId(user.getUsername(), user.getProductInstId());
         Assert.notNull(existing, "user not exists: " + user.getUsername());
 
         if (StringUtils.isNotEmpty(user.getPassword())) {
@@ -98,7 +98,7 @@ public class UserController {
         if (user.getAccountLocked() != null) {
             existing.setAccountLocked(user.getAccountLocked());
         }
-        userDao.updateCertainByUsername(existing); //更新特定用户信息
+        userDao.updateCertainByUserId(existing); //更新特定用户信息
 
         if (user.getRoles() != null && user.getRoles().size() > 0) {
             roleDao.deleteAllUserRole(existing.getUserId()); //删除老的用户角色关系
