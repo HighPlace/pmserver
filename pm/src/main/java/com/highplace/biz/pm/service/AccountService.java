@@ -3,7 +3,6 @@ package com.highplace.biz.pm.service;
 import com.highplace.biz.pm.client.OAuthServiceClient;
 import com.highplace.biz.pm.domain.org.Employee;
 import com.highplace.biz.pm.domain.system.Account;
-import com.highplace.biz.pm.domain.ui.AccountViewBean;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +29,18 @@ public class AccountService {
 
         Map<String, Object> result = employeeService.query(productInstId, searchBean, false, true);
         List<Employee> employeeList = (List<Employee>) result.get("data");
-        List<AccountViewBean> accountViewBeanList = new ArrayList<>();
-        AccountViewBean accountViewBean;
+        List<Account> accountList = new ArrayList<>();
+        Account account;
         for(Employee employee : employeeList) {
             //从oauth_service获取账号相关信息
-            accountViewBean = (AccountViewBean) oAuthServiceClient.getUserAccount(employee.getSysUsername());
-            accountViewBean.setEmployeeName(employee.getEmployeeName());
-            accountViewBean.setDeptName(employee.getDeptName());
-            accountViewBean.setPosition(employee.getPosition());
-            accountViewBean.setStatus(employee.getStatus());
-            accountViewBeanList.add(accountViewBean);
+            account = oAuthServiceClient.getUserAccount(employee.getSysUsername());
+            account.setEmployeeName(employee.getEmployeeName());
+            account.setDeptName(employee.getDeptName());
+            account.setPosition(employee.getPosition());
+            account.setStatus(employee.getStatus());
+            accountList.add(account);
         }
-        result.put("data", accountViewBeanList);
+        result.put("data", accountList);
         return result;
     }
 

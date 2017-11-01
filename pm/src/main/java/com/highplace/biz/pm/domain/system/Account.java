@@ -5,7 +5,13 @@ import java.util.Date;
 import java.util.List;
 
 public class Account {
+    //employee相关信息
+    private String employeeName;
+    private String deptName;
+    private String position;
+    private Integer status;  //员工状态: 0:在岗 1:不在岗 2:离职
 
+    //user相关信息
     private Long userId;
     private String productInstId;
     @NotNull
@@ -44,6 +50,38 @@ public class Account {
         public void setRoleName(String roleName) {
             this.roleName = roleName;
         }
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Date getCreateTime() {
@@ -177,7 +215,11 @@ public class Account {
     @Override
     public String toString() {
         return "Account{" +
-                "userId=" + userId +
+                "employeeName='" + employeeName + '\'' +
+                ", deptName='" + deptName + '\'' +
+                ", position='" + position + '\'' +
+                ", status=" + status +
+                ", userId=" + userId +
                 ", productInstId='" + productInstId + '\'' +
                 ", username='" + username + '\'' +
                 ", mobileNo='" + mobileNo + '\'' +
