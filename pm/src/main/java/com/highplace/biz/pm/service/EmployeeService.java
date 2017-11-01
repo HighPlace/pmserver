@@ -276,7 +276,7 @@ public class EmployeeService {
                 if(StringUtils.isNotEmpty(employee.getEmail()) ||
                         StringUtils.isNotEmpty(employee.getPhone())) {
                     Account account = new Account();
-                    account.setUsername(employee.getSysUsername());;
+                    account.setUsername(tmp.getSysUsername());;
                     account.setMobileNo(employee.getPhone());
                     account.setEmail(employee.getEmail());
                     accountService.update(productInstId, account);
