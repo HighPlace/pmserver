@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -62,5 +59,21 @@ public class AccountController {
         //插入记录
         accountService.update(SecurityUtils.getCurrentProductInstId(principal), account);
         return account;
+    }
+
+    @RequestMapping(path = "/account/username", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/account;GET','/account;ALL','/account/**;GET','/account/**;ALL','ADMIN')")
+    public Map<String, Object> getEntityList(@RequestParam(value = "input", required = true) String input,
+                                             Principal principal) {
+
+        return accountService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal),input);
+    }
+
+    @RequestMapping(path = "/account/checkUsername", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/account;GET','/account;ALL','/account/**;GET','/account/**;ALL','ADMIN')")
+    public boolean checkUsernameValid(@RequestParam(value = "input", required = true) String input,
+                                             Principal principal) {
+
+        return !accountService.checkUsernameExists(SecurityUtils.getCurrentProductInstId(principal),input);
     }
 }

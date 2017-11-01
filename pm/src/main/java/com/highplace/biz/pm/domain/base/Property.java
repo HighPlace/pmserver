@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.base;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.ExcelResources;
@@ -180,6 +181,7 @@ public class Property {
     }
 
     @ExcelResources(title="房产状态",order=8)
+    @JsonIgnore
     public String getStatusDesc() {
         return transferStatusToDesc(getStatus());
     }

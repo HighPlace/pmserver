@@ -219,7 +219,7 @@ public class Employee {
     @ExcelResources(title="状态",order=11)
     @JsonIgnore
     public String getStatusDesc() {
-        return Employee.transferStatusToDesc(status);
+        return Employee.transferStatusToDesc(getStatus());
     }
 
     public void setStatus(Integer status) {
@@ -246,7 +246,7 @@ public class Employee {
     @ExcelResources(title="证件类型",order=7)
     @JsonIgnore
     public String getIdentityTypeDesc(){
-        return Employee.transferIdentityTypeToDesc(identityType);
+        return Employee.transferIdentityTypeToDesc(getIdentityType());
     }
 
     @ExcelResources(title="证件号码",order=8)
@@ -326,6 +326,7 @@ public class Employee {
     }
 
     @ExcelResources(title="入职日期",order=10)
+    @JsonIgnore
     public String getFormatEntryDate() {
         return (entryDate!=null)? CommonUtils.getTimeString(entryDate, CommonUtils.FORMAT_DAY):null;
     }

@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.base;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.ExcelResources;
@@ -52,7 +53,7 @@ public class Customer {
         }
         return 0;
     }
-
+    @JsonIgnore
     public String getIdentityTypeDesc(){
         return transferIdentityTypeToDesc(getIdentityType());
     }
