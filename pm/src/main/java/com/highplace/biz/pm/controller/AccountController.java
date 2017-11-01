@@ -41,7 +41,13 @@ public class AccountController {
                                     Principal principal) throws Exception {
 
         logger.debug("pre account:" + account.toString());
-        accountService.insert(SecurityUtils.getCurrentProductInstId(principal), account);
+        int rows = accountService.insert(SecurityUtils.getCurrentProductInstId(principal), account);
+        if (rows == -1)
+            throw new Exception("员工id不存在,请检查");
+        else if (rows == -2)
+            throw new Exception("员工已有平台账号,请检查");
+        else if (rows != 1)
+            throw new Exception("create failed, effected num:" + rows);
         return account;
     }
 

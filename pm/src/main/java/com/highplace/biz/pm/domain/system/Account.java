@@ -11,6 +11,7 @@ import java.util.List;
 
 public class Account {
     //employee相关信息
+    @NotNull
     private Long employeeId;
     private String employeeName;
     private String deptName;

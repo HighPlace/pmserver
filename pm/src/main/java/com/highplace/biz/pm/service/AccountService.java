@@ -1,9 +1,13 @@
 package com.highplace.biz.pm.service;
 
 import com.highplace.biz.pm.client.OAuthServiceClient;
+import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.domain.org.Employee;
+import com.highplace.biz.pm.domain.org.EmployeeExample;
 import com.highplace.biz.pm.domain.system.Account;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
+import com.highplace.biz.pm.service.util.CommonUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +24,9 @@ public class AccountService {
 
     @Autowired
     private EmployeeService employeeService;
+
+    @Autowired
+    private EmployeeMapper employeeMapper;
 
     @Autowired
     private OAuthServiceClient oAuthServiceClient;
@@ -46,11 +53,35 @@ public class AccountService {
     }
 
     //插入账号信息
-    public void insert(String productInstId, Account account) {
+    public int insert(String productInstId, Account account) {
 
         //设置产品实例ID
         account.setProductInstId(productInstId);
+
+        //检查是否已经创建帐号
+        EmployeeExample employeeExample = new EmployeeExample();
+        EmployeeExample.Criteria criteria = employeeExample.createCriteria();
+        criteria.andProductInstIdEqualTo(account.getProductInstId());
+        criteria.andEmployeeIdEqualTo(account.getEmployeeId());
+        List<Employee> employeeList = employeeMapper.selectByExample(employeeExample);
+        if(employeeList == null || employeeList.size() ==0) { //员工id不存在
+            return -1;
+        } else {
+            if (StringUtils.isNotEmpty(employeeList.get(0).getSysUsername())) //已经创建用户
+                return -2;
+        }
+
+        //同步电话和邮箱信息
+        account.setMobileNo(employeeList.get(0).getPhone());
+        account.setEmail(employeeList.get(0).getEmail());
+
+        //如果没有传入密码，则创建8位随机密码
+        if(StringUtils.isEmpty(account.getPassword())){
+            account.setPassword(CommonUtils.createPassWord(8));
+        }
+
         oAuthServiceClient.createUserAccount(account);
+        return 1;
     }
 
     //更新账号信息
