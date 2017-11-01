@@ -2,6 +2,7 @@ package com.highplace.service.oauth.dao;
 
 import com.highplace.service.oauth.domain.User;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.type.JdbcType;
 
 @Mapper
 public interface UserDao {
@@ -65,8 +66,8 @@ public interface UserDao {
             @Result(column="account_locked", property="accountLocked"),
             @Result(column="enabled", property="enabled"),
             @Result(column="super_user_flag", property="superUserFlag"),
-            @Result(column="create_time", property="createTime"),
-            @Result(column="modify_time", property="modifyTime"),
+            @Result(column="create_time", property="createTime", jdbcType= JdbcType.TIMESTAMP),
+            @Result(column="modify_time", property="modifyTime", jdbcType= JdbcType.TIMESTAMP),
             @Result(column="user_id", property="roles", many=@Many(select="com.highplace.service.oauth.dao.RoleDao.findByUserId"))
     })
     public User findByUsernameWithRoles(@Param("username") String username);
