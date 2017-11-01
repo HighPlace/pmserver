@@ -7,9 +7,10 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.http.HttpServletResponse;
-
+/*
 @Configuration
 @EnableResourceServer
+
 public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Override
@@ -27,3 +28,4 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     }
 }
+*/
