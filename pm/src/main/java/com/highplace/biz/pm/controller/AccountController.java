@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.Map;
 
 @RestController
@@ -71,9 +72,15 @@ public class AccountController {
 
     @RequestMapping(path = "/account/checkUsername", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/account;GET','/account;ALL','/account/**;GET','/account/**;ALL','ADMIN')")
-    public boolean checkUsernameValid(@RequestParam(value = "input", required = true) String input,
+    public Map<String, Object>  checkUsernameValid(@RequestParam(value = "input", required = true) String input,
                                              Principal principal) {
 
-        return !accountService.checkUsernameExists(SecurityUtils.getCurrentProductInstId(principal),input);
+        boolean isExist = accountService.checkUsernameExists(SecurityUtils.getCurrentProductInstId(principal),input);
+
+        if(!isExist)
+            return Collections.<String, Object>singletonMap("result", true);
+        else
+            return Collections.<String, Object>singletonMap("result", false);
+
     }
 }
