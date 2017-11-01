@@ -59,7 +59,7 @@ public interface UserDao {
             @Result(column="mobile_no", property="mobileNo"),
             @Result(column="email", property="email"),
             @Result(column="wx_open_id", property="wxOpenId"),
-            @Result(column="password", property="password"),
+            //@Result(column="password", property="password"),
             @Result(column="credential_expired", property="credentialExpired"),
             @Result(column="account_expired", property="accountExpired"),
             @Result(column="account_locked", property="accountLocked"),
