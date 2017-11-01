@@ -7,7 +7,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.http.HttpServletResponse;
-/*
+
 @Configuration
 @EnableResourceServer
 
@@ -20,7 +20,7 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .exceptionHandling()
                 .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
                 .and()
-                .authorizeRequests().antMatchers("/user","/user/**","/wechat/**","/captcha-image","/captcha-image-check").permitAll()
+                .authorizeRequests().antMatchers("/wechat/**","/captcha-image","/captcha-image-check").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
@@ -28,4 +28,3 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     }
 }
-*/
