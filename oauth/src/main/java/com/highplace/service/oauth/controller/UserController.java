@@ -50,7 +50,6 @@ public class UserController {
     private RoleDao roleDao;
 
     //resource server获取当前用户信息接口
-    @PreAuthorize("#oauth2.hasScope('server')")
     @RequestMapping(path = "/user", method = RequestMethod.GET)
     public Principal getCurrentUser(Principal user) {
         return user;
