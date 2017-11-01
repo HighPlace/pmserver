@@ -1,5 +1,6 @@
 package com.highplace.biz.pm.domain.org;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.CommonUtils;
@@ -216,10 +217,10 @@ public class Employee {
     }
 
     @ExcelResources(title="状态",order=11)
+    @JsonIgnore
     public String getStatusDesc() {
         return Employee.transferStatusToDesc(status);
     }
-
 
     public void setStatus(Integer status) {
         this.status = status;
@@ -243,6 +244,7 @@ public class Employee {
 
     //@ExcelResources(title="证件类型(居民身份证/护照/港澳回乡证/台胞证)",order=)
     @ExcelResources(title="证件类型",order=7)
+    @JsonIgnore
     public String getIdentityTypeDesc(){
         return Employee.transferIdentityTypeToDesc(identityType);
     }
