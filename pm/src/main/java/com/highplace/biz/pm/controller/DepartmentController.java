@@ -67,7 +67,7 @@ public class DepartmentController {
 
         //插入记录
         int rows = departmentService.update(SecurityUtils.getCurrentProductInstId(principal), department);
-        logger.debug("department insert return num:" + rows);
+        logger.debug("department update return num:" + rows);
         logger.debug("post department:" + department.toString());
         if (rows == -1)
             throw new Exception("上级部门不存在,请检查");

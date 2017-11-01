@@ -10,6 +10,7 @@ import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.Employee;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
+import com.highplace.biz.pm.domain.system.Account;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
@@ -60,6 +61,8 @@ public class EmployeeService {
     private TaskStatusService taskStatusService;
     @Autowired
     private QCloudConfig qCloudConfig;
+    @Autowired
+    private AccountService accountService;
 
     //position/employeeName/phone以set数据结构缓存到redis中
     public void addRedisValue(String productInstId, Employee employee) {
@@ -131,7 +134,7 @@ public class EmployeeService {
     }
 
     //查询员工信息列表
-    public Map<String, Object> query(String productInstId, EmployeeSearchBean searchBean, boolean noPageSortFlag) {
+    public Map<String, Object> query(String productInstId, EmployeeSearchBean searchBean, boolean noPageSortFlag, boolean onlySysUserFlag) {
 
         EmployeeExample example = new EmployeeExample();
         EmployeeExample.Criteria criteria = example.createCriteria();
@@ -154,6 +157,12 @@ public class EmployeeService {
 
         if (searchBean.getStatus() != null)
             criteria.andStatusEqualTo(searchBean.getStatus());
+
+        if (StringUtils.isNotEmpty(searchBean.getSysUsername())) {
+            criteria.andSysUsernameLike("%" + searchBean.getSysUsername() + "%"); //模糊查询
+        }else {
+            if (onlySysUserFlag) criteria.andSysUsernameIsNotNull();  //没有输入账号查询的话,从员工表中搜索非null的记录
+        }
 
         //如果noPageSortFlag 不为true
         if (!noPageSortFlag) {
@@ -259,6 +268,18 @@ public class EmployeeService {
         if (num == 1) {
             //更新redis
             addRedisValue(productInstId, employee);
+
+            //将有改动的电话和邮箱同步到系统账号信息中
+            if(StringUtils.isNotEmpty(employee.getSysUsername())){
+                if(StringUtils.isNotEmpty(employee.getEmail()) ||
+                        StringUtils.isNotEmpty(employee.getPhone())) {
+                    Account account = new Account();
+                    account.setUsername(employee.getSysUsername());;
+                    account.setMobileNo(employee.getPhone());
+                    account.setEmail(employee.getEmail());
+                    accountService.update(productInstId, account);
+                }
+            }
         }
         return num;
     }

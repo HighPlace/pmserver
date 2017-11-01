@@ -35,7 +35,7 @@ public class EmployeeController {
 
         logger.debug("EmployeeSearchBean:" + searchBean.toString());
         logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
-        return employeeService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
+        return employeeService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false, false);
     }
 
     @RequestMapping(path = "/employee/{entity}", method = RequestMethod.GET)
