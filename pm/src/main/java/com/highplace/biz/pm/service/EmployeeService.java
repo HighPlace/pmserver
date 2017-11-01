@@ -270,7 +270,9 @@ public class EmployeeService {
             addRedisValue(productInstId, employee);
 
             //将有改动的电话和邮箱同步到系统账号信息中
-            if(StringUtils.isNotEmpty(employee.getSysUsername())){
+            //先查看是否有系统账号
+            Employee tmp = employeeMapper.selectByPrimaryKey(employee.getEmployeeId());
+            if(StringUtils.isNotEmpty(tmp.getSysUsername())){
                 if(StringUtils.isNotEmpty(employee.getEmail()) ||
                         StringUtils.isNotEmpty(employee.getPhone())) {
                     Account account = new Account();
