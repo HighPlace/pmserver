@@ -1,11 +1,17 @@
 package com.highplace.biz.pm.domain.system;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
 public class Account {
     //employee相关信息
+    private Long employeeId;
     private String employeeName;
     private String deptName;
     private String position;
@@ -28,7 +34,13 @@ public class Account {
     private String remark;
     @NotNull
     private List<Role> roles; //可以修改
+
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
+
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     public static class Role{
@@ -50,6 +62,14 @@ public class Account {
         public void setRoleName(String roleName) {
             this.roleName = roleName;
         }
+    }
+
+    public Long getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(Long employeeId) {
+        this.employeeId = employeeId;
     }
 
     public String getEmployeeName() {
@@ -212,29 +232,4 @@ public class Account {
         this.roles = roles;
     }
 
-    @Override
-    public String toString() {
-        return "Account{" +
-                "employeeName='" + employeeName + '\'' +
-                ", deptName='" + deptName + '\'' +
-                ", position='" + position + '\'' +
-                ", status=" + status +
-                ", userId=" + userId +
-                ", productInstId='" + productInstId + '\'' +
-                ", username='" + username + '\'' +
-                ", mobileNo='" + mobileNo + '\'' +
-                ", email='" + email + '\'' +
-                ", wxOpenId='" + wxOpenId + '\'' +
-                ", password='" + password + '\'' +
-                ", credentialExpired=" + credentialExpired +
-                ", accountExpired=" + accountExpired +
-                ", accountLocked=" + accountLocked +
-                ", enabled=" + enabled +
-                ", superUserFlag=" + superUserFlag +
-                ", remark='" + remark + '\'' +
-                ", roles=" + roles +
-                ", createTime=" + createTime +
-                ", modifyTime=" + modifyTime +
-                '}';
-    }
 }

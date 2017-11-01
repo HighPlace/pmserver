@@ -34,6 +34,7 @@ public class AccountService {
         for(Employee employee : employeeList) {
             //从oauth_service获取账号相关信息
             account = oAuthServiceClient.getUserAccount(employee.getSysUsername());
+            account.setEmployeeId(employee.getEmployeeId());
             account.setEmployeeName(employee.getEmployeeName());
             account.setDeptName(employee.getDeptName());
             account.setPosition(employee.getPosition());
