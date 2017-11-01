@@ -52,7 +52,7 @@ public interface UserDao {
     public User findByUsername(@Param("username") String username);
 
     //该查询主要是对用户名的查询,返回用户对应的角色信息,用于平台用户管理功能
-    @Select("SELECT * from t_user where username = #{username} limit 1")
+    @Select("SELECT user_id,product_inst_id,username,mobile_no,email,wx_open_id,credential_expired,account_expired,account_locked,enabled,super_user_flag, create_time, modify_time from t_user where username = #{username} limit 1")
     @Results({
             @Result(id=true, column="user_id", property="userId"),
             @Result(column="product_inst_id", property="productInstId"),
