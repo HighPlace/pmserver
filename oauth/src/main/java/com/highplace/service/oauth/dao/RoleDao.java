@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper
 public interface RoleDao {
 
+    //查询用户角色信息
     @Select("select b.* from t_user_role a, t_role b where a.user_id= #{userId} and a.role_id=b.role_id")
     @Results({
             @Result(id=true, column="role_id", property="roleId"),
@@ -20,4 +21,12 @@ public interface RoleDao {
             @Result(column="super_role_flag", property="superRoleFlag")
     })
     public List<Role> findByUserId(@Param("userId") long userId);
+
+    //插入用户角色关系
+    @Insert("INSERT INTO t_user_role(user_id, role_id, create_time) VALUES(#{userId}, #{roleId}, now())")
+    int insertUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
+
+    //删除所有用户角色关系
+    @Delete("delete from t_user_role where user_id = #{userId}")
+    int deleteAllUserRole(@Param("userId") Long userId);
 }

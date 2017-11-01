@@ -46,20 +46,24 @@ public class WechatLoginService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    public static final String bytesToHexString(byte[] bArray) {
+        StringBuffer sb = new StringBuffer(bArray.length);
+        String sTemp;
+        for (int i = 0; i < bArray.length; i++) {
+            sTemp = Integer.toHexString(0xFF & bArray[i]);
+            if (sTemp.length() < 2)
+                sb.append(0);
+            sb.append(sTemp.toUpperCase());
+        }
+        return sb.toString().toLowerCase();
+    }
+
     //针对微信的特殊处理,参考http://blog.csdn.net/kinginblue/article/details/52706155
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new WechatLoginService.WxMappingJackson2HttpMessageConverter());
         return restTemplate;
-    }
-
-    protected class WxMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
-        public WxMappingJackson2HttpMessageConverter(){
-            List<MediaType> mediaTypes = new ArrayList<>();
-            mediaTypes.add(MediaType.TEXT_PLAIN);
-            setSupportedMediaTypes(mediaTypes);
-        }
     }
 
     // 检查从微信服务器发过来的签名
@@ -68,7 +72,7 @@ public class WechatLoginService {
         String timestamp = request.getParameter("timestamp");           // 时间戳
         String nonce = request.getParameter("nonce");                   // 随机数
 
-        String[] arr = new String[] {timestamp, nonce, wechatConfig.getToken()};
+        String[] arr = new String[]{timestamp, nonce, wechatConfig.getToken()};
         Arrays.sort(arr);
         String s = arr[0] + arr[1] + arr[2];
         MessageDigest md;
@@ -90,19 +94,19 @@ public class WechatLoginService {
 
         //生成state放入redis
         String secretState = "secret" + new Random().nextInt(999_999_999);
-        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState,60*5, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_STATE_KEY + secretState, secretState, 60 * 5, TimeUnit.SECONDS);
 
         String loginUrl = null;
-        if(clientType == CLIENT_TYPE_WEB){
+        if (clientType == CLIENT_TYPE_WEB) {
             loginUrl = WEB_LOGIN_BASE_URL;
-        } else if(clientType == CLIENT_TYPE_WECHAT) {
+        } else if (clientType == CLIENT_TYPE_WECHAT) {
             loginUrl = WECHAT_LOGIN_BASE_URL;
         } else {
             return null;
         }
 
         //如果没有指定，用缺省配置的
-        if(callBackUrl == null) {
+        if (callBackUrl == null) {
             callBackUrl = wechatConfig.getCallback();
         }
 
@@ -119,7 +123,7 @@ public class WechatLoginService {
 
     //处理call back请求
     //CALLBACK?code=0419p3Cc0YxTtG1nadCc0Ms7Cc09p3C8&state=secret121324
-    public Map<String, Object> callback(String code, String secretState) throws Exception{
+    public Map<String, Object> callback(String code, String secretState) throws Exception {
         /*
         //检查传回的state跟session中的是否一致
         final String secretStateFromSession = (String) request.getSession().getAttribute("state");
@@ -130,7 +134,7 @@ public class WechatLoginService {
         */
         String secretStateFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_WX_LOGIN_STATE_KEY + secretState);
         logger.debug("XXXXXXXXXXXXX secretStateFromRedis: " + secretStateFromRedis);
-        if( (secretStateFromRedis == null) || !secretStateFromRedis.equals(secretState) ){
+        if ((secretStateFromRedis == null) || !secretStateFromRedis.equals(secretState)) {
             throw new Exception("State value do not match!");
         }
 
@@ -144,7 +148,7 @@ public class WechatLoginService {
 
         WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
 
-        if (null == wechatAccessToken || !wechatAccessToken.valid()){
+        if (null == wechatAccessToken || !wechatAccessToken.valid()) {
             logger.error("getWechatAccessToken invalid: " + wechatAccessToken);
             throw new Exception("获取微信AccessToken失败");
         }
@@ -181,7 +185,7 @@ public class WechatLoginService {
 
             //生成一个临时的用于通过wxopenid登录的密码，并放入到session中
             String wxOpenidTempPassword = UUID.randomUUID().toString();
-            stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + wxOpenidTempPassword, wxOpenidTempPassword,60*1, TimeUnit.SECONDS);
+            stringRedisTemplate.opsForValue().set(PREFIX_WX_LOGIN_TEMP_PASSWORD_KEY + wxOpenidTempPassword, wxOpenidTempPassword, 60 * 1, TimeUnit.SECONDS);
 
             result.put("bindFlag", 1);
             result.put("wxOpenId", wechatAccessToken.getOpenid());
@@ -192,24 +196,18 @@ public class WechatLoginService {
 
 
     //绑定用户微信openid
-    public int bind(String username, String wxOpenId)  {
+    public int bind(String username, String wxOpenId) {
 
         User isExists = userDao.findByUsername(username);
         Assert.notNull(isExists, "username not exists: " + username);
-        return userDao.UpdateWxOpenIdByUsername(username, wxOpenId);
+        return userDao.updateWxOpenIdByUsername(username, wxOpenId);
     }
 
-
-
-    public static final String bytesToHexString(byte[] bArray) {
-        StringBuffer sb = new StringBuffer(bArray.length);
-        String sTemp;
-        for (int i = 0; i < bArray.length; i++) {
-            sTemp = Integer.toHexString(0xFF & bArray[i]);
-            if (sTemp.length() < 2)
-                sb.append(0);
-            sb.append(sTemp.toUpperCase());
+    protected class WxMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+        public WxMappingJackson2HttpMessageConverter() {
+            List<MediaType> mediaTypes = new ArrayList<>();
+            mediaTypes.add(MediaType.TEXT_PLAIN);
+            setSupportedMediaTypes(mediaTypes);
         }
-        return sb.toString().toLowerCase();
     }
 }

@@ -20,7 +20,7 @@ public class User implements UserDetails, CredentialsContainer {
     @Column(name = "user_id" )
     private Long userId;
 
-    //@NotNull  测试需要,暂时去掉
+    @NotNull
     @Column(name = "product_inst_id" )
     private String productInstId;  //用户一定属于某个产品实例
 
