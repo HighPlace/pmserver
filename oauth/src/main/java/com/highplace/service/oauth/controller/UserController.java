@@ -105,7 +105,7 @@ public class UserController {
             roleDao.deleteAllUserRole(existing.getUserId()); //删除老的用户角色关系
             List<Role> roles = user.getRoles();
             for (Role role : roles) {
-                roleDao.insertUserRole(user.getUserId(), role.getRoleId()); //插入新的用户角色关系
+                roleDao.insertUserRole(existing.getUserId(), role.getRoleId()); //插入新的用户角色关系
             }
         }
     }
