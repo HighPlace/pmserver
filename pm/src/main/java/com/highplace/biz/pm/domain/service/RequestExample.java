@@ -1714,6 +1714,136 @@ public class RequestExample {
             addCriterion("modify_time not between", value1, value2, "modifyTime");
             return (Criteria) this;
         }
+
+        public Criteria andDealFeeIsNull() {
+            addCriterion("deal_fee is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeIsNotNull() {
+            addCriterion("deal_fee is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeEqualTo(Double value) {
+            addCriterion("deal_fee =", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeNotEqualTo(Double value) {
+            addCriterion("deal_fee <>", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeGreaterThan(Double value) {
+            addCriterion("deal_fee >", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeGreaterThanOrEqualTo(Double value) {
+            addCriterion("deal_fee >=", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeLessThan(Double value) {
+            addCriterion("deal_fee <", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeLessThanOrEqualTo(Double value) {
+            addCriterion("deal_fee <=", value, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeIn(List<Double> values) {
+            addCriterion("deal_fee in", values, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeNotIn(List<Double> values) {
+            addCriterion("deal_fee not in", values, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeBetween(Double value1, Double value2) {
+            addCriterion("deal_fee between", value1, value2, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealFeeNotBetween(Double value1, Double value2) {
+            addCriterion("deal_fee not between", value1, value2, "dealFee");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentIsNull() {
+            addCriterion("deal_attachment is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentIsNotNull() {
+            addCriterion("deal_attachment is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentEqualTo(String value) {
+            addCriterion("deal_attachment =", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentNotEqualTo(String value) {
+            addCriterion("deal_attachment <>", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentGreaterThan(String value) {
+            addCriterion("deal_attachment >", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentGreaterThanOrEqualTo(String value) {
+            addCriterion("deal_attachment >=", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentLessThan(String value) {
+            addCriterion("deal_attachment <", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentLessThanOrEqualTo(String value) {
+            addCriterion("deal_attachment <=", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentLike(String value) {
+            addCriterion("deal_attachment like", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentNotLike(String value) {
+            addCriterion("deal_attachment not like", value, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentIn(List<String> values) {
+            addCriterion("deal_attachment in", values, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentNotIn(List<String> values) {
+            addCriterion("deal_attachment not in", values, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentBetween(String value1, String value2) {
+            addCriterion("deal_attachment between", value1, value2, "dealAttachment");
+            return (Criteria) this;
+        }
+
+        public Criteria andDealAttachmentNotBetween(String value1, String value2) {
+            addCriterion("deal_attachment not between", value1, value2, "dealAttachment");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

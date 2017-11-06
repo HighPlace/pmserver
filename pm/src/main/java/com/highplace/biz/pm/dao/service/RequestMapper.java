@@ -18,8 +18,8 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface RequestMapper {
-
-    // ----- mybatis generator外新增的属性------ //
+	
+	// ----- mybatis generator外新增的属性------ //
 
     @Select(" select distinct product_inst_id, type, sub_type from t_request")
     @Results({
@@ -29,7 +29,7 @@ public interface RequestMapper {
     })
     List<Request> selectDistinctProductInstIdAndTypeAndSubType();
     // ----- end ------ //
-
+	
     @SelectProvider(type=RequestSqlProvider.class, method="countByExample")
     long countByExample(RequestExample example);
 
@@ -55,6 +55,7 @@ public interface RequestMapper {
         "rate_level, rate_num, ",
         "rate_attachment, rate_username, ",
         "create_time, modify_time, ",
+        "deal_fee, deal_attachment, ",
         "content, rate_desc, ",
         "remark)",
         "values (#{productInstId,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, ",
@@ -69,6 +70,7 @@ public interface RequestMapper {
         "#{rateLevel,jdbcType=INTEGER}, #{rateNum,jdbcType=INTEGER}, ",
         "#{rateAttachment,jdbcType=VARCHAR}, #{rateUsername,jdbcType=VARCHAR}, ",
         "#{createTime,jdbcType=TIMESTAMP}, #{modifyTime,jdbcType=TIMESTAMP}, ",
+        "#{dealFee,jdbcType=DOUBLE}, #{dealAttachment,jdbcType=VARCHAR}, ",
         "#{content,jdbcType=LONGVARCHAR}, #{rateDesc,jdbcType=LONGVARCHAR}, ",
         "#{remark,jdbcType=LONGVARCHAR})"
     })
@@ -106,6 +108,8 @@ public interface RequestMapper {
         @Result(column="rate_username", property="rateUsername", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_fee", property="dealFee", jdbcType=JdbcType.DOUBLE),
+        @Result(column="deal_attachment", property="dealAttachment", jdbcType=JdbcType.VARCHAR),
         @Result(column="content", property="content", jdbcType=JdbcType.LONGVARCHAR),
         @Result(column="rate_desc", property="rateDesc", jdbcType=JdbcType.LONGVARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
@@ -138,7 +142,9 @@ public interface RequestMapper {
         @Result(column="rate_attachment", property="rateAttachment", jdbcType=JdbcType.VARCHAR),
         @Result(column="rate_username", property="rateUsername", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
-        @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP)
+        @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_fee", property="dealFee", jdbcType=JdbcType.DOUBLE),
+        @Result(column="deal_attachment", property="dealAttachment", jdbcType=JdbcType.VARCHAR)
     })
     List<Request> selectByExample(RequestExample example);
 
@@ -147,7 +153,8 @@ public interface RequestMapper {
         "request_id, product_inst_id, type, sub_type, source, status, attachment1, attachment2, ",
         "property_id, submitter, contact_info, priority, start_time, assign_time, accept_time, ",
         "finish_time, rate_time, deal_employee_id, deal_desc, rate_level, rate_num, rate_attachment, ",
-        "rate_username, create_time, modify_time, content, rate_desc, remark",
+        "rate_username, create_time, modify_time, deal_fee, deal_attachment, content, ",
+        "rate_desc, remark",
         "from t_request",
         "where request_id = #{requestId,jdbcType=BIGINT}"
     })
@@ -177,6 +184,8 @@ public interface RequestMapper {
         @Result(column="rate_username", property="rateUsername", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="deal_fee", property="dealFee", jdbcType=JdbcType.DOUBLE),
+        @Result(column="deal_attachment", property="dealAttachment", jdbcType=JdbcType.VARCHAR),
         @Result(column="content", property="content", jdbcType=JdbcType.LONGVARCHAR),
         @Result(column="rate_desc", property="rateDesc", jdbcType=JdbcType.LONGVARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
@@ -221,6 +230,8 @@ public interface RequestMapper {
           "rate_username = #{rateUsername,jdbcType=VARCHAR},",
           "create_time = #{createTime,jdbcType=TIMESTAMP},",
           "modify_time = #{modifyTime,jdbcType=TIMESTAMP},",
+          "deal_fee = #{dealFee,jdbcType=DOUBLE},",
+          "deal_attachment = #{dealAttachment,jdbcType=VARCHAR},",
           "content = #{content,jdbcType=LONGVARCHAR},",
           "rate_desc = #{rateDesc,jdbcType=LONGVARCHAR},",
           "remark = #{remark,jdbcType=LONGVARCHAR}",
@@ -253,7 +264,9 @@ public interface RequestMapper {
           "rate_attachment = #{rateAttachment,jdbcType=VARCHAR},",
           "rate_username = #{rateUsername,jdbcType=VARCHAR},",
           "create_time = #{createTime,jdbcType=TIMESTAMP},",
-          "modify_time = #{modifyTime,jdbcType=TIMESTAMP}",
+          "modify_time = #{modifyTime,jdbcType=TIMESTAMP},",
+          "deal_fee = #{dealFee,jdbcType=DOUBLE},",
+          "deal_attachment = #{dealAttachment,jdbcType=VARCHAR}",
         "where request_id = #{requestId,jdbcType=BIGINT}"
     })
     int updateByPrimaryKey(Request record);

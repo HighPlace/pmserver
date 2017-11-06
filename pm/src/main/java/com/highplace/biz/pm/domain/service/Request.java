@@ -81,6 +81,10 @@ public class Request {
     @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
+    private Double dealFee;
+
+    private String dealAttachment;
+
     @NotNull
     @Length(min = 1)
     private String content;
@@ -88,6 +92,22 @@ public class Request {
     private String rateDesc;
 
     private String remark;
+
+    public Double getDealFee() {
+        return dealFee;
+    }
+
+    public void setDealFee(Double dealFee) {
+        this.dealFee = dealFee;
+    }
+
+    public String getDealAttachment() {
+        return dealAttachment;
+    }
+
+    public void setDealAttachment(String dealAttachment) {
+        this.dealAttachment = dealAttachment == null ? null : dealAttachment.trim();
+    }
 
     public Long getRequestId() {
         return requestId;

@@ -124,6 +124,14 @@ public class RequestSqlProvider {
             sql.VALUES("modify_time", "#{modifyTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getDealFee() != null) {
+            sql.VALUES("deal_fee", "#{dealFee,jdbcType=DOUBLE}");
+        }
+        
+        if (record.getDealAttachment() != null) {
+            sql.VALUES("deal_attachment", "#{dealAttachment,jdbcType=VARCHAR}");
+        }
+        
         if (record.getContent() != null) {
             sql.VALUES("content", "#{content,jdbcType=LONGVARCHAR}");
         }
@@ -170,6 +178,8 @@ public class RequestSqlProvider {
         sql.SELECT("rate_username");
         sql.SELECT("create_time");
         sql.SELECT("modify_time");
+        sql.SELECT("deal_fee");
+        sql.SELECT("deal_attachment");
         sql.SELECT("content");
         sql.SELECT("rate_desc");
         sql.SELECT("remark");
@@ -214,6 +224,8 @@ public class RequestSqlProvider {
         sql.SELECT("rate_username");
         sql.SELECT("create_time");
         sql.SELECT("modify_time");
+        sql.SELECT("deal_fee");
+        sql.SELECT("deal_attachment");
         sql.FROM("t_request");
         applyWhere(sql, example, false);
         
@@ -331,6 +343,14 @@ public class RequestSqlProvider {
             sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getDealFee() != null) {
+            sql.SET("deal_fee = #{record.dealFee,jdbcType=DOUBLE}");
+        }
+        
+        if (record.getDealAttachment() != null) {
+            sql.SET("deal_attachment = #{record.dealAttachment,jdbcType=VARCHAR}");
+        }
+        
         if (record.getContent() != null) {
             sql.SET("content = #{record.content,jdbcType=LONGVARCHAR}");
         }
@@ -376,6 +396,8 @@ public class RequestSqlProvider {
         sql.SET("rate_username = #{record.rateUsername,jdbcType=VARCHAR}");
         sql.SET("create_time = #{record.createTime,jdbcType=TIMESTAMP}");
         sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
+        sql.SET("deal_fee = #{record.dealFee,jdbcType=DOUBLE}");
+        sql.SET("deal_attachment = #{record.dealAttachment,jdbcType=VARCHAR}");
         sql.SET("content = #{record.content,jdbcType=LONGVARCHAR}");
         sql.SET("rate_desc = #{record.rateDesc,jdbcType=LONGVARCHAR}");
         sql.SET("remark = #{record.remark,jdbcType=LONGVARCHAR}");
@@ -414,6 +436,8 @@ public class RequestSqlProvider {
         sql.SET("rate_username = #{record.rateUsername,jdbcType=VARCHAR}");
         sql.SET("create_time = #{record.createTime,jdbcType=TIMESTAMP}");
         sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
+        sql.SET("deal_fee = #{record.dealFee,jdbcType=DOUBLE}");
+        sql.SET("deal_attachment = #{record.dealAttachment,jdbcType=VARCHAR}");
         
         RequestExample example = (RequestExample) parameter.get("example");
         applyWhere(sql, example, true);
@@ -518,6 +542,14 @@ public class RequestSqlProvider {
         
         if (record.getModifyTime() != null) {
             sql.SET("modify_time = #{modifyTime,jdbcType=TIMESTAMP}");
+        }
+        
+        if (record.getDealFee() != null) {
+            sql.SET("deal_fee = #{dealFee,jdbcType=DOUBLE}");
+        }
+        
+        if (record.getDealAttachment() != null) {
+            sql.SET("deal_attachment = #{dealAttachment,jdbcType=VARCHAR}");
         }
         
         if (record.getContent() != null) {
