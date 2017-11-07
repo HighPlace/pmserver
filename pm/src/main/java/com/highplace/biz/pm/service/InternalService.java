@@ -35,7 +35,7 @@ import static com.highplace.biz.pm.service.DepartmentService.PREFIX_DEPARTMENT_N
 import static com.highplace.biz.pm.service.EmployeeService.*;
 import static com.highplace.biz.pm.service.NoticeService.*;
 import static com.highplace.biz.pm.service.PropertyService.*;
-import static com.highplace.biz.pm.service.util.RequestService.*;
+import static com.highplace.biz.pm.service.RequestService.*;
 
 @Component
 public class InternalService {

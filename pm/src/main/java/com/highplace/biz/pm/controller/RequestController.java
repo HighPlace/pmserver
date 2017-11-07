@@ -2,7 +2,7 @@ package com.highplace.biz.pm.controller;
 
 import com.highplace.biz.pm.domain.service.Request;
 import com.highplace.biz.pm.domain.ui.RequestSearchBean;
-import com.highplace.biz.pm.service.util.RequestService;
+import com.highplace.biz.pm.service.RequestService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

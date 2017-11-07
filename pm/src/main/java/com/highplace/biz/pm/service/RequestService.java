@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.service.util;
+package com.highplace.biz.pm.service;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -6,6 +6,7 @@ import com.highplace.biz.pm.dao.service.RequestMapper;
 import com.highplace.biz.pm.domain.service.Request;
 import com.highplace.biz.pm.domain.service.RequestExample;
 import com.highplace.biz.pm.domain.ui.RequestSearchBean;
+import com.highplace.biz.pm.service.util.CommonUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class RequestService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
-    //查询服务工地列表
+    //查询服务工单列表
     public Map<String, Object> query(String productInstId, RequestSearchBean searchBean, boolean noPageSortFlag) {
 
         RequestExample example = new RequestExample();
