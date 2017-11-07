@@ -18,6 +18,13 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface SubjectMapper {
+
+    // ----- mybatis generator外新增的方法------ //
+    @Select("select subject_name from t_charge_subject where subject_id = #{subjectId,jdbcType=BIGINT}")
+    String selectSubjectNameByPrimaryKey(Long subjectId);
+
+    // ----- end ------ //
+
     @SelectProvider(type=SubjectSqlProvider.class, method="countByExample")
     long countByExample(SubjectExample example);
 

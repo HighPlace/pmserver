@@ -22,6 +22,7 @@ public class ChargeController {
     @Autowired
     private ChargeService chargeService;
 
+    //////////////////费用科目管理/////////////////////
     @RequestMapping(path = "/charge/subject", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/subject;GET','/charge/subject;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
     public Map<String, Object> getChargeSubject(PageBean pageBean, Principal principal) throws Exception {
@@ -69,6 +70,13 @@ public class ChargeController {
             throw new Exception("change failed, effected num:" + rows);
         }
         return subject;
+    }
+
+    //////////////////账单类型管理/////////////////////
+    @RequestMapping(path = "/charge/bill", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/charge/bill;GET','/charge/bill;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
+    public Map<String, Object> getChargeBill(PageBean pageBean, Principal principal) throws Exception {
+        return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
     }
 
 }
