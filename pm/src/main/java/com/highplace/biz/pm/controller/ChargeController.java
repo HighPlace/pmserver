@@ -79,4 +79,12 @@ public class ChargeController {
         return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
     }
 
+    @RequestMapping(path = "/charge/bill", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/charge/bill;POST','/charge/POST;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
+    public Map<String, Object> createChargeBillType(PageBean pageBean, Principal principal) throws Exception {
+        return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
+    }
+
+
+
 }

@@ -10,7 +10,6 @@ import com.highplace.biz.pm.domain.charge.Subject;
 import com.highplace.biz.pm.domain.charge.SubjectExample;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
