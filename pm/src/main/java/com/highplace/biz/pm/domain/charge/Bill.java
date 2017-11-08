@@ -1,11 +1,13 @@
 package com.highplace.biz.pm.domain.charge;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
 public class Bill {
 
     // ----- mybatis generator外新增的属性------ //
+    @NotNull
     private List<BillSubjectRel> billSubjectRelList;   //账单下的所有收费科目
 
     public List<BillSubjectRel> getBillSubjectRelList() {
@@ -21,12 +23,16 @@ public class Bill {
 
     private String productInstId;
 
+    @NotNull
     private String billName;
 
+    @NotNull
     private Integer billDay;
 
+    @NotNull
     private Integer billCycle;
 
+    @NotNull
     private Integer lastPayDay;
 
     private Date createTime;

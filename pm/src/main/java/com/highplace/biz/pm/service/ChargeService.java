@@ -3,17 +3,16 @@ package com.highplace.biz.pm.service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.charge.BillMapper;
+import com.highplace.biz.pm.dao.charge.BillSubjectRelMapper;
 import com.highplace.biz.pm.dao.charge.SubjectMapper;
-import com.highplace.biz.pm.domain.charge.Bill;
-import com.highplace.biz.pm.domain.charge.BillExample;
-import com.highplace.biz.pm.domain.charge.Subject;
-import com.highplace.biz.pm.domain.charge.SubjectExample;
+import com.highplace.biz.pm.domain.charge.*;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.LinkedHashMap;
@@ -33,6 +32,9 @@ public class ChargeService {
 
     @Autowired
     private BillMapper billMapper;
+
+    @Autowired
+    private BillSubjectRelMapper billSubjectRelMapper;
 
     //查询收费科目列表
     public Map<String, Object> querySubject(String productInstId, PageBean pageBean, boolean noPageSortFlag) {
@@ -153,4 +155,26 @@ public class ChargeService {
         return result;
     }
 
+    //插入账单类型信息
+    //多表插入，需要增加事务
+    @Transactional
+    public int insertBillType(String productInstId, Bill bill) {
+
+        //设置产品实例ID
+        bill.setProductInstId(productInstId);
+        int num = billMapper.insertSelective(bill);
+        if (num == 1) {
+            //批量插入账单类型和收费科目关系信息
+            List<BillSubjectRel> billSubjectRelList = bill.getBillSubjectRelList();
+            if (billSubjectRelList != null) {
+                for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+
+                    billSubjectRel.setProductInstId(productInstId);
+                    billSubjectRel.setBillId(bill.getBillId());
+                    billSubjectRelMapper.insertSelective(billSubjectRel);
+                }
+            }
+        }
+        return num;
+    }
 }

@@ -1,9 +1,11 @@
 package com.highplace.biz.pm.controller;
 
+import com.highplace.biz.pm.domain.charge.Bill;
 import com.highplace.biz.pm.domain.charge.Subject;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.service.ChargeService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,9 +83,16 @@ public class ChargeController {
 
     @RequestMapping(path = "/charge/bill", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/charge/bill;POST','/charge/POST;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
-    public Map<String, Object> createChargeBillType(PageBean pageBean, Principal principal) throws Exception {
-        return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
+    public Bill createChargeBillType(@Valid @RequestBody Bill bill, Principal principal) throws Exception {
+        //插入记录
+        int rows = chargeService.insertBillType(SecurityUtils.getCurrentProductInstId(principal), bill);
+        logger.debug("bill insert return num:" + rows);
+        if (rows != 1) {
+            throw new Exception("create failed, effected num:" + rows);
+        }
+        return bill;
     }
+
 
 
 
