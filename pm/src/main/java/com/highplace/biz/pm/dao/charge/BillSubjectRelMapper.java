@@ -23,7 +23,7 @@ public interface BillSubjectRelMapper {
             @Result(column="subject_id", property="subjectId", jdbcType=JdbcType.BIGINT),
             @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
             @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
-            @Result(column="bill_id", property="subjectName", one=@One(select="com.highplace.biz.pm.dao.charge.SubjectMapper.selectSubjectNameByPrimaryKey")),
+            @Result(column="subject_id", property="subjectName", one=@One(select="com.highplace.biz.pm.dao.charge.SubjectMapper.selectSubjectNameByPrimaryKey")),
     })
     List<BillSubjectRel> selectByBillIdWithSubjectName(Long billId);
 

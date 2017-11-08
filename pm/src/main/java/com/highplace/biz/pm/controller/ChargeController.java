@@ -60,7 +60,7 @@ public class ChargeController {
 
     @RequestMapping(path = "/charge/subject", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/charge/subject;PUT','/charge/subject;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
-    public Subject changeRequest(@RequestBody Subject subject,
+    public Subject changeChargeSubject(@RequestBody Subject subject,
                                  Principal principal) throws Exception {
 
         if (subject.getSubjectId() == null) throw new Exception("subjectId is null");
@@ -77,7 +77,7 @@ public class ChargeController {
     //////////////////账单类型管理/////////////////////
     @RequestMapping(path = "/charge/bill", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/bill;GET','/charge/bill;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
-    public Map<String, Object> getChargeBill(PageBean pageBean, Principal principal) throws Exception {
+    public Map<String, Object> getChargeBillType(PageBean pageBean, Principal principal) throws Exception {
         return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
     }
 
@@ -93,7 +93,34 @@ public class ChargeController {
         return bill;
     }
 
+    @RequestMapping(path = "/charge/bill", method = RequestMethod.PUT)
+    @PreAuthorize("hasAnyAuthority('/charge/bill;PUT','/charge/bill;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
+    public Bill changeChargeBillType(@RequestBody Bill bill,
+                                   Principal principal) throws Exception {
 
+        if (bill.getBillId() == null) throw new Exception("billId is null");
+        if (bill.getBillSubjectRelList() == null || bill.getBillSubjectRelList().size()==0) throw new Exception("billSubjectRelList is null");
+
+        //插入记录
+        int rows = chargeService.updateBillType(SecurityUtils.getCurrentProductInstId(principal), bill);
+        if (rows != 1)
+            throw new Exception("change failed, effected num:" + rows);
+
+        return bill;
+    }
+
+    @RequestMapping(path = "/charge/bill", method = RequestMethod.DELETE)
+    @PreAuthorize("hasAnyAuthority('/charge/bill;DELETE','/charge/bill;ALL','/charge/**;DELETE','/charge/**;ALL','ADMIN')")
+    public void deleteChargeBillType(@RequestParam(value = "billId", required = true) Long billId,
+                                    Principal principal) throws Exception {
+
+        //删除记录
+        int rows = chargeService.deleteBillType(SecurityUtils.getCurrentProductInstId(principal), billId);
+        logger.debug("subjectId delete return num:" + rows);
+        if (rows != 1) {
+            throw new Exception("delete failed, effected num:" + rows);
+        }
+    }
 
 
 }

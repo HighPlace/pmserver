@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ChargeService {
     public static final Logger logger = LoggerFactory.getLogger(ChargeService.class);
 
     //写入redis的key前缀, 后面加上productInstId
-    public static final String PREFIX_BILL_NAME_KEY = "CHARGE_BILL_NAME_KEY_";
+    //public static final String PREFIX_BILL_NAME_KEY = "CHARGE_BILL_NAME_KEY_";
 
     @Autowired
     private SubjectMapper subjectMapper;
@@ -156,7 +157,6 @@ public class ChargeService {
     }
 
     //插入账单类型信息
-    //多表插入，需要增加事务
     @Transactional
     public int insertBillType(String productInstId, Bill bill) {
 
@@ -175,6 +175,88 @@ public class ChargeService {
                 }
             }
         }
-        return num; ////
+        return num;
+    }
+
+    //修改账单类型信息
+    @Transactional
+    public int updateBillType(String productInstId, Bill bill) {
+
+        //先更新账单类型表
+        BillExample example = new BillExample();
+        BillExample.Criteria criteria = example.createCriteria();
+        criteria.andBillIdEqualTo(bill.getBillId()); //账单类型ID
+        criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
+        int num = billMapper.updateByExampleSelective(bill, example);
+
+        //如果更新成功,则继续更新账单和收费科目关系
+        if (num == 1) {
+
+            //获取提交的账单和收费科目关系列表
+            List<BillSubjectRel> billSubjectRelList = bill.getBillSubjectRelList();
+
+            //记录更新前的所有relationID列表
+            List<Long> beforeRelationIdList = new ArrayList<>();
+            List<Long> afterRelationIdList = new ArrayList<>();
+
+            //遍历relatinoList，进行更新操作
+            for (BillSubjectRel relation : billSubjectRelList) {
+
+                //为null 表示新增relation信息
+                if (relation.getRelationId() == null) {
+                    //为null 表示新增relation信息
+                    relation.setProductInstId(productInstId);
+                    relation.setBillId(bill.getBillId());
+                    billSubjectRelMapper.insertSelective(relation);
+
+                    //将新增的relationId加入到beforeRelationIdList列表中
+                    beforeRelationIdList.add(relation.getRelationId());
+
+                } else {
+                    //加入到beforeRelationIdList列表中
+                    beforeRelationIdList.add(relation.getRelationId());
+                }
+            }
+
+            //更新后的所有relatinoId列表
+            List<BillSubjectRel> billSubjectRelList1 = billSubjectRelMapper.selectByBillIdWithSubjectName(bill.getBillId());
+            for (BillSubjectRel relation : billSubjectRelList1) {
+                afterRelationIdList.add(relation.getRelationId());
+            }
+
+            //求补集，删除afterCarIdList多余的部分
+            afterRelationIdList.removeAll(beforeRelationIdList);
+            if (afterRelationIdList.size() > 0) {
+                BillSubjectRelExample example1 = new BillSubjectRelExample();
+                BillSubjectRelExample.Criteria criteria1 = example1.createCriteria();
+                criteria1.andProductInstIdEqualTo(productInstId);
+                criteria1.andBillIdEqualTo(bill.getBillId());
+                criteria1.andRelationIdIn(afterRelationIdList);
+                billSubjectRelMapper.deleteByExample(example1);
+            }
+        }
+        return num;
+    }
+
+    //删除账单类型信息
+    @Transactional
+    public int deleteBillType(String productInstId, Long billId) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        //to-do
+
+        //先删除账单类型和收费科目关系
+        BillSubjectRelExample billSubjectRelExample = new BillSubjectRelExample();
+        BillSubjectRelExample.Criteria criteria1 = billSubjectRelExample.createCriteria();
+        criteria1.andProductInstIdEqualTo(productInstId);
+        criteria1.andBillIdEqualTo(billId);
+        billSubjectRelMapper.deleteByExample(billSubjectRelExample);
+
+        //再删除账单类型
+        BillExample billExample = new BillExample();
+        BillExample.Criteria criteria = billExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andBillIdEqualTo(billId);
+        return billMapper.deleteByExample(billExample);
     }
 }

@@ -1,5 +1,10 @@
 package com.highplace.biz.pm.domain.charge;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
+import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
+
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -29,14 +34,17 @@ public class Bill {
     @NotNull
     private Integer billDay;
 
-    @NotNull
     private Integer billCycle;
 
     @NotNull
     private Integer lastPayDay;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date createTime;
 
+    @JsonSerialize(using = DateTimeJsonSerializer.class)
+    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date modifyTime;
 
     private String remark;
