@@ -119,7 +119,8 @@ public class EmployeeController {
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 fileUrl,
-                vendor);
+                vendor,
+                null);
 
     }
 
@@ -135,7 +136,8 @@ public class EmployeeController {
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 null,
-                vendor);
+                vendor,
+                null);
     }
 
     @RequestMapping(path = "/employee/import", method = RequestMethod.GET)

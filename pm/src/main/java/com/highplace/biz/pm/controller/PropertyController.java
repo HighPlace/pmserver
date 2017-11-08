@@ -110,7 +110,8 @@ public class PropertyController {
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 fileUrl,
-                vendor);
+                vendor,
+                null);
     }
 
     @RequestMapping(path = "/property/export", method = RequestMethod.POST)
@@ -125,7 +126,8 @@ public class PropertyController {
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 null,
-                vendor);
+                vendor,
+                null);
     }
 
     @RequestMapping(path = "/property/import", method = RequestMethod.GET)

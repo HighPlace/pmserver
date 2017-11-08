@@ -718,7 +718,7 @@ public class CustomerService {
                     case 0:  //房产名(分区+楼号+单元+房号)(必填)
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempCustomerExcelBean.relation.setPropertyName(cellValue);
-                            Property property = propertyMapper.selectByPropertyName(productInstID, 0, cellValue);
+                            Property property = propertyMapper.selectByPropertyName(productInstID, cellValue);
                             if(property == null) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产记录不存在, 请先创建房产档案;";
                                 errorFlag = true;

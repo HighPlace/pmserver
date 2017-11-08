@@ -25,6 +25,9 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private ChargeService chargeService;
+
     @Override
     public void batchImportQueueHandler(String msg) {
 
@@ -44,6 +47,10 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
 
                 case EMPLOYEE:
                     employeeService.batchImport(jsonObject);
+                    break;
+
+                case CHARGE:
+                    chargeService.batchImport(jsonObject);
                     break;
 
                 default:

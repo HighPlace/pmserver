@@ -107,7 +107,8 @@ public class CustomerController {
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 fileUrl,
-                vendor);
+                vendor,
+                null);
     }
 
     @RequestMapping(path = "/customer/export", method = RequestMethod.POST)
@@ -122,7 +123,8 @@ public class CustomerController {
                 TaskStatusService.TaskTypeEnum.EXPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 null,
-                vendor);
+                vendor,
+                null);
     }
 
     @RequestMapping(path = "/customer/import", method = RequestMethod.GET)

@@ -27,6 +27,22 @@ public interface BillSubjectRelMapper {
     })
     List<BillSubjectRel> selectByBillIdWithSubjectName(Long billId);
 
+    @Select({
+            "select",
+            "relation_id, product_inst_id, bill_id, subject_id, create_time, modify_time",
+            "from t_charge_bill_subject",
+            "where bill_id = #{billId,jdbcType=BIGINT}"
+    })
+    @Results({
+            @Result(column="relation_id", property="relationId", jdbcType=JdbcType.BIGINT, id=true),
+            @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
+            @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
+            @Result(column="subject_id", property="subjectId", jdbcType=JdbcType.BIGINT),
+            @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
+            @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP)
+    })
+    List<BillSubjectRel> selectByBillId(Long billId);
+
     // ----- end ------ //
 
     @SelectProvider(type=BillSubjectRelSqlProvider.class, method="countByExample")

@@ -68,7 +68,8 @@ public class TaskStatusService {
                                TaskStatusService.TaskTypeEnum taskTypeEnum,
                                String productInstId,
                                String fileUrl,
-                               Integer vendor) {
+                               Integer vendor,
+                               Map<String, Object> extraMap) {
 
         //生成消息和任务ID，使用同一个ID
         String msgAndTaskId = UUID.randomUUID().toString();
@@ -82,7 +83,8 @@ public class TaskStatusService {
                         productInstId,
                         taskTargetEnum.value(),
                         fileUrl,
-                        vendor);
+                        vendor,
+                        extraMap);
                 validFlag = true;
                 break;
 
@@ -92,7 +94,8 @@ public class TaskStatusService {
                 mqService.sendExportMessage(msgAndTaskId,
                         productInstId,
                         taskTargetEnum.value(),
-                        vendor);
+                        vendor,
+                        extraMap);
                 validFlag = true;
                 break;
 
@@ -121,7 +124,7 @@ public class TaskStatusService {
 
     //任务目标 TASK_TARGET_
     public static enum TaskTargetEnum {
-        PROPERTY("PROPERTY"), CUSTOMER("CUSTOMER"), EMPLOYEE("EMPLOYEE");
+        PROPERTY("PROPERTY"), CUSTOMER("CUSTOMER"), EMPLOYEE("EMPLOYEE"), CHARGE("CHARGE");
 
         private final String value;
 

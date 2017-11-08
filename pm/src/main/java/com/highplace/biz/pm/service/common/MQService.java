@@ -32,7 +32,7 @@ public class MQService {
 
 
     //发送import消息
-    public void sendImportMessage(String msgId, String productInstId, String target, String fileUrl, Integer vendor ) {
+    public void sendImportMessage(String msgId, String productInstId, String target, String fileUrl, Integer vendor, Map<String, Object> extraMap ) {
 
         Map<String, Object> msgMap = new HashMap<String, Object>();
         msgMap.put(MSG_KEY_MSGID, msgId);
@@ -41,6 +41,8 @@ public class MQService {
         msgMap.put(MSG_KEY_TARGET, target);
         msgMap.put(MSG_KEY_VENDOR, vendor);
 
+        if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
+
         String msg = JSON.toJSONString(msgMap);
         logger.debug("Send MQ batchImport message: " + msg);
         //发送到消息队列
@@ -48,13 +50,15 @@ public class MQService {
     }
 
     //发送export消息
-    public void sendExportMessage(String msgId, String productInstId, String target, Integer vendor) {
+    public void sendExportMessage(String msgId, String productInstId, String target, Integer vendor, Map<String, Object> extraMap) {
 
         Map<String, Object> msgMap = new HashMap<String, Object>();
         msgMap.put(MSG_KEY_MSGID, msgId);
         msgMap.put(MSG_KEY_PRODUCTINSTID, productInstId);
         msgMap.put(MSG_KEY_TARGET, target);
         msgMap.put(MSG_KEY_VENDOR, vendor);
+
+        if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
 
         String msg = JSON.toJSONString(msgMap);
         logger.debug("Send MQ batchExport message: " + msg);

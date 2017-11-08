@@ -1,24 +1,42 @@
 package com.highplace.biz.pm.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.highplace.biz.pm.dao.charge.BillMapper;
-import com.highplace.biz.pm.dao.charge.BillSubjectRelMapper;
-import com.highplace.biz.pm.dao.charge.SubjectMapper;
+import com.highplace.biz.pm.config.QCloudConfig;
+import com.highplace.biz.pm.dao.base.PropertyMapper;
+import com.highplace.biz.pm.dao.charge.*;
+import com.highplace.biz.pm.domain.base.Property;
+import com.highplace.biz.pm.domain.base.Relation;
 import com.highplace.biz.pm.domain.charge.*;
+import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
+import com.highplace.biz.pm.service.common.MQService;
+import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
+import com.highplace.biz.pm.service.util.ExcelUtils;
+import com.highplace.biz.pm.service.util.QCloudCosHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.*;
 
 @Service
 public class ChargeService {
@@ -26,7 +44,11 @@ public class ChargeService {
     public static final Logger logger = LoggerFactory.getLogger(ChargeService.class);
 
     //写入redis的key前缀, 后面加上productInstId
-    //public static final String PREFIX_BILL_NAME_KEY = "CHARGE_BILL_NAME_KEY_";
+    public static final String PREFIX_BILL_NAME_KEY = "CHARGE_BILL_TYPE_KEY_";
+    public static final String MAP_BILL_ID = "billId";
+    public static final String MAP_BILL_NAME = "billName";
+    public static final String MAP_FEE_DATA_TYPE = "feeDataType";
+    public static final String MAP_CHARGE_ID = "chargeId";
 
     @Autowired
     private SubjectMapper subjectMapper;
@@ -36,6 +58,53 @@ public class ChargeService {
 
     @Autowired
     private BillSubjectRelMapper billSubjectRelMapper;
+
+    @Autowired
+    private ChargeMapper chargeMapper;
+
+    @Autowired
+    private ChargeWaterMapper chargeWaterMapper;
+
+    @Autowired
+    private PropertyMapper propertyMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private TaskStatusService taskStatusService;
+
+    @Autowired
+    private QCloudConfig qCloudConfig;
+
+    //账单类型 ID 和 name 以hash数据结构缓存到redis中
+    public void addRedisValue(String productInstId, Bill bill) {
+
+        if (bill.getBillId() != null && StringUtils.isNotEmpty(bill.getBillName())) {
+            String redisKey = PREFIX_BILL_NAME_KEY + productInstId;
+            redisTemplate.opsForHash().put(redisKey, bill.getBillId(), bill.getBillName());
+        }
+    }
+
+    //从redis中查询所有账单类型id和名称
+    public Map<String, Object> rapidSearchBillType(String productInstId) {
+
+        String redisKey = PREFIX_BILL_NAME_KEY + productInstId;
+        Map<Long, String> topLevelDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
+
+        List<Object> billTypeList = new ArrayList<>();
+        Map<String, Object> billTypeMap;
+        for (Map.Entry<Long, String> entry : topLevelDepartmentMap.entrySet()) {
+
+            billTypeMap = new HashMap<>();
+            billTypeMap.put(MAP_BILL_ID, entry.getKey());
+            billTypeMap.put(MAP_BILL_NAME, entry.getValue());
+            billTypeList.add(billTypeMap);
+        }
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("data", billTypeList);
+        return result;
+    }
 
     //查询收费科目列表
     public Map<String, Object> querySubject(String productInstId, PageBean pageBean, boolean noPageSortFlag) {
@@ -174,6 +243,8 @@ public class ChargeService {
                     billSubjectRelMapper.insertSelective(billSubjectRel);
                 }
             }
+            //更新cache
+            addRedisValue(productInstId, bill);
         }
         return num;
     }
@@ -234,6 +305,9 @@ public class ChargeService {
                 criteria1.andRelationIdIn(afterRelationIdList);
                 billSubjectRelMapper.deleteByExample(example1);
             }
+
+            //更新cache
+            addRedisValue(productInstId, bill);
         }
         return num;
     }
@@ -259,4 +333,430 @@ public class ChargeService {
         criteria.andBillIdEqualTo(billId);
         return billMapper.deleteByExample(billExample);
     }
+
+    //查询已出账单
+    public Map<String, Object> queryCharge(String productInstId, ChargeSearchBean chargeSearchBean, boolean noPageSortFlag) {
+
+        ChargeExample example = new ChargeExample();
+        ChargeExample.Criteria criteria = example.createCriteria();
+
+        //chargeId
+        if(chargeSearchBean.getChargeId() != null) {
+            criteria.andChargeIdEqualTo(chargeSearchBean.getChargeId());
+        }
+
+        //产品实例ID，必须填入
+        criteria.andProductInstIdEqualTo(productInstId);
+
+        //BillId
+        if(chargeSearchBean.getBillId() != null) {
+            criteria.andBillIdEqualTo(chargeSearchBean.getBillId());
+        }
+
+        //BillPeriod
+        if(StringUtils.isNotEmpty(chargeSearchBean.getBillPeriod())) {
+            criteria.andBillPeriodEqualTo(chargeSearchBean.getBillPeriod());
+        }
+
+        //Status
+        if(chargeSearchBean.getStatus() != null) {
+            criteria.andStatusEqualTo(chargeSearchBean.getStatus());
+        }
+
+        //如果noPageSortFlag 不为true
+        if (!noPageSortFlag) {
+            //设置分页参数
+            if (chargeSearchBean.getPageNum() != null && chargeSearchBean.getPageSize() != null)
+                PageHelper.startPage(chargeSearchBean.getPageNum(), chargeSearchBean.getPageSize());
+
+            //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
+            if (chargeSearchBean.getSortField() != null) {
+                if (chargeSearchBean.getSortType() == null) {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(chargeSearchBean.getSortField()) + " asc"); //默认升序
+                } else {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(chargeSearchBean.getSortField()) + " " + chargeSearchBean.getSortType());
+                }
+            }
+        }
+
+        //查询结果
+        List<Charge> chargeList = chargeMapper.selectByExampleWithBLOBs(example);
+
+        //总记录数
+        long totalCount;
+
+        //判断是否有分页
+        if (!noPageSortFlag && chargeSearchBean.getPageNum() != null && chargeSearchBean.getPageSize() != null) {
+            totalCount = ((Page) chargeList).getTotal();
+        } else {
+            totalCount = chargeList.size();
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalCount", totalCount);
+        result.put("data", chargeList);
+        return result;
+    }
+
+    //创建出账单
+    public Charge insertCharge(String productInstId, Charge charge){
+
+        //设置产品实例ID
+        charge.setProductInstId(productInstId);
+        chargeMapper.insertSelective(charge);
+
+        //设置账单类别相关信息
+        charge.setBill(billMapper.selectByPrimaryKey(charge.getBillId()));
+
+        //设置收费科目相关信息
+        List<Subject> subjectList = new ArrayList<>();
+        Subject subject;
+        List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(charge.getBillId());
+        for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+            subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
+            subjectList.add(subject);
+        }
+        charge.setSubjectList(subjectList);
+        return charge;
+    }
+
+    //修改出账单信息
+    public int updateCharge(String productInstId, Charge charge) {
+
+        ChargeExample example = new ChargeExample();
+        ChargeExample.Criteria criteria = example.createCriteria();
+        criteria.andChargeIdEqualTo(charge.getChargeId());
+        criteria.andProductInstIdEqualTo(productInstId); //产品实例ID，必须填入
+        return chargeMapper.updateByExampleSelective(charge, example);
+    }
+
+    //删除出账单
+    @Transactional
+    public int deleteCharge(String productInstId, Long chargeId) {
+
+        //删除之前需要加入业务逻辑判断,不能随便删除
+        ChargeExample chargeExample = new ChargeExample();
+        ChargeExample.Criteria criteria = chargeExample.createCriteria();
+        criteria.andProductInstIdEqualTo(productInstId);
+        criteria.andChargeIdEqualTo(chargeId);
+        List<Charge> chargeList = chargeMapper.selectByExample(chargeExample);
+        if(chargeList == null || chargeList.size() != 1) {  //没有对应的chargeId
+            return -1;
+        } else if (chargeList.get(0).getStatus() != 0) {    //非出账中状态,不能删除
+            return -2;
+        }
+
+        //先删除出账单对应的仪表用量信息表
+        ChargeWaterExample chargeWaterExample = new ChargeWaterExample();
+        ChargeWaterExample.Criteria criteria1 = chargeWaterExample.createCriteria();
+        criteria1.andProductInstIdEqualTo(productInstId);
+        criteria1.andChargeIdEqualTo(chargeId);
+        chargeWaterMapper.deleteByExample(chargeWaterExample);
+
+        //再删除出账单
+        return chargeMapper.deleteByExample(chargeExample);
+    }
+
+    //批量导入仪表用量信息
+    public void batchImport(JSONObject jsonObject) {
+
+        //获取任务ID
+        String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
+
+        //获取productInstID
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
+
+        //获取文件在cos上的路径
+        String cosFilePath = jsonObject.getString(MQService.MSG_KEY_FILEURL);
+
+        //获取chargeId和feeDataType
+        Long chargeId = jsonObject.getLong(ChargeService.MAP_CHARGE_ID);
+        Integer feeDataType = jsonObject.getInteger(ChargeService.MAP_FEE_DATA_TYPE);
+
+        //设置本地存储路径
+        String localFilePath = "/tmp/" + cosFilePath;
+
+        //设置任务状态为处理中
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CHARGE,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DOING,
+                null);
+
+        //处理结果Map
+        Map<String, Object> result = new HashMap<>();
+
+        //创建qcloud cos操作Helper对象
+        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+
+        //下载文件到本地
+        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        int code = jsonGetFileResult.getIntValue("code");
+
+        if (code != 0) {
+            //写结果数据,返回失败
+            String errMsg = jsonGetFileResult.getString("message");
+            String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
+
+            //处理结果为失败
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
+        } else {
+
+            //解析本地文件并导入数据库
+            JSONObject jsonResult = readExcel(productInstId, chargeId, feeDataType, localFilePath);
+            logger.debug("readExcel result:" + jsonResult.toJSONString());
+
+            //从cos应答中获取处理结果
+            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, jsonResult.getString("message"));
+
+            //删除本地文件
+            File localFile = new File(localFilePath);
+            localFile.delete();
+
+            //删除远程的文件
+            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
+        }
+
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CHARGE,
+                TaskStatusService.TaskTypeEnum.IMPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
+
+        // 关闭释放资源
+        qCloudCosHelper.releaseCosClient();
+    }
+
+    //读取Excel文件
+    public JSONObject readExcel(String productInstID, Long chargeId, Integer feeDataType, String localFilePath) {
+
+        //初始化输入流
+        InputStream is = null;
+
+        try {
+            is = new FileInputStream(localFilePath);
+
+            //根据版本选择创建Workbook的方式
+            Workbook wb = null;
+            //根据文件名判断文件是2003版本还是2007版本
+            if (ExcelUtils.isExcel2007(localFilePath)) {
+                wb = new XSSFWorkbook(is);
+            } else if (ExcelUtils.isExcel2003(localFilePath)) {
+                wb = new HSSFWorkbook(is);
+            } else {
+                JSONObject j = new JSONObject();
+                j.put("code", 101);
+                j.put("message", "文件格式错误");
+                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                return j;
+            }
+            return loadExcelValue(productInstID, chargeId, feeDataType, wb);
+
+        } catch (Exception e) {
+
+            JSONObject j = new JSONObject();
+            j.put("code", 102);
+            j.put("message", "文件读取错误");
+            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            e.printStackTrace();
+            return j;
+
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    is = null;
+                    logger.error("readExcel finally:" + e.getMessage());
+                }
+            }
+        }
+    }
+
+    //从excel文件读取数据,并导入到数据库中
+    //如果解析文件出错，将不会导入数据
+    //批处理增加事务
+    @Transactional
+    protected JSONObject loadExcelValue(String productInstID, Long chargeId, Integer feeDataType, Workbook wb) {
+
+        JSONObject result = new JSONObject();
+        String errorMsg = "";
+        String br = "<br/>";
+
+        //得到第一个shell
+        Sheet sheet = wb.getSheetAt(0);
+        //总行数
+        int totalRows = sheet.getPhysicalNumberOfRows();
+        //总列数
+        int totalCells = 0;
+        //得到Excel的列数(前提是有行数)，从第二行算起
+        if (totalRows >= 2 && sheet.getRow(1) != null) {
+            totalCells = sheet.getRow(0).getPhysicalNumberOfCells();
+        }
+
+        List<ChargeWater> chargeWaterList = new ArrayList<>();
+        ChargeWater tempChargeWater;
+
+        boolean errorFlag = false; //只要出现错误,都跳出循环
+
+        //循环Excel行数,从第二行开始。标题不入库
+        for (int r = 1; r < totalRows; r++) {
+
+            Row row = sheet.getRow(r);
+            if (row == null) {
+                errorMsg += "第" + (r + 1) + "行数据有问题, 请仔细检查.";
+                errorFlag = true;
+                break;  //跳出循环
+            }
+
+            tempChargeWater = new ChargeWater();
+
+            //循环Excel的列
+            String cellValue;
+            for (int c = 0; c < totalCells; c++) {
+                Cell cell = row.getCell(c);
+
+                if (cell == null) {  //null的列,默认为空
+                    cellValue = "";
+                } else {
+                    cell.setCellType(Cell.CELL_TYPE_STRING);
+                    cellValue = cell.getStringCellValue().trim();
+                }
+
+                switch (c) {
+                    case 0:  //房产名(分区+楼号+单元+房号)(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            tempChargeWater.setPropertyName(cellValue);
+                            Property property = propertyMapper.selectByPropertyName(productInstID, cellValue);
+                            if(property == null) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产记录不存在, 请先创建房产档案;";
+                                errorFlag = true;
+                            } else {
+                                //设置房产ID
+                                tempChargeWater.setPropertyId(property.getPropertyId());
+                            }
+                        } else {
+                            errorFlag = true;
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产名不能为空, 请仔细检查;";
+                        }
+                        break;
+
+                    case 1:  //开始用量(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempChargeWater.setBeginUsage(Double.parseDouble(cellValue));
+                            } catch (NumberFormatException e) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                                errorFlag = true;
+                                logger.error("read BeginUsage failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 2:  //结束用量(必填)
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempChargeWater.setEndUsage(Double.parseDouble(cellValue));
+                            } catch (NumberFormatException e) {
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                                errorFlag = true;
+                                logger.error("read EndUsage failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                e.printStackTrace();
+                            }
+                        } else {
+                            errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
+                            errorFlag = true;
+                        }
+                        break;
+
+                    case 3:  //开始时间
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempChargeWater.setBeginDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
+                            } catch (ParseException e) {
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                e.printStackTrace();
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
+                                errorFlag = true;
+                            }
+                        }
+                        break;
+
+                    case 4:  //结束时间
+                        if (StringUtils.isNotEmpty(cellValue)) {
+                            try {
+                                tempChargeWater.setEndDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
+                            } catch (ParseException e) {
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                e.printStackTrace();
+                                errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
+                                errorFlag = true;
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            if (errorFlag) {
+                break;  //只要出现错误，跳出循环
+            }
+            chargeWaterList.add(tempChargeWater);
+        }
+
+        if (errorFlag) {
+            result.put("code", 103);
+            result.put("message", errorMsg);
+            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+        } else {
+            int number = 0;
+            ChargeWaterExample example;
+            for (ChargeWater chargeWater : chargeWaterList) {
+
+                //重要,先写入productInstId/chargeId/feeDataType
+                chargeWater.setProductInstId(productInstID);
+                chargeWater.setChargeId(chargeId);
+                chargeWater.setFeeDataType(feeDataType);
+
+                //查找记录是否存在
+                ChargeWaterExample chargeWaterExample = new ChargeWaterExample();
+                ChargeWaterExample.Criteria criteria = chargeWaterExample.createCriteria();
+                criteria.andProductInstIdEqualTo(chargeWater.getProductInstId());
+                criteria.andChargeIdEqualTo(chargeWater.getChargeId());
+                criteria.andPropertyIdEqualTo(chargeWater.getPropertyId());
+                criteria.andFeeDataTypeEqualTo(chargeWater.getFeeDataType());
+                List<ChargeWater> find = chargeWaterMapper.selectByExample(chargeWaterExample);
+
+                if (find.size() == 0) {  //不存在记录,直接insert
+                    number += chargeWaterMapper.insertSelective(chargeWater);
+                } else if (find.size() == 1) {  //存在记录,更新
+                    number += chargeWaterMapper.updateByExample(chargeWater, chargeWaterExample);
+                }
+            }
+            if (number < chargeWaterList.size()) {
+                errorMsg = "导入成功，共" + number + "条数据, 重复" + (chargeWaterList.size() - number) + "条数据";
+            } else {
+                errorMsg = "导入成功，共" + number + "条数据";
+            }
+            result.put("code", 0);
+            result.put("message", errorMsg);
+            result.put("totalNum", chargeWaterList.size());
+            result.put("insertNum", number);
+            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+        }
+
+        return result;
+    }
+
+
 }

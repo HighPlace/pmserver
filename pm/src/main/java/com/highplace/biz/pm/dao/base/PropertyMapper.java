@@ -19,6 +19,7 @@ public interface PropertyMapper {
     })
     List<Property> selectDistinctProductInstIdAndIDs();
 
+    /*
     //UNIQUE KEY (`product_inst_id`,`property_type`,`zone_id`, `building_id`, `unit_id`, `room_id`)
     // 通过productInstId+property_type+"分区+楼号+单元+房号" 查询房产信息
     @Select({"select property_id from t_property ",
@@ -30,6 +31,18 @@ public interface PropertyMapper {
             @Result(column = "property_id", property = "propertyId", jdbcType = JdbcType.BIGINT)
     })
     Property selectByPropertyName(@Param("productInstId") String productInstId, @Param("propertyType") Integer propertyType, @Param("propertyName") String propertyName);
+    */
+
+    //UNIQUE KEY (`product_inst_id`,`property_type`,`zone_id`, `building_id`, `unit_id`, `room_id`)
+    // 通过productInstId+property_type+"分区+楼号+单元+房号" 查询房产信息
+    @Select({"select property_id from t_property ",
+            "where product_inst_id = #{productInstId,jdbcType=VARCHAR}",
+            "and concat(zone_id, building_id, unit_id, room_id) = #{propertyName,jdbcType=VARCHAR}"
+    })
+    @Results({
+            @Result(column = "property_id", property = "propertyId", jdbcType = JdbcType.BIGINT)
+    })
+    Property selectByPropertyName(@Param("productInstId") String productInstId, @Param("propertyName") String propertyName);
 
     // ----- end ------ //
 
