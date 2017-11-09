@@ -40,8 +40,8 @@ public class ChargeController {
 
     @RequestMapping(path = "/charge/subject", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/charge/subject;POST','/charge/subject;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
-    public Subject creatChargeSubject(@Valid @RequestBody Subject subject,
-                                Principal principal) throws Exception {
+    public Subject createChargeSubject(@Valid @RequestBody Subject subject,
+                                       Principal principal) throws Exception {
 
         //插入记录
         int rows = chargeService.insertSubject(SecurityUtils.getCurrentProductInstId(principal), subject);
@@ -159,11 +159,16 @@ public class ChargeController {
     @PreAuthorize("hasAnyAuthority('/charge;PUT','/charge;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
     public Charge finishImportCharge(@RequestBody Charge charge, Principal principal) throws Exception {
 
-        if(charge.getChargeId() == null) throw new Exception("chargeId is null");
+        if (charge.getChargeId() == null) throw new Exception("chargeId is null");
         charge.setStatus(1); //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成
         int rows = chargeService.updateCharge(SecurityUtils.getCurrentProductInstId(principal), charge);
-        if (rows != 1)
+        if (rows == -1) {
+            throw new Exception("chargeId not exists");
+        } else if (rows == -2) {
+            throw new Exception("仪表用量数据未导入完成");
+        } else if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
+        }
         //提交消息队列,to do...
         return charge;
     }

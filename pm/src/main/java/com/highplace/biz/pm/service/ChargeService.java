@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ChargeService {
@@ -49,6 +51,10 @@ public class ChargeService {
     public static final String MAP_BILL_NAME = "billName";
     public static final String MAP_FEE_DATA_TYPE = "feeDataType";
     public static final String MAP_CHARGE_ID = "chargeId";
+
+    //设置流水导入成功的标识
+    public static final String PREFIX_WATER_IMPORT_SUCCESS = "WATER_IMPORT_SUCCESS_";
+    public static final String WATER_IMPORT_SUCCESS_VALUE = "SUCCESS";
 
     @Autowired
     private SubjectMapper subjectMapper;
@@ -70,6 +76,9 @@ public class ChargeService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private TaskStatusService taskStatusService;
@@ -423,6 +432,40 @@ public class ChargeService {
     //修改出账单信息
     public int updateCharge(String productInstId, Charge charge) {
 
+        //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成'
+        //如果修改状态为1,需要检查所有的仪表数据是否可以导入成功
+        if(charge.getStatus() != null && charge.getStatus() == 1) {
+
+            Long billId = charge.getBillId();
+            //如果没有传入billId,先获取billId
+            if(billId == null){
+                Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
+                if(newCharge == null) return  -1;
+                billId = newCharge.getBillId();
+            }
+
+            //查找收费科目,并检查是否都导入仪表数据成功
+            Subject subject;
+            String redisKey;
+            String redisValue;
+            boolean checkFlag = true;
+            List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(billId);
+            for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+                subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
+                //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
+                if(subject.getFeeDataType() != null && subject.getFeeDataType() >=1 && subject.getFeeDataType() <=5 ){
+                    redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + charge.getChargeId() + "_" + subject.getFeeDataType();
+                    redisValue = stringRedisTemplate.opsForValue().get(redisKey);
+                    if(redisValue == null) {
+                        checkFlag = false;
+                        break;
+                    }
+                }
+            }
+            if(!checkFlag) return -2;
+        }
+
+        //更新charge信息
         ChargeExample example = new ChargeExample();
         ChargeExample.Criteria criteria = example.createCriteria();
         criteria.andChargeIdEqualTo(charge.getChargeId());
@@ -530,6 +573,12 @@ public class ChargeService {
 
         // 关闭释放资源
         qCloudCosHelper.releaseCosClient();
+
+        //如果导入成功,在cache中写入标识,有效期1天
+        if( (int)result.get(TaskStatusService.TASK_RESULT_CODE_KEY) == 0){
+            String redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + chargeId + "_" + feeDataType;
+            stringRedisTemplate.opsForValue().set(redisKey, WATER_IMPORT_SUCCESS_VALUE, 1, TimeUnit.DAYS);
+        }
     }
 
     //读取Excel文件
