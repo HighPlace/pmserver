@@ -6,7 +6,9 @@ import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
 import com.highplace.biz.pm.dao.charge.*;
+import com.highplace.biz.pm.dao.service.RequestMapper;
 import com.highplace.biz.pm.domain.base.Property;
+import com.highplace.biz.pm.domain.base.PropertyExample;
 import com.highplace.biz.pm.domain.base.Relation;
 import com.highplace.biz.pm.domain.charge.*;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
@@ -73,6 +75,12 @@ public class ChargeService {
 
     @Autowired
     private PropertyMapper propertyMapper;
+
+    @Autowired
+    private RequestMapper requestMapper;
+
+    @Autowired
+    private ChargeDetailMapper chargeDetailMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -803,6 +811,93 @@ public class ChargeService {
         }
 
         return result;
+    }
+
+    //出账计算
+    public void chargeCalculate(Long chargeId) throws Exception {
+
+        //判断chargeId是否存在，status是否为1，获取chargeId相关信息
+        Charge charge = chargeMapper.selectByPrimaryKey(chargeId);
+        if(charge == null) throw new Exception("chargeId is null");
+        if(charge.getStatus() != 1) throw new Exception("charge status isn't 1");
+
+        //获取账单对应的收费科目信息
+        List<Subject> subjectList = new ArrayList<>();
+        Subject tmpSubject;
+        List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(charge.getBillId());
+        for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+            tmpSubject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
+            subjectList.add(tmpSubject);
+        }
+        charge.setSubjectList(subjectList);
+
+        //遍历房产信息表,按房产进行费用计算
+        PropertyExample example = new PropertyExample();
+        PropertyExample.Criteria criteria = example.createCriteria();
+        criteria.andProductInstIdEqualTo(charge.getProductInstId());
+        List<Property> propertyList = propertyMapper.selectByExample(example);
+
+        ChargeDetail chargeDetail;
+        for(Property property : propertyList) {
+
+            //按房产计算总金额
+            double propertyAmount = 0;
+            for(Subject subject : subjectList) {
+
+                //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
+                if(subject.getFeeDataType() == null) {
+
+                    propertyAmount = CommonUtils.add(propertyAmount,subject.getFeeLevelOne());
+
+                } else if(subject.getFeeDataType() == 6) {
+
+                    Double amount = requestMapper.sumDealFeeByPropertyAndMonth(property.getPropertyId().toString(), charge.getBillPeriod());
+                    if(amount != null) propertyAmount = CommonUtils.add(propertyAmount,amount);
+
+                } else if(subject.getFeeDataType() == 0) {
+
+                    propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
+
+                } else {
+
+                    ChargeWater chargeWater = chargeWaterMapper.selectByPrimaryKey(charge.getProductInstId(), chargeId, property.getPropertyId(), subject.getFeeDataType());
+                    double usage = CommonUtils.sub(chargeWater.getEndUsage(), chargeWater.getBeginUsage());
+                    double amt = 0;
+                    if( usage > 0 ) {
+                        double amtLevelOne = 0;
+                        double amtLevelTwo = 0;
+                        double amtLevelThree = 0;
+
+                        if (subject.getLevelOneToplimit() == null || usage <= subject.getLevelOneToplimit() ) {
+                            amt = CommonUtils.mul(usage, subject.getFeeLevelOne());
+                        } else {
+                            amtLevelOne = CommonUtils.mul(subject.getLevelOneToplimit(), subject.getFeeLevelOne());
+                            if(subject.getLevelTwoToplimit() == null || usage<=subject.getLevelTwoToplimit()) {
+                                amtLevelTwo = CommonUtils.mul(CommonUtils.sub(usage, subject.getLevelOneToplimit()), subject.getFeeLevelTwo());
+                            } else {
+                                amtLevelTwo = CommonUtils.mul(CommonUtils.sub(subject.getLevelTwoToplimit(), subject.getLevelOneToplimit()), subject.getFeeLevelTwo());
+                                amtLevelThree = CommonUtils.mul(CommonUtils.sub(usage, subject.getLevelTwoToplimit()), subject.getFeeLevelThree());
+                            }
+                        }
+                        amt = CommonUtils.add(amt, amtLevelOne);
+                        amt = CommonUtils.add(amt, amtLevelTwo);
+                        amt = CommonUtils.add(amt, amtLevelThree);
+                    }
+                    propertyAmount = CommonUtils.add(propertyAmount,amt);
+                }
+            }
+
+            //写入出账明细表(按房产)
+            chargeDetail = new ChargeDetail();
+            chargeDetail.setProductInstId(charge.getProductInstId());
+            chargeDetail.setChargeId(charge.getChargeId());
+            chargeDetail.setPropertyId(property.getPropertyId());
+            chargeDetail.setAmount(propertyAmount);
+            chargeDetail.setPayStatus(0);
+            chargeDetail.setPayType(0);
+            chargeDetailMapper.insertSelective(chargeDetail);
+        }
+
     }
 
 

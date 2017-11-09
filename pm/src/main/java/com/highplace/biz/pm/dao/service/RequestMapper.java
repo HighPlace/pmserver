@@ -28,6 +28,11 @@ public interface RequestMapper {
             @Result(column="sub_type", property="subType", jdbcType=JdbcType.VARCHAR)
     })
     List<Request> selectDistinctProductInstIdAndTypeAndSubType();
+
+
+    @Select("select sum(deal_fee) from t_request where status = 3 and property_id= #{propertyId,jdbcType=VARCHAR} and DATE_FORMAT(finish_time,'%Y-%m') = #{finishMonth,jdbcType=VARCHAR} ")
+    Double sumDealFeeByPropertyAndMonth(@Param("propertyId")  String propertyId, @Param("finishMonth")  String finishMonth);
+
     // ----- end ------ //
 	
     @SelectProvider(type=RequestSqlProvider.class, method="countByExample")
