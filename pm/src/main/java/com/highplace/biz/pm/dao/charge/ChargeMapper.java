@@ -18,7 +18,6 @@ import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 
 public interface ChargeMapper {
-
     @SelectProvider(type=ChargeSqlProvider.class, method="countByExample")
     long countByExample(ChargeExample example);
 
@@ -39,7 +38,7 @@ public interface ChargeMapper {
         "create_time, modify_time, ",
         "remark)",
         "values (#{productInstId,jdbcType=VARCHAR}, #{billId,jdbcType=BIGINT}, ",
-        "#{billName,jdbcType=BIGINT}, #{billPeriod,jdbcType=VARCHAR}, ",
+        "#{billName,jdbcType=VARCHAR}, #{billPeriod,jdbcType=VARCHAR}, ",
         "#{billDate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, ",
         "#{totalAmount,jdbcType=DOUBLE}, #{receivedAmount,jdbcType=DOUBLE}, ",
         "#{createTime,jdbcType=TIMESTAMP}, #{modifyTime,jdbcType=TIMESTAMP}, ",
@@ -57,7 +56,7 @@ public interface ChargeMapper {
         @Result(column="charge_id", property="chargeId", jdbcType=JdbcType.BIGINT, id=true),
         @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
-        @Result(column="bill_name", property="billName", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_date", property="billDate", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="status", property="status", jdbcType=JdbcType.INTEGER),
@@ -74,7 +73,7 @@ public interface ChargeMapper {
         @Result(column="charge_id", property="chargeId", jdbcType=JdbcType.BIGINT, id=true),
         @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
-        @Result(column="bill_name", property="billName", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_date", property="billDate", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="status", property="status", jdbcType=JdbcType.INTEGER),
@@ -96,7 +95,7 @@ public interface ChargeMapper {
         @Result(column="charge_id", property="chargeId", jdbcType=JdbcType.BIGINT, id=true),
         @Result(column="product_inst_id", property="productInstId", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
-        @Result(column="bill_name", property="billName", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR),
         @Result(column="bill_date", property="billDate", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="status", property="status", jdbcType=JdbcType.INTEGER),
@@ -124,7 +123,7 @@ public interface ChargeMapper {
         "update t_charge",
         "set product_inst_id = #{productInstId,jdbcType=VARCHAR},",
           "bill_id = #{billId,jdbcType=BIGINT},",
-          "bill_name = #{billName,jdbcType=BIGINT},",
+          "bill_name = #{billName,jdbcType=VARCHAR},",
           "bill_period = #{billPeriod,jdbcType=VARCHAR},",
           "bill_date = #{billDate,jdbcType=TIMESTAMP},",
           "status = #{status,jdbcType=INTEGER},",
@@ -141,7 +140,7 @@ public interface ChargeMapper {
         "update t_charge",
         "set product_inst_id = #{productInstId,jdbcType=VARCHAR},",
           "bill_id = #{billId,jdbcType=BIGINT},",
-          "bill_name = #{billName,jdbcType=BIGINT},",
+          "bill_name = #{billName,jdbcType=VARCHAR},",
           "bill_period = #{billPeriod,jdbcType=VARCHAR},",
           "bill_date = #{billDate,jdbcType=TIMESTAMP},",
           "status = #{status,jdbcType=INTEGER},",

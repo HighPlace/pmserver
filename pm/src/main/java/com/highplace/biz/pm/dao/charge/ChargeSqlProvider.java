@@ -37,7 +37,7 @@ public class ChargeSqlProvider {
         }
         
         if (record.getBillName() != null) {
-            sql.VALUES("bill_name", "#{billName,jdbcType=BIGINT}");
+            sql.VALUES("bill_name", "#{billName,jdbcType=VARCHAR}");
         }
         
         if (record.getBillPeriod() != null) {
@@ -150,7 +150,7 @@ public class ChargeSqlProvider {
         }
         
         if (record.getBillName() != null) {
-            sql.SET("bill_name = #{record.billName,jdbcType=BIGINT}");
+            sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
         }
         
         if (record.getBillPeriod() != null) {
@@ -196,7 +196,7 @@ public class ChargeSqlProvider {
         sql.SET("charge_id = #{record.chargeId,jdbcType=BIGINT}");
         sql.SET("product_inst_id = #{record.productInstId,jdbcType=VARCHAR}");
         sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
-        sql.SET("bill_name = #{record.billName,jdbcType=BIGINT}");
+        sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
         sql.SET("bill_period = #{record.billPeriod,jdbcType=VARCHAR}");
         sql.SET("bill_date = #{record.billDate,jdbcType=TIMESTAMP}");
         sql.SET("status = #{record.status,jdbcType=INTEGER}");
@@ -218,7 +218,7 @@ public class ChargeSqlProvider {
         sql.SET("charge_id = #{record.chargeId,jdbcType=BIGINT}");
         sql.SET("product_inst_id = #{record.productInstId,jdbcType=VARCHAR}");
         sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
-        sql.SET("bill_name = #{record.billName,jdbcType=BIGINT}");
+        sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
         sql.SET("bill_period = #{record.billPeriod,jdbcType=VARCHAR}");
         sql.SET("bill_date = #{record.billDate,jdbcType=TIMESTAMP}");
         sql.SET("status = #{record.status,jdbcType=INTEGER}");
@@ -245,7 +245,7 @@ public class ChargeSqlProvider {
         }
         
         if (record.getBillName() != null) {
-            sql.SET("bill_name = #{billName,jdbcType=BIGINT}");
+            sql.SET("bill_name = #{billName,jdbcType=VARCHAR}");
         }
         
         if (record.getBillPeriod() != null) {

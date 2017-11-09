@@ -41,7 +41,7 @@ public class Charge {
     private Long billId;
 
     @NotNull
-    private Long billName;
+    private String billName;
 
     @NotNull
     private String billPeriod;
@@ -88,12 +88,12 @@ public class Charge {
         this.billId = billId;
     }
 
-    public Long getBillName() {
+    public String getBillName() {
         return billName;
     }
 
-    public void setBillName(Long billName) {
-        this.billName = billName;
+    public void setBillName(String billName) {
+        this.billName = billName == null ? null : billName.trim();
     }
 
     public String getBillPeriod() {

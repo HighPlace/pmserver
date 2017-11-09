@@ -305,52 +305,62 @@ public class ChargeExample {
             return (Criteria) this;
         }
 
-        public Criteria andBillNameEqualTo(Long value) {
+        public Criteria andBillNameEqualTo(String value) {
             addCriterion("bill_name =", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameNotEqualTo(Long value) {
+        public Criteria andBillNameNotEqualTo(String value) {
             addCriterion("bill_name <>", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameGreaterThan(Long value) {
+        public Criteria andBillNameGreaterThan(String value) {
             addCriterion("bill_name >", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameGreaterThanOrEqualTo(Long value) {
+        public Criteria andBillNameGreaterThanOrEqualTo(String value) {
             addCriterion("bill_name >=", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameLessThan(Long value) {
+        public Criteria andBillNameLessThan(String value) {
             addCriterion("bill_name <", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameLessThanOrEqualTo(Long value) {
+        public Criteria andBillNameLessThanOrEqualTo(String value) {
             addCriterion("bill_name <=", value, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameIn(List<Long> values) {
+        public Criteria andBillNameLike(String value) {
+            addCriterion("bill_name like", value, "billName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillNameNotLike(String value) {
+            addCriterion("bill_name not like", value, "billName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillNameIn(List<String> values) {
             addCriterion("bill_name in", values, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameNotIn(List<Long> values) {
+        public Criteria andBillNameNotIn(List<String> values) {
             addCriterion("bill_name not in", values, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameBetween(Long value1, Long value2) {
+        public Criteria andBillNameBetween(String value1, String value2) {
             addCriterion("bill_name between", value1, value2, "billName");
             return (Criteria) this;
         }
 
-        public Criteria andBillNameNotBetween(Long value1, Long value2) {
+        public Criteria andBillNameNotBetween(String value1, String value2) {
             addCriterion("bill_name not between", value1, value2, "billName");
             return (Criteria) this;
         }
