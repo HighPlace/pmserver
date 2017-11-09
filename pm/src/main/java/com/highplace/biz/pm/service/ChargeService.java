@@ -447,7 +447,6 @@ public class ChargeService {
             //查找收费科目,并检查是否都导入仪表数据成功
             Subject subject;
             String redisKey;
-            String redisValue;
             boolean checkFlag = true;
             List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(billId);
             for (BillSubjectRel billSubjectRel : billSubjectRelList) {
@@ -455,8 +454,7 @@ public class ChargeService {
                 //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
                 if(subject.getFeeDataType() != null && subject.getFeeDataType() >=1 && subject.getFeeDataType() <=5 ){
                     redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + charge.getChargeId() + "_" + subject.getFeeDataType();
-                    redisValue = stringRedisTemplate.opsForValue().get(redisKey);
-                    if(redisValue == null) {
+                    if(!stringRedisTemplate.hasKey(redisKey)) {
                         checkFlag = false;
                         break;
                     }
