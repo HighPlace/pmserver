@@ -488,34 +488,41 @@ public class ChargeService {
     public int updateCharge(String productInstId, Charge charge) {
 
         //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成'
-        //如果修改状态为1,需要检查所有的仪表数据是否可以导入成功
-        if(charge.getStatus() != null && charge.getStatus() == 1) {
+        if(charge.getStatus() != null){
+            if(charge.getStatus() == 1) {  //如果修改状态为1,需要检查所有的仪表数据是否可以导入成功
+                Long billId = charge.getBillId();
+                //如果没有传入billId,先获取billId
+                if (billId == null) {
+                    Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
+                    if (newCharge == null) return -1;
+                    billId = newCharge.getBillId();
+                }
 
-            Long billId = charge.getBillId();
-            //如果没有传入billId,先获取billId
-            if(billId == null){
-                Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
-                if(newCharge == null) return  -1;
-                billId = newCharge.getBillId();
-            }
-
-            //查找收费科目,并检查是否都导入仪表数据成功
-            Subject subject;
-            String redisKey;
-            boolean checkFlag = true;
-            List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(billId);
-            for (BillSubjectRel billSubjectRel : billSubjectRelList) {
-                subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
-                //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
-                if(subject.getFeeDataType() != null && subject.getFeeDataType() >=1 && subject.getFeeDataType() <=5 ){
-                    redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + charge.getChargeId() + "_" + subject.getFeeDataType();
-                    if(!stringRedisTemplate.hasKey(redisKey)) {
-                        checkFlag = false;
-                        break;
+                //查找收费科目,并检查是否都导入仪表数据成功
+                Subject subject;
+                String redisKey;
+                boolean checkFlag = true;
+                List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(billId);
+                for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+                    subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
+                    //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
+                    if (subject.getFeeDataType() != null && subject.getFeeDataType() >= 1 && subject.getFeeDataType() <= 5) {
+                        redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + charge.getChargeId() + "_" + subject.getFeeDataType();
+                        if (!stringRedisTemplate.hasKey(redisKey)) {
+                            checkFlag = false;
+                            break;
+                        }
                     }
                 }
+                if (!checkFlag) return -2;
+
+            } else if(charge.getStatus() == 3) {   //如果修改状态为3,需要检查当前状态是否为2
+
+                Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
+                if(newCharge.getStatus() != 2) return -3;
+            } else {
+                return -4;
             }
-            if(!checkFlag) return -2;
         }
 
         //更新charge信息

@@ -165,17 +165,21 @@ public class ChargeController {
 
 
     //修改出账单信息(导入仪表数据之后,设置状态,并提交消息队列处理进行费用计算)
+    //(仪表数据导入完成后设置为1,收费中设置为3)
     @RequestMapping(path = "/charge", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/charge;PUT','/charge;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
-    public Charge finishImportCharge(@RequestBody Charge charge, Principal principal) throws Exception {
+    public Charge updateCharge(@RequestBody Charge charge, Principal principal) throws Exception {
 
         if (charge.getChargeId() == null) throw new Exception("chargeId is null");
-        charge.setStatus(1); //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成
         int rows = chargeService.updateCharge(SecurityUtils.getCurrentProductInstId(principal), charge);
         if (rows == -1) {
             throw new Exception("chargeId not exists");
         } else if (rows == -2) {
             throw new Exception("仪表用量数据未导入完成");
+        } else if (rows == -3) {
+            throw new Exception("出账单当前状态必须为出账完成");
+        } else if (rows == -4) {
+            throw new Exception("出账单状态只能修改为1和3");
         } else if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }
