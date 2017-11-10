@@ -3,6 +3,7 @@ package com.highplace.biz.pm.controller;
 import com.highplace.biz.pm.domain.charge.Bill;
 import com.highplace.biz.pm.domain.charge.Charge;
 import com.highplace.biz.pm.domain.charge.Subject;
+import com.highplace.biz.pm.domain.ui.ChargeDetailSearchBean;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
@@ -254,6 +255,12 @@ public class ChargeController {
                 taskId);
     }
 
+    ///////////////////////////出账单明细////////////////////////
+    @RequestMapping(path = "/charge/detail", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/charge/detail;POST','/charge/detail;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
+    public Map<String, Object> getCharge(ChargeDetailSearchBean chargeDetailSearchBean, Principal principal) throws Exception {
+        return chargeService.queryChargeDetail(SecurityUtils.getCurrentProductInstId(principal), chargeDetailSearchBean, false);
+    }
 
     //查询chargeId下对应房产的收费明细
     @RequestMapping(path = "/charge/{chargeId}/{propertyId}", method = RequestMethod.GET)

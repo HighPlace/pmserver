@@ -64,6 +64,18 @@ public class ChargeDetailSqlProvider {
             sql.VALUES("modify_time", "#{modifyTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getBillId() != null) {
+            sql.VALUES("bill_id", "#{billId,jdbcType=BIGINT}");
+        }
+        
+        if (record.getBillName() != null) {
+            sql.VALUES("bill_name", "#{billName,jdbcType=VARCHAR}");
+        }
+        
+        if (record.getPropertyName() != null) {
+            sql.VALUES("property_name", "#{propertyName,jdbcType=VARCHAR}");
+        }
+        
         if (record.getRemark() != null) {
             sql.VALUES("remark", "#{remark,jdbcType=LONGVARCHAR}");
         }
@@ -87,6 +99,9 @@ public class ChargeDetailSqlProvider {
         sql.SELECT("pay_id");
         sql.SELECT("create_time");
         sql.SELECT("modify_time");
+        sql.SELECT("bill_id");
+        sql.SELECT("bill_name");
+        sql.SELECT("property_name");
         sql.SELECT("remark");
         sql.FROM("t_charge_detail");
         applyWhere(sql, example, false);
@@ -114,6 +129,9 @@ public class ChargeDetailSqlProvider {
         sql.SELECT("pay_id");
         sql.SELECT("create_time");
         sql.SELECT("modify_time");
+        sql.SELECT("bill_id");
+        sql.SELECT("bill_name");
+        sql.SELECT("property_name");
         sql.FROM("t_charge_detail");
         applyWhere(sql, example, false);
         
@@ -171,6 +189,18 @@ public class ChargeDetailSqlProvider {
             sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
         }
         
+        if (record.getBillId() != null) {
+            sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
+        }
+        
+        if (record.getBillName() != null) {
+            sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
+        }
+        
+        if (record.getPropertyName() != null) {
+            sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
+        }
+        
         if (record.getRemark() != null) {
             sql.SET("remark = #{record.remark,jdbcType=LONGVARCHAR}");
         }
@@ -193,6 +223,9 @@ public class ChargeDetailSqlProvider {
         sql.SET("pay_id = #{record.payId,jdbcType=VARCHAR}");
         sql.SET("create_time = #{record.createTime,jdbcType=TIMESTAMP}");
         sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
+        sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
+        sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
+        sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
         sql.SET("remark = #{record.remark,jdbcType=LONGVARCHAR}");
         
         ChargeDetailExample example = (ChargeDetailExample) parameter.get("example");
@@ -214,6 +247,9 @@ public class ChargeDetailSqlProvider {
         sql.SET("pay_id = #{record.payId,jdbcType=VARCHAR}");
         sql.SET("create_time = #{record.createTime,jdbcType=TIMESTAMP}");
         sql.SET("modify_time = #{record.modifyTime,jdbcType=TIMESTAMP}");
+        sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
+        sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
+        sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
         
         ChargeDetailExample example = (ChargeDetailExample) parameter.get("example");
         applyWhere(sql, example, true);
@@ -258,6 +294,18 @@ public class ChargeDetailSqlProvider {
         
         if (record.getModifyTime() != null) {
             sql.SET("modify_time = #{modifyTime,jdbcType=TIMESTAMP}");
+        }
+        
+        if (record.getBillId() != null) {
+            sql.SET("bill_id = #{billId,jdbcType=BIGINT}");
+        }
+        
+        if (record.getBillName() != null) {
+            sql.SET("bill_name = #{billName,jdbcType=VARCHAR}");
+        }
+        
+        if (record.getPropertyName() != null) {
+            sql.SET("property_name = #{propertyName,jdbcType=VARCHAR}");
         }
         
         if (record.getRemark() != null) {

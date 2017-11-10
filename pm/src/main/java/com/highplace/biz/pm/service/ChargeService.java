@@ -11,6 +11,7 @@ import com.highplace.biz.pm.dao.charge.*;
 import com.highplace.biz.pm.dao.service.RequestMapper;
 import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.charge.*;
+import com.highplace.biz.pm.domain.ui.ChargeDetailSearchBean;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
@@ -1061,6 +1062,9 @@ public class ChargeService {
             chargeDetail.setAmount(propertyAmount);
             chargeDetail.setPayStatus(0); //状态:0:收费中 1:欠费 2:已缴费
             chargeDetail.setPayType(0);   //缴费方式:0:银行托收 1:微信缴费
+            chargeDetail.setBillId(charge.getBillId());
+            chargeDetail.setBillName(charge.getBillName());
+            chargeDetail.setPropertyName(property.getZoneId()+property.getBuildingId()+property.getUnitId()+property.getRoomId());
             chargeDetailMapper.insertSelective(chargeDetail);
 
             //计算总账单费用
@@ -1091,4 +1095,97 @@ public class ChargeService {
         ValueOperations<Object, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
         return valueOperations.get(redisKey);
     }
+
+    //查询出账单明细
+    public Map<String, Object> queryChargeDetail(String productInstId, ChargeDetailSearchBean chargeDetailSearchBean, boolean noPageSortFlag) {
+
+        //是否需要先从t_charge表搜索chargeId
+        boolean searchChargeFlag = false;
+
+        ChargeExample example = new ChargeExample();
+        ChargeExample.Criteria criteria = example.createCriteria();
+
+        //chargeId
+        if(chargeDetailSearchBean.getChargeId() != null) {
+            criteria.andChargeIdEqualTo(chargeDetailSearchBean.getChargeId());
+            searchChargeFlag = true;
+        }
+
+        //产品实例ID，必须填入
+        criteria.andProductInstIdEqualTo(productInstId);
+
+        //BillId
+        if(chargeDetailSearchBean.getBillId() != null) {
+            criteria.andBillIdEqualTo(chargeDetailSearchBean.getBillId());
+            searchChargeFlag = true;
+        }
+
+        //BillPeriod
+        if(StringUtils.isNotEmpty(chargeDetailSearchBean.getBillPeriod())) {
+            criteria.andBillPeriodEqualTo(chargeDetailSearchBean.getBillPeriod());
+            searchChargeFlag = true;
+        }
+
+        //Status
+        if(chargeDetailSearchBean.getStatus() != null) {
+            criteria.andStatusEqualTo(chargeDetailSearchBean.getStatus());
+            searchChargeFlag = true;
+        }
+
+        List<Long> chargeIdList = new LinkedList<>();
+        if(searchChargeFlag) {
+            //查询结果
+            List<Charge> chargeList = chargeMapper.selectByExample(example);
+            for(Charge charge:chargeList) {
+                chargeIdList.add(charge.getChargeId());
+            }
+        }
+
+        //如果noPageSortFlag 不为true
+        if (!noPageSortFlag) {
+            //设置分页参数
+            if (chargeDetailSearchBean.getPageNum() != null && chargeDetailSearchBean.getPageSize() != null)
+                PageHelper.startPage(chargeDetailSearchBean.getPageNum(), chargeDetailSearchBean.getPageSize());
+
+            //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
+            if (chargeDetailSearchBean.getSortField() != null) {
+                if (chargeDetailSearchBean.getSortType() == null) {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(chargeDetailSearchBean.getSortField()) + " asc"); //默认升序
+                } else {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(chargeDetailSearchBean.getSortField()) + " " + chargeDetailSearchBean.getSortType());
+                }
+            }
+        }
+
+        ChargeDetailExample chargeDetailExample = new ChargeDetailExample();
+        ChargeDetailExample.Criteria criteriaDetail = chargeDetailExample.createCriteria();
+        criteriaDetail.andProductInstIdEqualTo(productInstId);
+
+        if(searchChargeFlag) {
+            criteriaDetail.andChargeIdIn(chargeIdList);
+        }
+
+        if(chargeDetailSearchBean.getPayStatus() != null) {
+            criteriaDetail.andPayStatusEqualTo(chargeDetailSearchBean.getPayStatus());
+        }
+
+        List<ChargeDetail> chargeDetailList = chargeDetailMapper.selectByExampleWithBLOBs(chargeDetailExample);
+
+        //总记录数
+        long totalCount;
+
+        //判断是否有分页
+        if (!noPageSortFlag && chargeDetailSearchBean.getPageNum() != null && chargeDetailSearchBean.getPageSize() != null) {
+            totalCount = ((Page) chargeDetailList).getTotal();
+        } else {
+            totalCount = chargeDetailList.size();
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalCount", totalCount);
+        result.put("data", chargeDetailList);
+        return result;
+    }
+
+
 }

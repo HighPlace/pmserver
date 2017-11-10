@@ -23,6 +23,12 @@ public class ChargeDetail {
 
     private Date modifyTime;
 
+    private Long billId;
+
+    private String billName;
+
+    private String propertyName;
+
     private String remark;
 
     public Long getDetailId() {
@@ -103,6 +109,30 @@ public class ChargeDetail {
 
     public void setModifyTime(Date modifyTime) {
         this.modifyTime = modifyTime;
+    }
+
+    public Long getBillId() {
+        return billId;
+    }
+
+    public void setBillId(Long billId) {
+        this.billId = billId;
+    }
+
+    public String getBillName() {
+        return billName;
+    }
+
+    public void setBillName(String billName) {
+        this.billName = billName == null ? null : billName.trim();
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName == null ? null : propertyName.trim();
     }
 
     public String getRemark() {

@@ -35,12 +35,16 @@ public interface ChargeDetailMapper {
         "property_id, amount, ",
         "pay_status, pay_type, ",
         "pay_id, create_time, ",
-        "modify_time, remark)",
+        "modify_time, bill_id, ",
+        "bill_name, property_name, ",
+        "remark)",
         "values (#{productInstId,jdbcType=VARCHAR}, #{chargeId,jdbcType=BIGINT}, ",
         "#{propertyId,jdbcType=BIGINT}, #{amount,jdbcType=DOUBLE}, ",
         "#{payStatus,jdbcType=INTEGER}, #{payType,jdbcType=INTEGER}, ",
         "#{payId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, ",
-        "#{modifyTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=LONGVARCHAR})"
+        "#{modifyTime,jdbcType=TIMESTAMP}, #{billId,jdbcType=BIGINT}, ",
+        "#{billName,jdbcType=VARCHAR}, #{propertyName,jdbcType=VARCHAR}, ",
+        "#{remark,jdbcType=LONGVARCHAR})"
     })
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="detailId", before=false, resultType=Long.class)
     int insert(ChargeDetail record);
@@ -61,6 +65,9 @@ public interface ChargeDetailMapper {
         @Result(column="pay_id", property="payId", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
     })
     List<ChargeDetail> selectByExampleWithBLOBs(ChargeDetailExample example);
@@ -76,14 +83,17 @@ public interface ChargeDetailMapper {
         @Result(column="pay_type", property="payType", jdbcType=JdbcType.INTEGER),
         @Result(column="pay_id", property="payId", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
-        @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP)
+        @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR)
     })
     List<ChargeDetail> selectByExample(ChargeDetailExample example);
 
     @Select({
         "select",
         "detail_id, product_inst_id, charge_id, property_id, amount, pay_status, pay_type, ",
-        "pay_id, create_time, modify_time, remark",
+        "pay_id, create_time, modify_time, bill_id, bill_name, property_name, remark",
         "from t_charge_detail",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
@@ -98,6 +108,9 @@ public interface ChargeDetailMapper {
         @Result(column="pay_id", property="payId", jdbcType=JdbcType.VARCHAR),
         @Result(column="create_time", property="createTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
+        @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
+        @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
     })
     ChargeDetail selectByPrimaryKey(Long detailId);
@@ -125,6 +138,9 @@ public interface ChargeDetailMapper {
           "pay_id = #{payId,jdbcType=VARCHAR},",
           "create_time = #{createTime,jdbcType=TIMESTAMP},",
           "modify_time = #{modifyTime,jdbcType=TIMESTAMP},",
+          "bill_id = #{billId,jdbcType=BIGINT},",
+          "bill_name = #{billName,jdbcType=VARCHAR},",
+          "property_name = #{propertyName,jdbcType=VARCHAR},",
           "remark = #{remark,jdbcType=LONGVARCHAR}",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
@@ -140,7 +156,10 @@ public interface ChargeDetailMapper {
           "pay_type = #{payType,jdbcType=INTEGER},",
           "pay_id = #{payId,jdbcType=VARCHAR},",
           "create_time = #{createTime,jdbcType=TIMESTAMP},",
-          "modify_time = #{modifyTime,jdbcType=TIMESTAMP}",
+          "modify_time = #{modifyTime,jdbcType=TIMESTAMP},",
+          "bill_id = #{billId,jdbcType=BIGINT},",
+          "bill_name = #{billName,jdbcType=VARCHAR},",
+          "property_name = #{propertyName,jdbcType=VARCHAR}",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
     int updateByPrimaryKey(ChargeDetail record);
