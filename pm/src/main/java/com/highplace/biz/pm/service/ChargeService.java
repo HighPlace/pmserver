@@ -4,12 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.config.QCloudConfig;
+import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
+import com.highplace.biz.pm.dao.base.RelationMapper;
 import com.highplace.biz.pm.dao.charge.*;
 import com.highplace.biz.pm.dao.service.RequestMapper;
-import com.highplace.biz.pm.domain.base.Property;
-import com.highplace.biz.pm.domain.base.PropertyExample;
-import com.highplace.biz.pm.domain.base.Relation;
+import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.charge.*;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
@@ -82,6 +82,12 @@ public class ChargeService {
 
     @Autowired
     private ChargeDetailMapper chargeDetailMapper;
+
+    @Autowired
+    private RelationMapper relationMapper;
+
+    @Autowired
+    private CarMapper carMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -505,7 +511,7 @@ public class ChargeService {
                 List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(billId);
                 for (BillSubjectRel billSubjectRel : billSubjectRelList) {
                     subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
-                    //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
+                    //用量关联数据标识,若null,则表示不关联, -1: 收费车位,0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
                     if (subject.getFeeDataType() != null && subject.getFeeDataType() >= 1 && subject.getFeeDataType() <= 5) {
                         redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + charge.getChargeId() + "_" + subject.getFeeDataType();
                         if (!stringRedisTemplate.hasKey(redisKey)) {
@@ -919,6 +925,25 @@ public class ChargeService {
 
                     propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
 
+                } else if(subject.getFeeDataType() == -1) {  //按车位收费，如停车费，用feeLevelOne乘以房产下的收费车位个数
+
+                    RelationExample relationExample  = new RelationExample();
+                    RelationExample.Criteria criteriaRel = relationExample.createCriteria();
+                    criteriaRel.andProductInstIdEqualTo(charge.getProductInstId());
+                    criteriaRel.andPropertyIdEqualTo(property.getPropertyId());
+                    criteriaRel.andStatusEqualTo(0); //客户和房产的关系状态: 0:生效 1:失效
+                    List<Relation> relationList = relationMapper.selectByExample(relationExample);
+                    int chargeNum = 0;
+                    for(Relation relation: relationList) {
+                        CarExample carExample = new CarExample();
+                        CarExample.Criteria criteriaCar = carExample.createCriteria();
+                        criteriaCar.andProductInstIdEqualTo(charge.getProductInstId());
+                        criteriaCar.andRelationIdEqualTo(relation.getRelationId());
+                        criteriaCar.andChargeStatusEqualTo(1); //扣费状态: 0:不扣费 1:扣费
+                        chargeNum = chargeNum + (int) carMapper.countByExample(carExample);
+                    }
+                    propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), chargeNum));
+
                 } else {   //其他的,从各类仪表数据中进行费用计算
 
                     //获取仪表数据
@@ -948,6 +973,7 @@ public class ChargeService {
                     }
                     propertyAmount = CommonUtils.add(propertyAmount,amt);
                 }
+                propertyAmount = CommonUtils.mul(propertyAmount, subject.getRate()); //最后乘以收费倍率
             }
 
             //写入出账明细表(按房产),允许重新计算，所以先删除
