@@ -4,7 +4,7 @@ public class ChargeSearchBean extends PageBean {
 
     private Long chargeId;       //出账ID
     private Long billId;         //账单类型ID
-    private String billPeriod;   //账期,如 2017年10月
+    private String billPeriod;   //账期,如 2017-10
     private Integer status;          //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成
 
     public Long getBillId() {

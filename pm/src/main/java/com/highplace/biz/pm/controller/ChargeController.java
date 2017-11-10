@@ -154,6 +154,16 @@ public class ChargeController {
         return chargeService.insertCharge(SecurityUtils.getCurrentProductInstId(principal), charge);
     }
 
+    //获取需要导入的仪表数据
+    @RequestMapping(path = "/charge/importInfo", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/charge/importInfo;GET','/charge/importInfo;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
+    public Map<String, Object> getChargeImportInfo(@RequestParam(value = "chargeId", required = true) Long chargeId,
+                             Principal principal) throws Exception {
+
+        return chargeService.getChargeImportInfo(SecurityUtils.getCurrentProductInstId(principal), chargeId);
+    }
+
+
     //修改出账单信息(导入仪表数据之后,设置状态,并提交消息队列处理进行费用计算)
     @RequestMapping(path = "/charge", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/charge;PUT','/charge;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")

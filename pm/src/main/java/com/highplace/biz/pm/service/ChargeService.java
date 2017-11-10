@@ -53,6 +53,7 @@ public class ChargeService {
     public static final String MAP_BILL_NAME = "billName";
     public static final String MAP_FEE_DATA_TYPE = "feeDataType";
     public static final String MAP_CHARGE_ID = "chargeId";
+    public static final String MAP_FEE_DATA_TYPE_IS_IMPORT = "isImport";
 
     //设置流水导入成功的标识
     public static final String PREFIX_WATER_IMPORT_SUCCESS = "WATER_IMPORT_SUCCESS_";
@@ -425,6 +426,7 @@ public class ChargeService {
         //设置账单类别相关信息
         charge.setBill(billMapper.selectByPrimaryKey(charge.getBillId()));
 
+        /*
         //设置收费科目相关信息
         List<Subject> subjectList = new ArrayList<>();
         Subject subject;
@@ -434,7 +436,52 @@ public class ChargeService {
             subjectList.add(subject);
         }
         charge.setSubjectList(subjectList);
+        */
         return charge;
+    }
+
+    //获取出账单对应的仪表数据导入信息
+    public Map<String, Object> getChargeImportInfo(String productInstId, Long chargeId) throws Exception{
+
+        //通过chargeId查找Charge信息
+        ChargeExample example = new ChargeExample();
+        ChargeExample.Criteria criteria = example.createCriteria();
+        criteria.andChargeIdEqualTo(chargeId);
+        criteria.andProductInstIdEqualTo(productInstId);
+        List<Charge> chargeList = chargeMapper.selectByExample(example);
+        if(chargeList == null || chargeList.size()==0) throw new Exception("chargeId is null");
+        if(chargeList.get(0).getStatus() != 0) throw new Exception("出账中状态才能导入仪表数据");
+
+        //查找对应收费科目信息,将需要仪表导入的记录到set中
+        Set<Integer> feeDataTypeSet = new HashSet<>();
+        Subject subject;
+        List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(chargeList.get(0).getBillId());
+        for (BillSubjectRel billSubjectRel : billSubjectRelList) {
+            subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
+            if(subject.getFeeDataType() != null && subject.getFeeDataType() >=1 && subject.getFeeDataType() <=5 ) {
+                feeDataTypeSet.add(subject.getFeeDataType());
+            }
+        }
+
+        //查看feeDataType是否已经导入
+        boolean isImport = false;
+        String redisKey;
+        List<Object> dataList = new LinkedList<>();
+        Map<String, Object> feeDataTypeMap ;
+        for(Integer feeDataType : feeDataTypeSet) {
+            redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + chargeId + "_" + feeDataType;
+            if(stringRedisTemplate.hasKey(redisKey)) {
+                isImport = true;
+            }
+            feeDataTypeMap = new HashMap<>();
+            feeDataTypeMap.put(MAP_FEE_DATA_TYPE, feeDataType);
+            feeDataTypeMap.put(MAP_FEE_DATA_TYPE_IS_IMPORT, isImport);
+            dataList.add(feeDataTypeMap);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("data", dataList);
+        return result;
     }
 
     //修改出账单信息
@@ -491,7 +538,7 @@ public class ChargeService {
         List<Charge> chargeList = chargeMapper.selectByExample(chargeExample);
         if(chargeList == null || chargeList.size() != 1) {  //没有对应的chargeId
             return -1;
-        } else if (chargeList.get(0).getStatus() != 0) {    //非出账中状态,不能删除
+        } else if (chargeList.get(0).getStatus() != 0 || chargeList.get(0).getStatus() != 2) {    //非出账中和出账完成状态,不能删除
             return -2;
         }
 
@@ -837,6 +884,7 @@ public class ChargeService {
         criteria.andProductInstIdEqualTo(charge.getProductInstId());
         List<Property> propertyList = propertyMapper.selectByExample(example);
 
+        double totalAmount = 0;
         ChargeDetail chargeDetail;
         for(Property property : propertyList) {
 
@@ -845,22 +893,24 @@ public class ChargeService {
             for(Subject subject : subjectList) {
 
                 //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
-                if(subject.getFeeDataType() == null) {
+                if(subject.getFeeDataType() == null) {   //不关联,如停车费,直接获取feeLevelOne金额
 
                     propertyAmount = CommonUtils.add(propertyAmount,subject.getFeeLevelOne());
 
-                } else if(subject.getFeeDataType() == 6) {
+                } else if(subject.getFeeDataType() == 6) {  //服务工单收费,从服务请求表中按周期计算总额
 
                     Double amount = requestMapper.sumDealFeeByPropertyAndMonth(property.getPropertyId().toString(), charge.getBillPeriod());
                     if(amount != null) propertyAmount = CommonUtils.add(propertyAmount,amount);
 
-                } else if(subject.getFeeDataType() == 0) {
+                } else if(subject.getFeeDataType() == 0) {  //按产权面积收费，如管理费，用feeLevelOne乘以产权面积
 
                     propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
 
-                } else {
+                } else {   //其他的,从各类仪表数据中进行费用计算
 
+                    //获取仪表数据
                     ChargeWater chargeWater = chargeWaterMapper.selectByPrimaryKey(charge.getProductInstId(), chargeId, property.getPropertyId(), subject.getFeeDataType());
+                    //计算用量
                     double usage = CommonUtils.sub(chargeWater.getEndUsage(), chargeWater.getBeginUsage());
                     double amt = 0;
                     if( usage > 0 ) {
@@ -893,11 +943,20 @@ public class ChargeService {
             chargeDetail.setChargeId(charge.getChargeId());
             chargeDetail.setPropertyId(property.getPropertyId());
             chargeDetail.setAmount(propertyAmount);
-            chargeDetail.setPayStatus(0);
-            chargeDetail.setPayType(0);
+            chargeDetail.setPayStatus(0); //状态:0:收费中 1:欠费 2:已缴费
+            chargeDetail.setPayType(0);   //缴费方式:0:银行托收 1:微信缴费
             chargeDetailMapper.insertSelective(chargeDetail);
+
+            //计算总账单费用
+            totalAmount = CommonUtils.add(totalAmount, propertyAmount);
         }
 
+        //更新出账信息总表,修改状态并设置总出账金额
+        Charge newCharge = new Charge();
+        newCharge.setChargeId(charge.getChargeId());
+        newCharge.setStatus(2); //修改状态为2:出账完成
+        newCharge.setTotalAmount(totalAmount); //设置总出账金额
+        updateCharge(charge.getProductInstId(), newCharge);
     }
 
 
