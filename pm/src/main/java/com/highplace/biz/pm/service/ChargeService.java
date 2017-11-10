@@ -872,10 +872,14 @@ public class ChargeService {
         //获取chargeId
         Long chargeId = jsonObject.getLong(MQService.MSG_KEY_CHARGE_ID);
 
+        //获取productInstId
+        String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
+
         //判断chargeId是否存在，status是否为1，获取chargeId相关信息
         Charge charge = chargeMapper.selectByPrimaryKey(chargeId);
         if(charge == null) throw new Exception("chargeId is null");
         if(charge.getStatus() != 1) throw new Exception("charge status isn't 1");
+        if(!productInstId.equals(charge.getProductInstId())) throw new Exception("productInstId error");
 
         //获取账单对应的收费科目信息
         List<Subject> subjectList = new ArrayList<>();
@@ -946,7 +950,16 @@ public class ChargeService {
                 }
             }
 
-            //写入出账明细表(按房产)
+            //写入出账明细表(按房产),允许重新计算，所以先删除
+            //先删除
+            ChargeDetailExample chargeDetailExample = new ChargeDetailExample();
+            ChargeDetailExample.Criteria criteria1 = chargeDetailExample.createCriteria();
+            criteria1.andProductInstIdEqualTo(charge.getProductInstId());
+            criteria1.andChargeIdEqualTo(charge.getChargeId());
+            criteria1.andPropertyIdEqualTo(property.getPropertyId());
+            chargeDetailMapper.deleteByExample(chargeDetailExample);
+
+            //再写入
             chargeDetail = new ChargeDetail();
             chargeDetail.setProductInstId(charge.getProductInstId());
             chargeDetail.setChargeId(charge.getChargeId());
