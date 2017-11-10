@@ -1072,7 +1072,7 @@ public class ChargeService {
             propertyBillDetail.setFeeDataTypeNullList(feeDataTypeNullList);
             propertyBillDetail.setFeeDataTypePropertyAreaList(feeDataTypePropertyAreaList);
             String redisKey = PREFIX_CHARGE_PROPERTY_BILL_DETAIL + productInstId + "-" + charge.getChargeId() + "-" + property.getPropertyId();
-            ValueOperations<String, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
+            ValueOperations<Object, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
             valueOperations.set(redisKey, propertyBillDetail);
         }
 
@@ -1088,7 +1088,7 @@ public class ChargeService {
     public PropertyBillDetail rapidGetChargePropertyBillDetail(String productInstId, Long chargeId, Long propertyId){
 
         String redisKey = PREFIX_CHARGE_PROPERTY_BILL_DETAIL + productInstId + "-" + chargeId + "-" + propertyId;
-        ValueOperations<String, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
+        ValueOperations<Object, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
         return valueOperations.get(redisKey);
     }
 }
