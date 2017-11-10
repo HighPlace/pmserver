@@ -23,6 +23,7 @@ public class MQService {
     public static String MSG_KEY_FILEURL = "fileUrl";
     public static String MSG_KEY_TARGET = "target";
     public static String MSG_KEY_VENDOR = "vendor";
+    public static String MSG_KEY_CHARGE_ID = "chargeId";
 
     @Autowired
     private AmqpTemplate mqTemplate;
@@ -66,6 +67,22 @@ public class MQService {
         mqTemplate.convertAndSend(MQConfig.BATCH_EXPORT_QUEUE_NAME, msg);
     }
 
+    //发送charge消息(进行出账计算)
+    public void sendChargeMessage(String msgId, String productInstId, Long chargeId, Map<String, Object> extraMap ) {
+
+        Map<String, Object> msgMap = new HashMap<String, Object>();
+        msgMap.put(MSG_KEY_MSGID, msgId);
+        msgMap.put(MSG_KEY_PRODUCTINSTID, productInstId);
+        msgMap.put(MSG_KEY_CHARGE_ID, chargeId);
+
+        if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
+
+        String msg = JSON.toJSONString(msgMap);
+        logger.debug("Send MQ batchImport message: " + msg);
+        //发送到消息队列
+        mqTemplate.convertAndSend(MQConfig.CHARGE_CALCULATE_QUEUE_NAME, msg);
+    }
+
     //消息处理异常
     //如果收到消息处理有问题，比如写入数据库失败，请抛出RuntimeException异常，MQ会重试，不过重试几次后会失败，这个要注意
     //应用集群问题
@@ -82,6 +99,12 @@ public class MQService {
     public void processExport(String msg) {
         logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
         mqServiceHandler.batchExportQueueHandler(msg);
+    }
+
+    @RabbitListener(queues="chargeCalculateQueue")    //监听器监听指定的Queue
+    public void processChargeCalculate(String msg) {
+        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        mqServiceHandler.chargeCalculateQueueHandler(msg);
     }
 }
 

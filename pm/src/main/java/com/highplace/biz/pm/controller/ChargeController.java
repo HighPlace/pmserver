@@ -6,6 +6,7 @@ import com.highplace.biz.pm.domain.charge.Subject;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.service.ChargeService;
+import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
@@ -19,6 +20,7 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class ChargeController {
@@ -30,6 +32,9 @@ public class ChargeController {
 
     @Autowired
     private TaskStatusService taskStatusService;
+
+    @Autowired
+    private MQService mqService;
 
     //////////////////费用科目管理/////////////////////
     @RequestMapping(path = "/charge/subject", method = RequestMethod.GET)
@@ -171,7 +176,9 @@ public class ChargeController {
     public Charge updateCharge(@RequestBody Charge charge, Principal principal) throws Exception {
 
         if (charge.getChargeId() == null) throw new Exception("chargeId is null");
-        int rows = chargeService.updateCharge(SecurityUtils.getCurrentProductInstId(principal), charge);
+        String productInstId = SecurityUtils.getCurrentProductInstId(principal);
+        Integer status = charge.getStatus();
+        int rows = chargeService.updateCharge(productInstId, charge);
         if (rows == -1) {
             throw new Exception("chargeId not exists");
         } else if (rows == -2) {
@@ -183,7 +190,11 @@ public class ChargeController {
         } else if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }
-        //提交消息队列,to do...
+
+        //如果修改状态为1,则提交消息队列,进行出账计算
+        if(status!= null && status == 1) {
+            mqService.sendChargeMessage(UUID.randomUUID().toString(), productInstId, charge.getChargeId(), null);
+        }
         return charge;
     }
 

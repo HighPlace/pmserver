@@ -94,4 +94,16 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void chargeCalculateQueueHandler(String msg) {
+
+        try {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            chargeService.chargeCalculate(jsonObject);
+        } catch (Exception e) {
+            logger.error("batchExportQueueHandler Process error:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

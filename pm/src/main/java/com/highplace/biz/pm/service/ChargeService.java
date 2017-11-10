@@ -868,7 +868,11 @@ public class ChargeService {
     }
 
     //出账计算
-    public void chargeCalculate(Long chargeId) throws Exception {
+    @Transactional
+    public void chargeCalculate(JSONObject jsonObject) throws Exception {
+
+        //获取chargeId
+        Long chargeId = jsonObject.getLong(MQService.MSG_KEY_CHARGE_ID);
 
         //判断chargeId是否存在，status是否为1，获取chargeId相关信息
         Charge charge = chargeMapper.selectByPrimaryKey(chargeId);
@@ -965,6 +969,4 @@ public class ChargeService {
         newCharge.setTotalAmount(totalAmount); //设置总出账金额
         updateCharge(charge.getProductInstId(), newCharge);
     }
-
-
 }
