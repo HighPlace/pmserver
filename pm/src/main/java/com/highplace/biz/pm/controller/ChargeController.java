@@ -5,6 +5,7 @@ import com.highplace.biz.pm.domain.charge.Charge;
 import com.highplace.biz.pm.domain.charge.Subject;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
+import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
 import com.highplace.biz.pm.service.ChargeService;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
@@ -168,7 +169,6 @@ public class ChargeController {
         return chargeService.getChargeImportInfo(SecurityUtils.getCurrentProductInstId(principal), chargeId);
     }
 
-
     //修改出账单信息(导入仪表数据之后,设置状态,并提交消息队列处理进行费用计算)
     //(仪表数据导入完成后设置为1,收费中设置为3)
     @RequestMapping(path = "/charge", method = RequestMethod.PUT)
@@ -252,5 +252,15 @@ public class ChargeController {
                 TaskStatusService.TaskTypeEnum.IMPORT,
                 SecurityUtils.getCurrentProductInstId(principal),
                 taskId);
+    }
+
+
+    //查询chargeId下对应房产的收费明细
+    @RequestMapping(path = "/charge/{chargeId}/{propertyId}", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/charge;GET','/charge;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
+    public PropertyBillDetail getChargePropertyBillDetail(@PathVariable("chargeId") Long chargeId,
+                                                          @PathVariable("propertyId") Long propertyId,
+                                                          Principal principal) throws Exception {
+        return chargeService.rapidGetChargePropertyBillDetail(SecurityUtils.getCurrentProductInstId(principal), chargeId, propertyId);
     }
 }

@@ -13,6 +13,7 @@ import com.highplace.biz.pm.domain.base.*;
 import com.highplace.biz.pm.domain.charge.*;
 import com.highplace.biz.pm.domain.ui.ChargeSearchBean;
 import com.highplace.biz.pm.domain.ui.PageBean;
+import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
@@ -30,14 +31,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +48,9 @@ public class ChargeService {
 
     //写入redis的key前缀, 后面加上productInstId
     public static final String PREFIX_BILL_NAME_KEY = "CHARGE_BILL_TYPE_KEY_";
+    public static final String PREFIX_CHARGE_PROPERTY_BILL_DETAIL = "CHARGE_PROPERTY_BILL_DETAIL_";
+
+
     public static final String MAP_BILL_ID = "billId";
     public static final String MAP_BILL_NAME = "billName";
     public static final String MAP_FEE_DATA_TYPE = "feeDataType";
@@ -905,7 +907,18 @@ public class ChargeService {
 
         double totalAmount = 0;
         ChargeDetail chargeDetail;
+        PropertyBillDetail propertyBillDetail;
         for(Property property : propertyList) {
+
+            propertyBillDetail = new PropertyBillDetail();
+            List<PropertyBillDetail.FeeDataTypeNull> feeDataTypeNullList = new LinkedList<>();
+            List<PropertyBillDetail.FeeDataTypeCar> feeDataTypeCarList = new LinkedList<>();
+            List<PropertyBillDetail.FeeDataTypeMeter> feeDataTypeMeterList = new LinkedList<>();
+            List<PropertyBillDetail.FeeDataTypePropertyArea> feeDataTypePropertyAreaList = new LinkedList<>();
+            PropertyBillDetail.FeeDataTypeNull feeDataTypeNull;
+            PropertyBillDetail.FeeDataTypeCar feeDataTypeCar;
+            PropertyBillDetail.FeeDataTypeMeter feeDataTypeMeter ;
+            PropertyBillDetail.FeeDataTypePropertyArea feeDataTypePropertyArea;
 
             //按房产计算总金额
             double propertyAmount = 0;
@@ -916,14 +929,40 @@ public class ChargeService {
 
                     propertyAmount = CommonUtils.add(propertyAmount,subject.getFeeLevelOne());
 
+                    feeDataTypeNull = new PropertyBillDetail.FeeDataTypeNull();
+                    feeDataTypeNull.setSubjectName(subject.getSubjectName());
+                    feeDataTypeNull.setAmount(subject.getFeeLevelOne());
+                    feeDataTypeNull.setPeriod(CommonUtils.getPeriod(subject.getChargeCycle(), subject.getCycleFlag()));
+                    feeDataTypeNull.setRate(subject.getRate());
+                    feeDataTypeNullList.add(feeDataTypeNull);
+
                 } else if(subject.getFeeDataType() == 6) {  //服务工单收费,从服务请求表中按周期计算总额
 
                     Double amount = requestMapper.sumDealFeeByPropertyAndMonth(property.getPropertyId().toString(), charge.getBillPeriod());
-                    if(amount != null) propertyAmount = CommonUtils.add(propertyAmount,amount);
+                    if(amount != null) {
+                        propertyAmount = CommonUtils.add(propertyAmount,amount);
+
+                        feeDataTypeNull = new PropertyBillDetail.FeeDataTypeNull();
+                        feeDataTypeNull.setSubjectName(subject.getSubjectName());
+                        feeDataTypeNull.setAmount(amount);
+                        feeDataTypeNull.setPeriod(CommonUtils.getPeriod(subject.getChargeCycle(), subject.getCycleFlag()));
+                        feeDataTypeNull.setRate(subject.getRate());
+                        feeDataTypeNullList.add(feeDataTypeNull);
+                    }
 
                 } else if(subject.getFeeDataType() == 0) {  //按产权面积收费，如管理费，用feeLevelOne乘以产权面积
 
                     propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
+
+                    feeDataTypePropertyArea = new PropertyBillDetail.FeeDataTypePropertyArea();
+                    feeDataTypePropertyArea.setSubjectName(subject.getSubjectName());
+                    feeDataTypePropertyArea.setAmount(CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
+                    feeDataTypePropertyArea.setPeriod(CommonUtils.getPeriod(subject.getChargeCycle(), subject.getCycleFlag()));
+                    feeDataTypePropertyArea.setRate(subject.getRate());
+                    feeDataTypePropertyArea.setFee(subject.getFeeLevelOne());
+                    feeDataTypePropertyArea.setPropertyArea(property.getPropertyArea());
+                    feeDataTypePropertyAreaList.add(feeDataTypePropertyArea);
+
 
                 } else if(subject.getFeeDataType() == -1) {  //按车位收费，如停车费，用feeLevelOne乘以房产下的收费车位个数
 
@@ -944,6 +983,15 @@ public class ChargeService {
                     }
                     propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), chargeNum));
 
+                    feeDataTypeCar = new PropertyBillDetail.FeeDataTypeCar();
+                    feeDataTypeCar.setSubjectName(subject.getSubjectName());
+                    feeDataTypeCar.setAmount(CommonUtils.mul(subject.getFeeLevelOne(), chargeNum));
+                    feeDataTypeCar.setPeriod(CommonUtils.getPeriod(subject.getChargeCycle(), subject.getCycleFlag()));
+                    feeDataTypeCar.setRate(subject.getRate());
+                    feeDataTypeCar.setFee(subject.getFeeLevelOne());
+                    feeDataTypeCar.setCarNum(chargeNum);
+                    feeDataTypeCarList.add(feeDataTypeCar);
+
                 } else {   //其他的,从各类仪表数据中进行费用计算
 
                     //获取仪表数据
@@ -951,20 +999,27 @@ public class ChargeService {
                     //计算用量
                     double usage = CommonUtils.sub(chargeWater.getEndUsage(), chargeWater.getBeginUsage());
                     double amt = 0;
+                    double amtLevelOne = 0;
+                    double levelOneUsage = 0;
+                    double amtLevelTwo = 0;
+                    double levelTwoUsage = 0;
+                    double amtLevelThree = 0;
+                    double levelThreeUsage = 0;
                     if( usage > 0 ) {
-                        double amtLevelOne = 0;
-                        double amtLevelTwo = 0;
-                        double amtLevelThree = 0;
-
                         if (subject.getLevelOneToplimit() == null || usage <= subject.getLevelOneToplimit() ) {
-                            amt = CommonUtils.mul(usage, subject.getFeeLevelOne());
+                            amtLevelOne = CommonUtils.mul(usage, subject.getFeeLevelOne());
+                            levelOneUsage = usage;
                         } else {
                             amtLevelOne = CommonUtils.mul(subject.getLevelOneToplimit(), subject.getFeeLevelOne());
+                            levelOneUsage = subject.getLevelOneToplimit();
                             if(subject.getLevelTwoToplimit() == null || usage<=subject.getLevelTwoToplimit()) {
                                 amtLevelTwo = CommonUtils.mul(CommonUtils.sub(usage, subject.getLevelOneToplimit()), subject.getFeeLevelTwo());
+                                levelTwoUsage = CommonUtils.sub(usage, subject.getLevelOneToplimit());
                             } else {
                                 amtLevelTwo = CommonUtils.mul(CommonUtils.sub(subject.getLevelTwoToplimit(), subject.getLevelOneToplimit()), subject.getFeeLevelTwo());
+                                levelTwoUsage = CommonUtils.sub(subject.getLevelTwoToplimit(), subject.getLevelOneToplimit());
                                 amtLevelThree = CommonUtils.mul(CommonUtils.sub(usage, subject.getLevelTwoToplimit()), subject.getFeeLevelThree());
+                                levelThreeUsage = CommonUtils.sub(usage, subject.getLevelTwoToplimit());
                             }
                         }
                         amt = CommonUtils.add(amt, amtLevelOne);
@@ -972,6 +1027,19 @@ public class ChargeService {
                         amt = CommonUtils.add(amt, amtLevelThree);
                     }
                     propertyAmount = CommonUtils.add(propertyAmount,amt);
+
+                    feeDataTypeMeter = new PropertyBillDetail.FeeDataTypeMeter();
+                    feeDataTypeMeter.setSubjectName(subject.getSubjectName());
+                    feeDataTypeMeter.setAmount(amt);
+                    feeDataTypeMeter.setPeriod(CommonUtils.getPeriod(subject.getChargeCycle(), subject.getCycleFlag()));
+                    feeDataTypeMeter.setRate(subject.getRate());
+                    feeDataTypeMeter.setFeeLevelOne(subject.getFeeLevelOne());
+                    feeDataTypeMeter.setLevelOneUsage(levelOneUsage);
+                    feeDataTypeMeter.setFeeLevelTwo(subject.getFeeLevelTwo());
+                    feeDataTypeMeter.setLevelTwoUsage(levelTwoUsage);
+                    feeDataTypeMeter.setFeeLevelThree(subject.getFeeLevelThree());
+                    feeDataTypeMeter.setLevelThreeUsage(levelThreeUsage);
+                    feeDataTypeMeterList.add(feeDataTypeMeter);
                 }
                 propertyAmount = CommonUtils.mul(propertyAmount, subject.getRate()); //最后乘以收费倍率
             }
@@ -997,6 +1065,15 @@ public class ChargeService {
 
             //计算总账单费用
             totalAmount = CommonUtils.add(totalAmount, propertyAmount);
+
+            //将明细数据放入cache中
+            propertyBillDetail.setFeeDataTypeCarList(feeDataTypeCarList);
+            propertyBillDetail.setFeeDataTypeMeterList(feeDataTypeMeterList);
+            propertyBillDetail.setFeeDataTypeNullList(feeDataTypeNullList);
+            propertyBillDetail.setFeeDataTypePropertyAreaList(feeDataTypePropertyAreaList);
+            String redisKey = PREFIX_CHARGE_PROPERTY_BILL_DETAIL + productInstId + "-" + charge.getChargeId() + "-" + property.getPropertyId();
+            ValueOperations<String, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
+            valueOperations.set(redisKey, propertyBillDetail);
         }
 
         //更新出账信息总表,修改状态并设置总出账金额
@@ -1005,5 +1082,13 @@ public class ChargeService {
         newCharge.setStatus(2); //修改状态为2:出账完成
         newCharge.setTotalAmount(totalAmount); //设置总出账金额
         updateCharge(charge.getProductInstId(), newCharge);
+    }
+
+    //从cache中查询chargeId下对应房产的收费明细
+    public PropertyBillDetail rapidGetChargePropertyBillDetail(String productInstId, Long chargeId, Long propertyId){
+
+        String redisKey = PREFIX_CHARGE_PROPERTY_BILL_DETAIL + productInstId + "-" + chargeId + "-" + propertyId;
+        ValueOperations<String, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
+        return valueOperations.get(redisKey);
     }
 }

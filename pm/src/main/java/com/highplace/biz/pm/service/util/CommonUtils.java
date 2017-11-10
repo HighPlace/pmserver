@@ -282,4 +282,46 @@ public class CommonUtils {
         BigDecimal one = new BigDecimal("1");
         return b.divide(one,scale,BigDecimal.ROUND_HALF_UP).doubleValue();
     }
+
+    //chargeCycle:计费周期,单位为月,范围1-12,如2:表示2月计费一次
+    //cycleFlag:收费时段标识,0:上周期 1:本周期
+    public static String getPeriod(int chargeCycle, int cycleFlag) {
+
+        if(cycleFlag == 0) {  //上周期
+            Calendar calendar = Calendar.getInstance();
+
+            calendar.add(Calendar.MONTH,0 - chargeCycle);
+            SimpleDateFormat dft = new SimpleDateFormat(FORMAT_MONTH);
+            String beginMonth = dft.format(calendar.getTime());
+
+            calendar = Calendar.getInstance();
+            calendar.add(Calendar.MONTH,-1);
+            String endMonth = dft.format(calendar.getTime());
+
+            if(beginMonth.equals(endMonth)){
+                return beginMonth;
+            } else {
+                return beginMonth + "-" + endMonth;
+            }
+
+        } else {  //本周期
+
+            Calendar calendar = Calendar.getInstance();
+
+            SimpleDateFormat dft = new SimpleDateFormat(FORMAT_MONTH);
+            String beginMonth = dft.format(calendar.getTime());
+
+            calendar = Calendar.getInstance();
+            calendar.add(Calendar.MONTH,chargeCycle - 1);
+            String endMonth = dft.format(calendar.getTime());
+
+            if(beginMonth.equals(endMonth)){
+                return beginMonth;
+            } else {
+                return beginMonth + "-" + endMonth;
+            }
+
+        }
+
+    }
 }
