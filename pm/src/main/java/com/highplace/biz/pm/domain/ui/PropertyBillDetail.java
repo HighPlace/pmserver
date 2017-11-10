@@ -45,7 +45,7 @@ public class PropertyBillDetail implements Serializable {
     }
 
 
-    public static class FeeDataTypeNull {
+    public static class FeeDataTypeNull implements Serializable{
         private String subjectName;   //收费科目名称
         private String period;        //收费时段
         private Double amount;        //收费金额
@@ -84,7 +84,7 @@ public class PropertyBillDetail implements Serializable {
         }
     }
 
-    public static class FeeDataTypeCar extends FeeDataTypeNull{
+    public static class FeeDataTypeCar extends FeeDataTypeNull implements Serializable{
         private Integer carNum;
         private Double fee;
 
@@ -105,7 +105,7 @@ public class PropertyBillDetail implements Serializable {
         }
     }
 
-    public static class FeeDataTypePropertyArea extends FeeDataTypeNull{
+    public static class FeeDataTypePropertyArea extends FeeDataTypeNull implements Serializable{
 
         private Double propertyArea;
         private Double fee;
@@ -127,7 +127,7 @@ public class PropertyBillDetail implements Serializable {
         }
     }
 
-    public static class FeeDataTypeMeter extends FeeDataTypeNull{
+    public static class FeeDataTypeMeter extends FeeDataTypeNull implements Serializable{
 
         private Double feeLevelOne;
 
@@ -190,18 +190,6 @@ public class PropertyBillDetail implements Serializable {
         }
     }
 
-    public static class FeeDataTypeRequest extends FeeDataTypeNull{
-
-        private Integer requestNum;
-
-        public Integer getRequestNum() {
-            return requestNum;
-        }
-
-        public void setRequestNum(Integer requestNum) {
-            this.requestNum = requestNum;
-        }
-    }
 
 
 }
