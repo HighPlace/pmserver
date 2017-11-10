@@ -520,8 +520,6 @@ public class ChargeService {
 
                 Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
                 if(newCharge.getStatus() != 2) return -3;
-            } else {
-                return -4;
             }
         }
 

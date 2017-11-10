@@ -178,6 +178,10 @@ public class ChargeController {
         if (charge.getChargeId() == null) throw new Exception("chargeId is null");
         String productInstId = SecurityUtils.getCurrentProductInstId(principal);
         Integer status = charge.getStatus();
+        if(status!= null && (status != 1 || status != 3)) {
+            throw new Exception("出账单状态只能修改为1和3");
+        }
+
         int rows = chargeService.updateCharge(productInstId, charge);
         if (rows == -1) {
             throw new Exception("chargeId not exists");
@@ -185,8 +189,6 @@ public class ChargeController {
             throw new Exception("仪表用量数据未导入完成");
         } else if (rows == -3) {
             throw new Exception("出账单当前状态必须为出账完成");
-        } else if (rows == -4) {
-            throw new Exception("出账单状态只能修改为1和3");
         } else if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }
