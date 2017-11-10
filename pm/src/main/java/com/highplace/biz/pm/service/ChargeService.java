@@ -1136,6 +1136,12 @@ public class ChargeService {
         if(searchChargeFlag) {
             //查询结果
             List<Charge> chargeList = chargeMapper.selectByExample(example);
+            if(chargeList == null || chargeList.size() ==0) {  //没有查到,直接返回
+                Map<String, Object> result = new LinkedHashMap<>();
+                result.put("totalCount", 0);
+                result.put("data", chargeList);
+                return result;
+            }
             for(Charge charge:chargeList) {
                 chargeIdList.add(charge.getChargeId());
             }
