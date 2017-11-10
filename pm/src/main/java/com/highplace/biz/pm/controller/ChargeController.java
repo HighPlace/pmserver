@@ -178,7 +178,7 @@ public class ChargeController {
         if (charge.getChargeId() == null) throw new Exception("chargeId is null");
         String productInstId = SecurityUtils.getCurrentProductInstId(principal);
         Integer status = charge.getStatus();
-        if(status!= null && (status != 1 || status != 3)) {
+        if(status!= null && (status == 1 || status == 3)) {
             throw new Exception("出账单状态只能修改为1和3");
         }
 
