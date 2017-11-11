@@ -51,6 +51,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject uploadFile(String bucketName, String cosFilePath, String localFilePath) {
 
+        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.putObject(bucketName, cosFilePath, new File(localFilePath));
             return getSuccesJSONObject();
@@ -65,6 +66,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject getFile(String bucketName, String cosFilePath, String localFilePath) {
 
+        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.getObject(new GetObjectRequest(bucketName, cosFilePath), new File(localFilePath));
             return getSuccesJSONObject();
@@ -79,6 +81,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS","request_id":"NTllYWJhOGVfY2NhMzNiMGFfYWViOF9lNTc4YWM="}
     public JSONObject deleteFile(String bucketName, String cosFilePath) {
 
+        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.deleteObject(bucketName, cosFilePath);
             return getSuccesJSONObject();
@@ -89,20 +92,22 @@ public class AliyunOssHelper implements OssHelperInterface {
         }
     }
 
-    //创建目录，目录必须以/结尾，如"/sample_folder/subfolder/"
+    //创建目录，目录必须以/结尾，不能以/开头,如"sample_folder/"
     public void createFolder(String bucketName, String cosFolderPath){
 
+        if(cosFolderPath.startsWith("/")) cosFolderPath = cosFolderPath.substring(1);
         try {
-            ossClient.putObject(bucketName, bucketName, new ByteArrayInputStream(new byte[0]));
+            ossClient.putObject(bucketName, cosFolderPath, new ByteArrayInputStream(new byte[0]));
         } catch (Exception e) {
             logger.error("aliyun create folder error:" + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    //生成文件下载URL,文件名不能以/结尾,如：/pic/test.jpg
+    //生成文件下载URL,文件名不能以/结尾,如：pic/test.jpg
     public String getDownLoadUrl(String bucketName, String cosFilePath, String noUse) {
 
+        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         // 设置URL过期时间为1小时
         Date expiration = new Date(new Date().getTime() + 3600 * 1000);
         URL url = ossClient.generatePresignedUrl(bucketName, cosFilePath, expiration);
