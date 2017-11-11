@@ -117,7 +117,12 @@ public class AliyunOssHelper implements OssHelperInterface {
         // 设置URL过期时间为1小时
         Date expiration = new Date(new Date().getTime() + 3600 * 1000);
         URL url = ossClient.generatePresignedUrl(bucketName, cosFilePath, expiration);
-        //默认是内网域名,需要替换成外网域名
+        logger.debug("oss url:" + url.toString() );
+        logger.debug("oss endpoint:" + aliyunConfig.getEndpoint());
+        logger.debug("oss endpoint wan:" + aliyunConfig.getEndpointWan() );
+        logger.debug("oss replace1:" + StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan()));
+        logger.debug("oss replace2:" + url.toString().replaceFirst(aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan()));
+                //默认是内网域名,需要替换成外网域名
         return (url == null)? null : StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan());
     }
 }
