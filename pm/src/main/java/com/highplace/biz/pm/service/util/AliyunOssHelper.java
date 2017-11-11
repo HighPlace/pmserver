@@ -5,8 +5,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
 import com.aliyun.oss.model.PutObjectRequest;
+import com.highplace.biz.pm.config.AliyunConfig;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -21,6 +24,9 @@ public class AliyunOssHelper implements OssHelperInterface {
 
     private JSONObject succesJSONObject;
     private JSONObject errorJSONObject;
+
+    @Autowired
+    private AliyunConfig aliyunConfig;
 
     public AliyunOssHelper(String endpoint, String accessKeyId, String accessKeySecret){
         ossClient = new OSSClient(endpoint, accessKeyId, accessKeySecret);
@@ -111,6 +117,7 @@ public class AliyunOssHelper implements OssHelperInterface {
         // 设置URL过期时间为1小时
         Date expiration = new Date(new Date().getTime() + 3600 * 1000);
         URL url = ossClient.generatePresignedUrl(bucketName, cosFilePath, expiration);
-        return url.toString();
+        //默认是内网域名,需要替换成外网域名
+        return (url == null)? null : StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan());
     }
 }

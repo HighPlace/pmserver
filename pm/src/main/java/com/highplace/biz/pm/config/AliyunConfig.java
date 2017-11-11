@@ -8,9 +8,18 @@ import org.springframework.stereotype.Component;
 public class AliyunConfig {
 
     private String endpoint;
+    private String endpointWan;
     private String accessKeyId;
     private String accessKeySecret;
     private String bucketName;
+
+    public String getEndpointWan() {
+        return endpointWan;
+    }
+
+    public void setEndpointWan(String endpointWan) {
+        this.endpointWan = endpointWan;
+    }
 
     public String getBucketName() {
         return bucketName;
