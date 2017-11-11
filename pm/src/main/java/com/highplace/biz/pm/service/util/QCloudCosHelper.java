@@ -12,7 +12,7 @@ import com.qcloud.cos.sign.Sign;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QCloudCosHelper {
+public class QCloudCosHelper implements OssHelperInterface {
 
     public static final Logger logger = LoggerFactory.getLogger(QCloudCosHelper.class);
 

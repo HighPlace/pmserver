@@ -3,6 +3,7 @@ package com.highplace.biz.pm.service;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.highplace.biz.pm.config.AliyunConfig;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
@@ -17,9 +18,7 @@ import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
-import com.highplace.biz.pm.service.util.CommonUtils;
-import com.highplace.biz.pm.service.util.ExcelUtils;
-import com.highplace.biz.pm.service.util.QCloudCosHelper;
+import com.highplace.biz.pm.service.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -37,7 +36,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.orderbyhelper.OrderByHelper;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -103,6 +105,9 @@ public class ChargeService {
 
     @Autowired
     private QCloudConfig qCloudConfig;
+
+    @Autowired
+    private AliyunConfig aliyunConfig;
 
     //账单类型 ID 和 name 以hash数据结构缓存到redis中
     public void addRedisValue(String productInstId, Bill bill) {
@@ -368,7 +373,7 @@ public class ChargeService {
         ChargeExample.Criteria criteria = example.createCriteria();
 
         //chargeId
-        if(chargeSearchBean.getChargeId() != null) {
+        if (chargeSearchBean.getChargeId() != null) {
             criteria.andChargeIdEqualTo(chargeSearchBean.getChargeId());
         }
 
@@ -376,17 +381,17 @@ public class ChargeService {
         criteria.andProductInstIdEqualTo(productInstId);
 
         //BillId
-        if(chargeSearchBean.getBillId() != null) {
+        if (chargeSearchBean.getBillId() != null) {
             criteria.andBillIdEqualTo(chargeSearchBean.getBillId());
         }
 
         //BillPeriod
-        if(StringUtils.isNotEmpty(chargeSearchBean.getBillPeriod())) {
+        if (StringUtils.isNotEmpty(chargeSearchBean.getBillPeriod())) {
             criteria.andBillPeriodEqualTo(chargeSearchBean.getBillPeriod());
         }
 
         //Status
-        if(chargeSearchBean.getStatus() != null) {
+        if (chargeSearchBean.getStatus() != null) {
             criteria.andStatusEqualTo(chargeSearchBean.getStatus());
         }
 
@@ -426,7 +431,7 @@ public class ChargeService {
     }
 
     //创建出账单
-    public Charge insertCharge(String productInstId, Charge charge){
+    public Charge insertCharge(String productInstId, Charge charge) {
 
         //设置产品实例ID
         charge.setProductInstId(productInstId);
@@ -450,7 +455,7 @@ public class ChargeService {
     }
 
     //获取出账单对应的仪表数据导入信息
-    public Map<String, Object> getChargeImportInfo(String productInstId, Long chargeId) throws Exception{
+    public Map<String, Object> getChargeImportInfo(String productInstId, Long chargeId) throws Exception {
 
         //通过chargeId查找Charge信息
         ChargeExample example = new ChargeExample();
@@ -458,8 +463,8 @@ public class ChargeService {
         criteria.andChargeIdEqualTo(chargeId);
         criteria.andProductInstIdEqualTo(productInstId);
         List<Charge> chargeList = chargeMapper.selectByExample(example);
-        if(chargeList == null || chargeList.size()==0) throw new Exception("chargeId is null");
-        if(chargeList.get(0).getStatus() != 0) throw new Exception("出账中状态才能导入仪表数据");
+        if (chargeList == null || chargeList.size() == 0) throw new Exception("chargeId is null");
+        if (chargeList.get(0).getStatus() != 0) throw new Exception("出账中状态才能导入仪表数据");
 
         //查找对应收费科目信息,将需要仪表导入的记录到set中
         Set<Integer> feeDataTypeSet = new HashSet<>();
@@ -467,7 +472,7 @@ public class ChargeService {
         List<BillSubjectRel> billSubjectRelList = billSubjectRelMapper.selectByBillId(chargeList.get(0).getBillId());
         for (BillSubjectRel billSubjectRel : billSubjectRelList) {
             subject = subjectMapper.selectByPrimaryKey(billSubjectRel.getSubjectId());
-            if(subject.getFeeDataType() != null && subject.getFeeDataType() >=1 && subject.getFeeDataType() <=5 ) {
+            if (subject.getFeeDataType() != null && subject.getFeeDataType() >= 1 && subject.getFeeDataType() <= 5) {
                 feeDataTypeSet.add(subject.getFeeDataType());
             }
         }
@@ -476,10 +481,10 @@ public class ChargeService {
         boolean isImport = false;
         String redisKey;
         List<Object> dataList = new LinkedList<>();
-        Map<String, Object> feeDataTypeMap ;
-        for(Integer feeDataType : feeDataTypeSet) {
+        Map<String, Object> feeDataTypeMap;
+        for (Integer feeDataType : feeDataTypeSet) {
             redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + chargeId + "_" + feeDataType;
-            if(stringRedisTemplate.hasKey(redisKey)) {
+            if (stringRedisTemplate.hasKey(redisKey)) {
                 isImport = true;
             }
             feeDataTypeMap = new HashMap<>();
@@ -497,8 +502,8 @@ public class ChargeService {
     public int updateCharge(String productInstId, Charge charge) {
 
         //状态:0:出账中 1:仪表数据导入完成 2:出账完成 3:收费中 4:收费完成'
-        if(charge.getStatus() != null){
-            if(charge.getStatus() == 1) {  //如果修改状态为1,需要检查所有的仪表数据是否可以导入成功
+        if (charge.getStatus() != null) {
+            if (charge.getStatus() == 1) {  //如果修改状态为1,需要检查所有的仪表数据是否可以导入成功
                 Long billId = charge.getBillId();
                 //如果没有传入billId,先获取billId
                 if (billId == null) {
@@ -525,10 +530,10 @@ public class ChargeService {
                 }
                 if (!checkFlag) return -2;
 
-            } else if(charge.getStatus() == 3) {   //如果修改状态为3,需要检查当前状态是否为2
+            } else if (charge.getStatus() == 3) {   //如果修改状态为3,需要检查当前状态是否为2
 
                 Charge newCharge = chargeMapper.selectByPrimaryKey(charge.getChargeId());
-                if(newCharge.getStatus() != 2) return -3;
+                if (newCharge.getStatus() != 2) return -3;
             }
         }
 
@@ -550,7 +555,7 @@ public class ChargeService {
         criteria.andProductInstIdEqualTo(productInstId);
         criteria.andChargeIdEqualTo(chargeId);
         List<Charge> chargeList = chargeMapper.selectByExample(chargeExample);
-        if(chargeList == null || chargeList.size() != 1) {  //没有对应的chargeId
+        if (chargeList == null || chargeList.size() != 1) {  //没有对应的chargeId
             return -1;
         } else if (chargeList.get(0).getStatus() != 0 || chargeList.get(0).getStatus() != 2) {    //非出账中和出账完成状态,不能删除
             return -2;
@@ -579,6 +584,9 @@ public class ChargeService {
         //获取文件在cos上的路径
         String cosFilePath = jsonObject.getString(MQService.MSG_KEY_FILEURL);
 
+        //获取vendor
+        Integer vendor = jsonObject.getInteger(MQService.MSG_KEY_VENDOR);
+
         //获取chargeId和feeDataType
         Long chargeId = jsonObject.getLong(ChargeService.MAP_CHARGE_ID);
         Integer feeDataType = jsonObject.getInteger(ChargeService.MAP_FEE_DATA_TYPE);
@@ -597,17 +605,24 @@ public class ChargeService {
         //处理结果Map
         Map<String, Object> result = new HashMap<>();
 
-        //创建qcloud cos操作Helper对象
-        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-
+        OssHelperInterface ossHelper;
+        String bucketName;
+        if (vendor == 0) {  //腾讯云
+            //创建qcloud cos操作Helper对象
+            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+            bucketName = qCloudConfig.getCosBucketName();
+        } else {  //vendor=1 阿里云
+            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
+            bucketName = aliyunConfig.getBucketName();
+        }
         //下载文件到本地
-        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
         int code = jsonGetFileResult.getIntValue("code");
 
         if (code != 0) {
             //写结果数据,返回失败
             String errMsg = jsonGetFileResult.getString("message");
-            String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
+            String resultMsg = "获取文件失败(cloud:" + code + "," + errMsg + ")";
 
             //处理结果为失败
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
@@ -627,7 +642,7 @@ public class ChargeService {
             localFile.delete();
 
             //删除远程的文件
-            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
+            ossHelper.deleteFile(bucketName, cosFilePath);
         }
 
         //设置任务状态为1：处理完成
@@ -639,10 +654,10 @@ public class ChargeService {
                 result);
 
         // 关闭释放资源
-        qCloudCosHelper.releaseCosClient();
+        ossHelper.releaseCosClient();
 
         //如果导入成功,在cache中写入标识,有效期1天
-        if( (int)result.get(TaskStatusService.TASK_RESULT_CODE_KEY) == 0){
+        if ((int) result.get(TaskStatusService.TASK_RESULT_CODE_KEY) == 0) {
             String redisKey = PREFIX_WATER_IMPORT_SUCCESS + productInstId + "_" + chargeId + "_" + feeDataType;
             stringRedisTemplate.opsForValue().set(redisKey, WATER_IMPORT_SUCCESS_VALUE, 1, TimeUnit.DAYS);
         }
@@ -749,7 +764,7 @@ public class ChargeService {
                         if (StringUtils.isNotEmpty(cellValue)) {
                             tempChargeWater.setPropertyName(cellValue);
                             Property property = propertyMapper.selectByPropertyName(productInstID, cellValue);
-                            if(property == null) {
+                            if (property == null) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列房产记录不存在, 请先创建房产档案;";
                                 errorFlag = true;
                             } else {
@@ -886,9 +901,9 @@ public class ChargeService {
 
         //判断chargeId是否存在，status是否为1，获取chargeId相关信息
         Charge charge = chargeMapper.selectByPrimaryKey(chargeId);
-        if(charge == null) throw new Exception("chargeId is null");
-        if(charge.getStatus() != 1) throw new Exception("charge status isn't 1");
-        if(!productInstId.equals(charge.getProductInstId())) throw new Exception("productInstId error");
+        if (charge == null) throw new Exception("chargeId is null");
+        if (charge.getStatus() != 1) throw new Exception("charge status isn't 1");
+        if (!productInstId.equals(charge.getProductInstId())) throw new Exception("productInstId error");
 
         //获取账单对应的收费科目信息
         List<Subject> subjectList = new ArrayList<>();
@@ -909,7 +924,7 @@ public class ChargeService {
         double totalAmount = 0;
         ChargeDetail chargeDetail;
         PropertyBillDetail propertyBillDetail;
-        for(Property property : propertyList) {
+        for (Property property : propertyList) {
 
             propertyBillDetail = new PropertyBillDetail();
             List<PropertyBillDetail.FeeDataTypeNull> feeDataTypeNullList = new LinkedList<>();
@@ -918,17 +933,17 @@ public class ChargeService {
             List<PropertyBillDetail.FeeDataTypePropertyArea> feeDataTypePropertyAreaList = new LinkedList<>();
             PropertyBillDetail.FeeDataTypeNull feeDataTypeNull;
             PropertyBillDetail.FeeDataTypeCar feeDataTypeCar;
-            PropertyBillDetail.FeeDataTypeMeter feeDataTypeMeter ;
+            PropertyBillDetail.FeeDataTypeMeter feeDataTypeMeter;
             PropertyBillDetail.FeeDataTypePropertyArea feeDataTypePropertyArea;
 
             //按房产计算总金额
             double propertyAmount = 0;
-            for(Subject subject : subjectList) {
+            for (Subject subject : subjectList) {
 
                 //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
-                if(subject.getFeeDataType() == null) {   //不关联,如停车费,直接获取feeLevelOne金额
+                if (subject.getFeeDataType() == null) {   //不关联,如停车费,直接获取feeLevelOne金额
 
-                    propertyAmount = CommonUtils.add(propertyAmount,subject.getFeeLevelOne());
+                    propertyAmount = CommonUtils.add(propertyAmount, subject.getFeeLevelOne());
 
                     feeDataTypeNull = new PropertyBillDetail.FeeDataTypeNull();
                     feeDataTypeNull.setSubjectName(subject.getSubjectName());
@@ -937,11 +952,11 @@ public class ChargeService {
                     feeDataTypeNull.setRate(subject.getRate());
                     feeDataTypeNullList.add(feeDataTypeNull);
 
-                } else if(subject.getFeeDataType() == 6) {  //服务工单收费,从服务请求表中按周期计算总额
+                } else if (subject.getFeeDataType() == 6) {  //服务工单收费,从服务请求表中按周期计算总额
 
                     Double amount = requestMapper.sumDealFeeByPropertyAndMonth(property.getPropertyId().toString(), charge.getBillPeriod());
-                    if(amount != null) {
-                        propertyAmount = CommonUtils.add(propertyAmount,amount);
+                    if (amount != null) {
+                        propertyAmount = CommonUtils.add(propertyAmount, amount);
 
                         feeDataTypeNull = new PropertyBillDetail.FeeDataTypeNull();
                         feeDataTypeNull.setSubjectName(subject.getSubjectName());
@@ -951,9 +966,9 @@ public class ChargeService {
                         feeDataTypeNullList.add(feeDataTypeNull);
                     }
 
-                } else if(subject.getFeeDataType() == 0) {  //按产权面积收费，如管理费，用feeLevelOne乘以产权面积
+                } else if (subject.getFeeDataType() == 0) {  //按产权面积收费，如管理费，用feeLevelOne乘以产权面积
 
-                    propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
+                    propertyAmount = CommonUtils.add(propertyAmount, CommonUtils.mul(subject.getFeeLevelOne(), property.getPropertyArea()));
 
                     feeDataTypePropertyArea = new PropertyBillDetail.FeeDataTypePropertyArea();
                     feeDataTypePropertyArea.setSubjectName(subject.getSubjectName());
@@ -965,16 +980,16 @@ public class ChargeService {
                     feeDataTypePropertyAreaList.add(feeDataTypePropertyArea);
 
 
-                } else if(subject.getFeeDataType() == -1) {  //按车位收费，如停车费，用feeLevelOne乘以房产下的收费车位个数
+                } else if (subject.getFeeDataType() == -1) {  //按车位收费，如停车费，用feeLevelOne乘以房产下的收费车位个数
 
-                    RelationExample relationExample  = new RelationExample();
+                    RelationExample relationExample = new RelationExample();
                     RelationExample.Criteria criteriaRel = relationExample.createCriteria();
                     criteriaRel.andProductInstIdEqualTo(charge.getProductInstId());
                     criteriaRel.andPropertyIdEqualTo(property.getPropertyId());
                     criteriaRel.andStatusEqualTo(0); //客户和房产的关系状态: 0:生效 1:失效
                     List<Relation> relationList = relationMapper.selectByExample(relationExample);
                     int chargeNum = 0;
-                    for(Relation relation: relationList) {
+                    for (Relation relation : relationList) {
                         CarExample carExample = new CarExample();
                         CarExample.Criteria criteriaCar = carExample.createCriteria();
                         criteriaCar.andProductInstIdEqualTo(charge.getProductInstId());
@@ -982,7 +997,7 @@ public class ChargeService {
                         criteriaCar.andChargeStatusEqualTo(1); //扣费状态: 0:不扣费 1:扣费
                         chargeNum = chargeNum + (int) carMapper.countByExample(carExample);
                     }
-                    propertyAmount = CommonUtils.add(propertyAmount,CommonUtils.mul(subject.getFeeLevelOne(), chargeNum));
+                    propertyAmount = CommonUtils.add(propertyAmount, CommonUtils.mul(subject.getFeeLevelOne(), chargeNum));
 
                     feeDataTypeCar = new PropertyBillDetail.FeeDataTypeCar();
                     feeDataTypeCar.setSubjectName(subject.getSubjectName());
@@ -1006,14 +1021,14 @@ public class ChargeService {
                     double levelTwoUsage = 0;
                     double amtLevelThree = 0;
                     double levelThreeUsage = 0;
-                    if( usage > 0 ) {
-                        if (subject.getLevelOneToplimit() == null || usage <= subject.getLevelOneToplimit() ) {
+                    if (usage > 0) {
+                        if (subject.getLevelOneToplimit() == null || usage <= subject.getLevelOneToplimit()) {
                             amtLevelOne = CommonUtils.mul(usage, subject.getFeeLevelOne());
                             levelOneUsage = usage;
                         } else {
                             amtLevelOne = CommonUtils.mul(subject.getLevelOneToplimit(), subject.getFeeLevelOne());
                             levelOneUsage = subject.getLevelOneToplimit();
-                            if(subject.getLevelTwoToplimit() == null || usage<=subject.getLevelTwoToplimit()) {
+                            if (subject.getLevelTwoToplimit() == null || usage <= subject.getLevelTwoToplimit()) {
                                 amtLevelTwo = CommonUtils.mul(CommonUtils.sub(usage, subject.getLevelOneToplimit()), subject.getFeeLevelTwo());
                                 levelTwoUsage = CommonUtils.sub(usage, subject.getLevelOneToplimit());
                             } else {
@@ -1027,7 +1042,7 @@ public class ChargeService {
                         amt = CommonUtils.add(amt, amtLevelTwo);
                         amt = CommonUtils.add(amt, amtLevelThree);
                     }
-                    propertyAmount = CommonUtils.add(propertyAmount,amt);
+                    propertyAmount = CommonUtils.add(propertyAmount, amt);
 
                     feeDataTypeMeter = new PropertyBillDetail.FeeDataTypeMeter();
                     feeDataTypeMeter.setSubjectName(subject.getSubjectName());
@@ -1064,7 +1079,7 @@ public class ChargeService {
             chargeDetail.setPayType(0);   //缴费方式:0:银行托收 1:微信缴费
             chargeDetail.setBillId(charge.getBillId());
             chargeDetail.setBillName(charge.getBillName());
-            chargeDetail.setPropertyName(property.getZoneId()+property.getBuildingId()+property.getUnitId()+property.getRoomId());
+            chargeDetail.setPropertyName(property.getZoneId() + property.getBuildingId() + property.getUnitId() + property.getRoomId());
             chargeDetailMapper.insertSelective(chargeDetail);
 
             //计算总账单费用
@@ -1089,7 +1104,7 @@ public class ChargeService {
     }
 
     //从cache中查询chargeId下对应房产的收费明细
-    public PropertyBillDetail rapidGetChargePropertyBillDetail(String productInstId, Long chargeId, Long propertyId){
+    public PropertyBillDetail rapidGetChargePropertyBillDetail(String productInstId, Long chargeId, Long propertyId) {
 
         String redisKey = PREFIX_CHARGE_PROPERTY_BILL_DETAIL + productInstId + "-" + chargeId + "-" + propertyId;
         ValueOperations<Object, PropertyBillDetail> valueOperations = redisTemplate.opsForValue();
@@ -1106,7 +1121,7 @@ public class ChargeService {
         ChargeExample.Criteria criteria = example.createCriteria();
 
         //chargeId
-        if(chargeDetailSearchBean.getChargeId() != null) {
+        if (chargeDetailSearchBean.getChargeId() != null) {
             criteria.andChargeIdEqualTo(chargeDetailSearchBean.getChargeId());
             searchChargeFlag = true;
         }
@@ -1115,34 +1130,34 @@ public class ChargeService {
         criteria.andProductInstIdEqualTo(productInstId);
 
         //BillId
-        if(chargeDetailSearchBean.getBillId() != null) {
+        if (chargeDetailSearchBean.getBillId() != null) {
             criteria.andBillIdEqualTo(chargeDetailSearchBean.getBillId());
             searchChargeFlag = true;
         }
 
         //BillPeriod
-        if(StringUtils.isNotEmpty(chargeDetailSearchBean.getBillPeriod())) {
+        if (StringUtils.isNotEmpty(chargeDetailSearchBean.getBillPeriod())) {
             criteria.andBillPeriodEqualTo(chargeDetailSearchBean.getBillPeriod());
             searchChargeFlag = true;
         }
 
         //Status
-        if(chargeDetailSearchBean.getStatus() != null) {
+        if (chargeDetailSearchBean.getStatus() != null) {
             criteria.andStatusEqualTo(chargeDetailSearchBean.getStatus());
             searchChargeFlag = true;
         }
 
         List<Long> chargeIdList = new LinkedList<>();
-        if(searchChargeFlag) {
+        if (searchChargeFlag) {
             //查询结果
             List<Charge> chargeList = chargeMapper.selectByExample(example);
-            if(chargeList == null || chargeList.size() ==0) {  //没有查到,直接返回
+            if (chargeList == null || chargeList.size() == 0) {  //没有查到,直接返回
                 Map<String, Object> result = new LinkedHashMap<>();
                 result.put("totalCount", 0);
                 result.put("data", chargeList);
                 return result;
             }
-            for(Charge charge:chargeList) {
+            for (Charge charge : chargeList) {
                 chargeIdList.add(charge.getChargeId());
             }
         }
@@ -1167,11 +1182,11 @@ public class ChargeService {
         ChargeDetailExample.Criteria criteriaDetail = chargeDetailExample.createCriteria();
         criteriaDetail.andProductInstIdEqualTo(productInstId);
 
-        if(searchChargeFlag) {
+        if (searchChargeFlag) {
             criteriaDetail.andChargeIdIn(chargeIdList);
         }
 
-        if(chargeDetailSearchBean.getPayStatus() != null) {
+        if (chargeDetailSearchBean.getPayStatus() != null) {
             criteriaDetail.andPayStatusEqualTo(chargeDetailSearchBean.getPayStatus());
         }
 
