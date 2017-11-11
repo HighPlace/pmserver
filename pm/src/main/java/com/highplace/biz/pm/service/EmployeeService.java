@@ -3,6 +3,7 @@ package com.highplace.biz.pm.service;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.highplace.biz.pm.config.AliyunConfig;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.dao.org.EmployeeMapper;
@@ -14,9 +15,7 @@ import com.highplace.biz.pm.domain.system.Account;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
-import com.highplace.biz.pm.service.util.CommonUtils;
-import com.highplace.biz.pm.service.util.ExcelUtils;
-import com.highplace.biz.pm.service.util.QCloudCosHelper;
+import com.highplace.biz.pm.service.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -61,6 +60,8 @@ public class EmployeeService {
     private TaskStatusService taskStatusService;
     @Autowired
     private QCloudConfig qCloudConfig;
+    @Autowired
+    private AliyunConfig aliyunConfig;
     @Autowired
     private AccountService accountService;
 
@@ -160,7 +161,7 @@ public class EmployeeService {
 
         if (StringUtils.isNotEmpty(searchBean.getSysUsername())) {
             criteria.andSysUsernameLike("%" + searchBean.getSysUsername() + "%"); //模糊查询
-        }else {
+        } else {
             if (onlySysUserFlag) criteria.andSysUsernameIsNotNull();  //没有输入账号查询的话,从员工表中搜索非null的记录
         }
 
@@ -272,11 +273,12 @@ public class EmployeeService {
             //将有改动的电话和邮箱同步到系统账号信息中
             //先查看是否有系统账号
             Employee tmp = employeeMapper.selectByPrimaryKey(employee.getEmployeeId());
-            if(StringUtils.isNotEmpty(tmp.getSysUsername())){
-                if(StringUtils.isNotEmpty(employee.getEmail()) ||
+            if (StringUtils.isNotEmpty(tmp.getSysUsername())) {
+                if (StringUtils.isNotEmpty(employee.getEmail()) ||
                         StringUtils.isNotEmpty(employee.getPhone())) {
                     Account account = new Account();
-                    account.setUsername(tmp.getSysUsername());;
+                    account.setUsername(tmp.getSysUsername());
+                    ;
                     account.setMobileNo(employee.getPhone());
                     account.setEmail(employee.getEmail());
                     accountService.update(productInstId, account);
@@ -298,6 +300,9 @@ public class EmployeeService {
         //获取文件在cos上的路径
         String cosFilePath = jsonObject.getString(MQService.MSG_KEY_FILEURL);
 
+        //获取vendor
+        Integer vendor = jsonObject.getInteger(MQService.MSG_KEY_VENDOR);
+
         //设置本地存储路径
         String localFilePath = "/tmp/" + cosFilePath;
 
@@ -312,11 +317,19 @@ public class EmployeeService {
         //处理结果Map
         Map<String, Object> result = new HashMap<>();
 
-        //创建qcloud cos操作Helper对象
-        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        OssHelperInterface ossHelper;
+        String bucketName;
+        if (vendor == 0) {  //腾讯云
+            //创建qcloud cos操作Helper对象
+            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+            bucketName = qCloudConfig.getCosBucketName();
+        } else {  //vendor=1 阿里云
+            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
+            bucketName = aliyunConfig.getBucketName();
+        }
 
         //下载文件到本地
-        JSONObject jsonGetFileResult = qCloudCosHelper.getFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
         int code = jsonGetFileResult.getIntValue("code");
 
         if (code != 0) {
@@ -342,7 +355,7 @@ public class EmployeeService {
             localFile.delete();
 
             //删除远程的文件
-            qCloudCosHelper.deleteFile(qCloudConfig.getCosBucketName(), cosFilePath);
+            ossHelper.deleteFile(bucketName, cosFilePath);
         }
 
         //设置任务状态为1：处理完成
@@ -354,7 +367,7 @@ public class EmployeeService {
                 result);
 
         // 关闭释放资源
-        qCloudCosHelper.releaseCosClient();
+        ossHelper.releaseCosClient();
     }
 
     //读取Excel文件
@@ -469,7 +482,7 @@ public class EmployeeService {
 
                             //根据部门名查询部门ID
                             Long deptId = departmentMapper.selectDeptIdByDeptName(productInstID, cellValue);
-                            if(deptId == null ) {
+                            if (deptId == null) {
                                 errorFlag = true;
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列部门名不存在, 请仔细检查;";
                             } else {
@@ -616,6 +629,9 @@ public class EmployeeService {
         //获取productInstID
         String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
 
+        //vendor
+        Integer vendor = jsonObject.getInteger(MQService.MSG_KEY_VENDOR);
+
         //设置任务为处理中
         taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.EMPLOYEE,
                 TaskStatusService.TaskTypeEnum.EXPORT,
@@ -628,7 +644,7 @@ public class EmployeeService {
         Map<String, Object> result = new HashMap<>();
 
         //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId);
+        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId, vendor);
         int code = jsonResult.getIntValue("code");
         if (code != 0) {
             String errMsg = jsonResult.getString("message");
@@ -654,7 +670,7 @@ public class EmployeeService {
     }
 
     //读取房产资料并上传到cos,基于注解方式
-    private JSONObject writeExcelAndUploadCosNew(String productInstId) {
+    private JSONObject writeExcelAndUploadCosNew(String productInstId, Integer vendor) {
 
         String targetFilename = "employee_" + productInstId + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
         String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
@@ -678,20 +694,34 @@ public class EmployeeService {
         //map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
         //ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath, propertyList, Property.class, true);
 
-        //创建qcloud cos操作Helper对象
-        QCloudCosHelper qCloudCosHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        OssHelperInterface ossHelper;
+        String bucketName;
+        if (vendor == 0) {  //腾讯云
+            //创建qcloud cos操作Helper对象
+            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+            bucketName = qCloudConfig.getCosBucketName();
+        } else {  //vendor=1 阿里云
+            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
+            bucketName = aliyunConfig.getBucketName();
+        }
+
         //创建cos folder
-        qCloudCosHelper.createFolder(qCloudConfig.getCosBucketName(), cosFolder);
+        ossHelper.createFolder(bucketName, cosFolder);
         //上传文件
-        JSONObject jsonUploadResult = qCloudCosHelper.uploadFile(qCloudConfig.getCosBucketName(), cosFilePath, localFilePath);
+        JSONObject jsonUploadResult = ossHelper.uploadFile(bucketName, cosFilePath, localFilePath);
         if (jsonUploadResult.getIntValue("code") == 0) {
             //生成下载导出结果文件的url
-            String downloadUrl = qCloudCosHelper.getDownLoadUrl(qCloudConfig.getCosBucketName(), cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
+            String downloadUrl;
+            if (vendor == 0) {
+                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
+            } else {
+                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, null);
+            }
             jsonUploadResult.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, downloadUrl);
         }
 
         // 关闭释放资源
-        qCloudCosHelper.releaseCosClient();
+        ossHelper.releaseCosClient();
 
         //删除本地文件
         File localFile = new File(localFilePath);

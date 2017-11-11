@@ -49,6 +49,7 @@ public class QCloudCosHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject getFile(String bucketName, String cosFilePath, String localFilePath) {
 
+        if(!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         GetFileLocalRequest getFileLocalRequest = new GetFileLocalRequest(bucketName, cosFilePath, localFilePath);
         getFileLocalRequest.setUseCDN(false);
         getFileLocalRequest.setReferer("*.myweb.cn");
@@ -78,7 +79,7 @@ public class QCloudCosHelper implements OssHelperInterface {
         logger.info("qcloud uploadFileResult: " + uploadFileResult); // {"code":0,"message":"SUCCESS","request_id":"NTllYjcxMDNfMTliMjk0MGFfMWM4ZV9jYzhiZDE=","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","resource_path":"/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","url":"http://gz.file.myqcloud.com/files/v2/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","vid":"92bd33f0c1bea6680011912f919613f91508602115"}}
         return JSON.parseObject(uploadFileResult);
     }
-
+    /*
     //上传buffer到cos
     public JSONObject uploadBuffer(String bucketName, String cosFilePath, byte[] contentBuffer) {
 
@@ -100,6 +101,7 @@ public class QCloudCosHelper implements OssHelperInterface {
         logger.info("qcloud statFileResult: " + statFileResult); //{"code":0,"message":"SUCCESS","request_id":"NTllYjcyMzRfNjIyNWI2NF80NmRjX2M5NzQ1Zg==","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602420221.xls","authority":"eInvalid","biz_attr":"","ctime":1508602420,"custom_headers":{},"filelen":5120,"filesize":5120,"forbid":0,"mtime":1508602420,"sha":"1e305bf9511321fc731b8a1275c1237ff96a9903","slicesize":5120,"source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602420221.xls"}}
         return JSON.parseObject(statFileResult);
     }
+    */
 
     //创建目录，目录必须以/结尾，如"/sample_folder/subfolder/"
     public void createFolder(String bucketName, String cosFolderPath){
