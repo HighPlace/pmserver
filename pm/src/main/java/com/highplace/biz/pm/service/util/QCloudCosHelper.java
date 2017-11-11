@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.exception.AbstractCosException;
-import com.qcloud.cos.meta.InsertOnly;
 import com.qcloud.cos.request.*;
 import com.qcloud.cos.sign.Credentials;
 import com.qcloud.cos.sign.Sign;
@@ -49,7 +48,7 @@ public class QCloudCosHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject getFile(String bucketName, String cosFilePath, String localFilePath) {
 
-        if(!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
+        if (!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         GetFileLocalRequest getFileLocalRequest = new GetFileLocalRequest(bucketName, cosFilePath, localFilePath);
         getFileLocalRequest.setUseCDN(false);
         getFileLocalRequest.setReferer("*.myweb.cn");
@@ -62,7 +61,7 @@ public class QCloudCosHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS","request_id":"NTllYWJhOGVfY2NhMzNiMGFfYWViOF9lNTc4YWM="}
     public JSONObject deleteFile(String bucketName, String cosFilePath) {
 
-        if(!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
+        if (!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         DelFileRequest delFileRequest = new DelFileRequest(bucketName, cosFilePath);
         String delFileResult = cosClient.delFile(delFileRequest);
         logger.info("qcloud delFileResult: " + delFileResult);
@@ -73,7 +72,7 @@ public class QCloudCosHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject uploadFile(String bucketName, String cosFilePath, String localFilePath) {
 
-        if(!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
+        if (!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         UploadFileRequest uploadFileRequest = new UploadFileRequest(bucketName, cosFilePath, localFilePath);
         uploadFileRequest.setEnableShaDigest(false);
         String uploadFileResult = cosClient.uploadFile(uploadFileRequest);
@@ -106,13 +105,13 @@ public class QCloudCosHelper implements OssHelperInterface {
     */
 
     //创建目录，目录必须以/结尾，如"/sample_folder/subfolder/"
-    public void createFolder(String bucketName, String cosFolderPath){
+    public void createFolder(String bucketName, String cosFolderPath) {
 
-        if(!cosFolderPath.startsWith("/")) cosFolderPath = "/" + cosFolderPath; //必须以"/"开头
+        if (!cosFolderPath.startsWith("/")) cosFolderPath = "/" + cosFolderPath; //必须以"/"开头
         StatFolderRequest statFolderRequest = new StatFolderRequest(bucketName, cosFolderPath);
         String statFolderRet = cosClient.statFolder(statFolderRequest);
         logger.info("qcloud statFolderResult: " + statFolderRet);
-        if(JSON.parseObject(statFolderRet).getIntValue("code") != 0) {
+        if (JSON.parseObject(statFolderRet).getIntValue("code") != 0) {
             CreateFolderRequest createFolderRequest = new CreateFolderRequest(bucketName, cosFolderPath);
             String createFolderRet = cosClient.createFolder(createFolderRequest);
             logger.info("qcloud createFolderResult: " + createFolderRet);
@@ -122,7 +121,7 @@ public class QCloudCosHelper implements OssHelperInterface {
     //生成文件下载URL,文件名不能以/结尾,如：/pic/test.jpg
     public String getDownLoadUrl(String bucketName, String cosFilePath, String sourceURL) {
 
-        if(!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
+        if (!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         long expired = System.currentTimeMillis() / 1000 + 6000;
         try {
             String signStr = Sign.getDownLoadSign(bucketName, cosFilePath, credentials, expired);

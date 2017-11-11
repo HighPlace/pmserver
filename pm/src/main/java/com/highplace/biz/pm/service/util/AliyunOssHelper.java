@@ -1,15 +1,11 @@
 package com.highplace.biz.pm.service.util;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.GetObjectRequest;
-import com.aliyun.oss.model.PutObjectRequest;
-import com.highplace.biz.pm.config.AliyunConfig;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -25,10 +21,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     private JSONObject succesJSONObject;
     private JSONObject errorJSONObject;
 
-    @Autowired
-    private AliyunConfig aliyunConfig;
-
-    public AliyunOssHelper(String endpoint, String accessKeyId, String accessKeySecret){
+    public AliyunOssHelper(String endpoint, String accessKeyId, String accessKeySecret) {
         ossClient = new OSSClient(endpoint, accessKeyId, accessKeySecret);
         succesJSONObject = new JSONObject();
         succesJSONObject.put("code", 0);
@@ -57,7 +50,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject uploadFile(String bucketName, String cosFilePath, String localFilePath) {
 
-        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
+        if (cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.putObject(bucketName, cosFilePath, new File(localFilePath));
             return getSuccesJSONObject();
@@ -72,7 +65,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS"}
     public JSONObject getFile(String bucketName, String cosFilePath, String localFilePath) {
 
-        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
+        if (cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.getObject(new GetObjectRequest(bucketName, cosFilePath), new File(localFilePath));
             return getSuccesJSONObject();
@@ -87,7 +80,7 @@ public class AliyunOssHelper implements OssHelperInterface {
     //返回格式:{"code":0,"message":"SUCCESS","request_id":"NTllYWJhOGVfY2NhMzNiMGFfYWViOF9lNTc4YWM="}
     public JSONObject deleteFile(String bucketName, String cosFilePath) {
 
-        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
+        if (cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         try {
             ossClient.deleteObject(bucketName, cosFilePath);
             return getSuccesJSONObject();
@@ -99,9 +92,9 @@ public class AliyunOssHelper implements OssHelperInterface {
     }
 
     //创建目录，目录必须以/结尾，不能以/开头,如"sample_folder/"
-    public void createFolder(String bucketName, String cosFolderPath){
+    public void createFolder(String bucketName, String cosFolderPath) {
 
-        if(cosFolderPath.startsWith("/")) cosFolderPath = cosFolderPath.substring(1);
+        if (cosFolderPath.startsWith("/")) cosFolderPath = cosFolderPath.substring(1);
         try {
             ossClient.putObject(bucketName, cosFolderPath, new ByteArrayInputStream(new byte[0]));
         } catch (Exception e) {
@@ -113,16 +106,14 @@ public class AliyunOssHelper implements OssHelperInterface {
     //生成文件下载URL,文件名不能以/结尾,如：pic/test.jpg
     public String getDownLoadUrl(String bucketName, String cosFilePath, String noUse) {
 
-        if(cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
+        if (cosFilePath.startsWith("/")) cosFilePath = cosFilePath.substring(1);
         // 设置URL过期时间为1小时
         Date expiration = new Date(new Date().getTime() + 3600 * 1000);
         URL url = ossClient.generatePresignedUrl(bucketName, cosFilePath, expiration);
-        logger.debug("oss url:" + url.toString() );
-        logger.debug("oss endpoint:" + aliyunConfig.getEndpoint());
-        logger.debug("oss endpoint wan:" + aliyunConfig.getEndpointWan() );
-        logger.debug("oss replace1:" + StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan()));
-        logger.debug("oss replace2:" + url.toString().replaceFirst(aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan()));
-                //默认是内网域名,需要替换成外网域名
-        return (url == null)? null : StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan());
+
+        //logger.debug("oss replace1:" + StringUtils.replace(url.toString(),aliyunConfig.getEndpoint(),aliyunConfig.getEndpointWan()));
+
+        //默认是内网域名,需要替换成外网域名,去掉url中的"-internal"
+        return (url == null) ? null : StringUtils.replaceOnce(url.toString(), "-internal", "");
     }
 }
