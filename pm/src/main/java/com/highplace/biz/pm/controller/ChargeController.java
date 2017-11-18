@@ -257,7 +257,7 @@ public class ChargeController {
 
     ///////////////////////////出账单明细////////////////////////
     @RequestMapping(path = "/charge/detail", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('/charge/detail;POST','/charge/detail;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
+    @PreAuthorize("hasAnyAuthority('/charge/detail;GET','/charge/detail;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
     public Map<String, Object> getCharge(ChargeDetailSearchBean chargeDetailSearchBean, Principal principal) throws Exception {
         return chargeService.queryChargeDetail(SecurityUtils.getCurrentProductInstId(principal), chargeDetailSearchBean, false);
     }

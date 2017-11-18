@@ -940,7 +940,7 @@ public class ChargeService {
             double propertyAmount = 0;
             for (Subject subject : subjectList) {
 
-                //用量关联数据标识,若null,则表示不关联, 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
+                //用量关联数据标识,若null,则表示不关联, -1:按车位 0:产权面积 1:水表 2:电表 3:燃气表 4:暖气表 5:空调表 6:服务工单
                 if (subject.getFeeDataType() == null) {   //不关联,如停车费,直接获取feeLevelOne金额
 
                     propertyAmount = CommonUtils.add(propertyAmount, subject.getFeeLevelOne());
