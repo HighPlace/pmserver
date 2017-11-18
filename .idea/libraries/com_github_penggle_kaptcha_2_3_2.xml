@@ -3,11 +3,14 @@
     <properties maven-id="com.github.penggle:kaptcha:2.3.2" />
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/kaptcha-2.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javax.servlet-api-3.1.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/filters-2.0.235-1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$USER_HOME$/.ideaLibSources/kaptcha-2.3.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/kaptcha-2.3.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javax.servlet-api-3.1.0-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/filters-2.0.235-1-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

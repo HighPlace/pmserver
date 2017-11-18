@@ -15,7 +15,7 @@
         <module name="unilogin" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
       <module name="apigw" target="1.8" />
       <module name="configserver" target="1.8" />
       <module name="examplers" target="1.8" />

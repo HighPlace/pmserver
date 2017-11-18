@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 
 @RestController
 public class CommonController {
@@ -52,7 +53,7 @@ public class CommonController {
                 "  ],\n" +
                 "  \"Version\": \"1\"\n" +
                 "}";
-        String roleSessionName = SecurityUtils.getCurrentProductInstId(principal);
+        String roleSessionName = "oss" + new Random().nextInt(999_999_999);
         ProtocolType protocolType = ProtocolType.HTTPS;
 
         try {
