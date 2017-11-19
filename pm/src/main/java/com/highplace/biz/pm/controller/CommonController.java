@@ -87,11 +87,10 @@ public class CommonController {
                 final AssumeRoleResponse stsResponse = assumeRole(accessKeyId, accessKeySecret, roleArn, roleSessionName,
                         policy, protocolType, durationSeconds);
                 HashMap<String, String> respMap = new HashMap<>();
-                respMap.put("status", "200");
-                respMap.put("AccessKeyId", stsResponse.getCredentials().getAccessKeyId());
-                respMap.put("AccessKeySecret", stsResponse.getCredentials().getAccessKeySecret());
-                respMap.put("SecurityToken", stsResponse.getCredentials().getSecurityToken());
-                respMap.put("Expiration", stsResponse.getCredentials().getExpiration());
+                respMap.put("accessKeyId", stsResponse.getCredentials().getAccessKeyId());
+                respMap.put("accessKeySecret", stsResponse.getCredentials().getAccessKeySecret());
+                respMap.put("securityToken", stsResponse.getCredentials().getSecurityToken());
+                respMap.put("expiration", stsResponse.getCredentials().getExpiration());
 
                 //写入cache
                 valueOperations.set(roleSessionName, respMap);
@@ -99,13 +98,8 @@ public class CommonController {
 
                 return respMap;
             } catch (ClientException e) {
-                HashMap<String, String> respMap = new HashMap<>();
-                respMap.put("status", e.getErrCode());
-                respMap.put("AccessKeyId", "");
-                respMap.put("AccessKeySecret", "");
-                respMap.put("SecurityToken", "");
-                respMap.put("Expiration", "");
-                return respMap;
+                logger.error("aliyun sts error:" + e.getErrCode() + ":" + e.getErrMsg());
+                throw new Exception("aliyun sts error:" + e.getErrCode() + ":" + e.getErrMsg());
             }
         }
     }
