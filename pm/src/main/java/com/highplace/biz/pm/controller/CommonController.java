@@ -43,6 +43,12 @@ public class CommonController {
     @Value("${aliyun.api.oss.roleArn}")
     private String roleArn;
 
+    @Value("${aliyun.api.oss.endpoint}")
+    private String endpoint;
+
+    @Value("${aliyun.api.oss.bucket}")
+    private String bucket;
+
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -89,8 +95,9 @@ public class CommonController {
                 HashMap<String, String> respMap = new HashMap<>();
                 respMap.put("accessKeyId", stsResponse.getCredentials().getAccessKeyId());
                 respMap.put("accessKeySecret", stsResponse.getCredentials().getAccessKeySecret());
-                respMap.put("securityToken", stsResponse.getCredentials().getSecurityToken());
-                respMap.put("expiration", stsResponse.getCredentials().getExpiration());
+                respMap.put("stsToken", stsResponse.getCredentials().getSecurityToken());
+                respMap.put("endpoint", endpoint);
+                respMap.put("bucket", bucket);
 
                 //写入cache
                 valueOperations.set(roleSessionName, respMap);
