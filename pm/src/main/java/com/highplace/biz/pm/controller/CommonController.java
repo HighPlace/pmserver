@@ -56,7 +56,7 @@ public class CommonController {
     @RequestMapping(path = "/aliyun/ossTempToken", method = RequestMethod.GET)
     public Map<String, String> getTempTokenFromSTS() throws Exception {
 
-        String roleSessionName = "aliyun-oss-temp-token"; //同时作为redis的key,aliyun规定2-32个字符,参考https://help.aliyun.com/document_detail/28763.html
+        String roleSessionName = "aliyun-oss-temp-token-forall"; //同时作为redis的key,aliyun规定2-32个字符,参考https://help.aliyun.com/document_detail/28763.html
 
         //先从redis获取
         ValueOperations<Object, HashMap<String, String>> valueOperations = redisTemplate.opsForValue();
