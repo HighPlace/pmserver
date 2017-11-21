@@ -36,6 +36,7 @@ public class UserController {
     public static final Logger logger = LoggerFactory.getLogger(UserController.class);
     public static final String PREFIX_VERIFY_CODE_NAME_INSESSION = "PREFIX_VERIFY_CODE_NAME_INSESSION";
     private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     @Qualifier("captchaProducer")
     @Autowired
     private DefaultKaptcha defaultKaptcha;
@@ -128,7 +129,17 @@ public class UserController {
         result.put("roles", myUser.getRoles());
         result.put("modules", myUser.getModules());
         return result;
+    }
 
+    //前端获取用户信息接口
+    @RequestMapping(path = "/roles", method = RequestMethod.GET)
+    public Map<String, Object> getRoles(OAuth2Authentication authen) {
+
+        User myUser = (User) authen.getPrincipal();
+        List<Role> roleList = roleDao.findByProductInstId(myUser.getProductInstId());
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("data", roleList);
+        return result;
     }
 
     @RequestMapping("/captcha-image")

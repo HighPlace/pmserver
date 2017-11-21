@@ -22,6 +22,14 @@ public interface RoleDao {
     })
     public List<Role> findByUserId(@Param("userId") long userId);
 
+    //查询产品实例下的所有角色信息
+    @Select("select role_id, role_name from t_role where product_inst_id= #{productInstId}")
+    @Results({
+            @Result(id=true, column="role_id", property="roleId"),
+            @Result(column="role_name", property="roleName")
+    })
+    public List<Role> findByProductInstId(@Param("productInstId") String productInstId);
+
     //插入用户角色关系
     @Insert("INSERT INTO t_user_role(user_id, role_id, create_time) VALUES(#{userId}, #{roleId}, now())")
     int insertUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
