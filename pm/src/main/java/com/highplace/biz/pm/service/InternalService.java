@@ -199,19 +199,31 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 25 16 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
+    @Scheduled(cron = "0 6 17 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
     public void reloadPropertyRedisValue() {
 
         //if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
-            if (true) {
+        if (true) {
             ///// reload 分区/楼号/单元号 cache ////////
             long totalCount = propertyMapper.countByDistinctIds();
-            long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
+            long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
+            logger.debug("toalcount:" + totalCount + " pages:" + pages);
+
+            /*
             //维护一个已经清除了cache的key列表
             Set<String> emptyZoneKeySet = new HashSet<>();
             Set<String> emptyZoneBuildingKeySet = new HashSet<>();
             Set<String> emptyZoneBuildingUnitIdKeySet = new HashSet<>();
+            */
+
+            //全量清除cache内容
+            Set<String> keys = stringRedisTemplate.keys(PREFIX_PROPERTY_ZONEID_KEY + "*");
+            stringRedisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_PROPERTY_BUILDINGID_KEY + "*");
+            stringRedisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_PROPERTY_UNITID_KEY + "*");
+            stringRedisTemplate.delete(keys);
 
             List<Property> propertyList;
             for (int i = 1; i <= pages; i++) {
@@ -221,29 +233,39 @@ public class InternalService {
                 for (Property property : propertyList) {
 
                     String redisKeyForZoneId = PREFIX_PROPERTY_ZONEID_KEY + property.getProductInstId();
-                    String redisKeyForBuildIdPrefix = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId() + property.getZoneId();
-                    String redisKeyForUnitIdPrefix = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId() + property.getBuildingId();
-
+                    String redisKeyForBuildId = PREFIX_PROPERTY_BUILDINGID_KEY + property.getProductInstId() + property.getZoneId();
+                    String redisKeyForUnitId = PREFIX_PROPERTY_UNITID_KEY + property.getProductInstId() + property.getBuildingId();
+                    /*
                     //zoneId
                     if (!emptyZoneKeySet.contains(redisKeyForZoneId)) {
                         stringRedisTemplate.delete(redisKeyForZoneId);
+                        logger.debug("delete redisKeyForZoneId :" + redisKeyForZoneId);
                         emptyZoneKeySet.add(redisKeyForZoneId);
                     }
+                    */
                     stringRedisTemplate.opsForSet().add(redisKeyForZoneId, property.getZoneId());
-
+                    logger.debug("add redisKeyForZoneId :" + redisKeyForZoneId + " " + property.getZoneId());
+                    /*
                     //buildingId
-                    if (!emptyZoneBuildingKeySet.contains(redisKeyForBuildIdPrefix)) {
-                        stringRedisTemplate.delete(redisKeyForBuildIdPrefix);
-                        emptyZoneKeySet.add(redisKeyForBuildIdPrefix);
+                    if (!emptyZoneBuildingKeySet.contains(redisKeyForBuildId)) {
+                        stringRedisTemplate.delete(redisKeyForBuildId);
+                        logger.debug("delete redisKeyForBuildId :" + redisKeyForBuildId);
+                        emptyZoneKeySet.add(redisKeyForBuildId);
                     }
-                    stringRedisTemplate.opsForSet().add(redisKeyForBuildIdPrefix, property.getBuildingId());
+                    */
+                    stringRedisTemplate.opsForSet().add(redisKeyForBuildId, property.getBuildingId());
+                    logger.debug("add redisKeyForBuildId :" + redisKeyForBuildId + " " + property.getBuildingId());
 
+                    /*
                     //unitId
-                    if (!emptyZoneBuildingUnitIdKeySet.contains(redisKeyForUnitIdPrefix)) {
-                        stringRedisTemplate.delete(redisKeyForUnitIdPrefix);
-                        emptyZoneKeySet.add(redisKeyForUnitIdPrefix);
+                    if (!emptyZoneBuildingUnitIdKeySet.contains(redisKeyForUnitId)) {
+                        stringRedisTemplate.delete(redisKeyForUnitId);
+                        logger.debug("delete redisKeyForUnitId :" + redisKeyForUnitId);
+                        emptyZoneKeySet.add(redisKeyForUnitId);
                     }
-                    stringRedisTemplate.opsForSet().add(redisKeyForUnitIdPrefix, property.getUnitId());
+                    */
+                    stringRedisTemplate.opsForSet().add(redisKeyForUnitId, property.getUnitId());
+                    logger.debug("add redisKeyForUnitId :" + redisKeyForUnitId + " " + property.getUnitId());
                 }
             }
             logger.info("reload property zoneId buildingId unitId cache success");
@@ -341,7 +363,7 @@ public class InternalService {
                 stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), notice.getType());
 
                 //设置缺省的type
-                if(!defaultProductInstIdSet.contains(notice.getProductInstId())) {
+                if (!defaultProductInstIdSet.contains(notice.getProductInstId())) {
                     stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), DEFAULT_NOTICE_TYPE1);
                     stringRedisTemplate.opsForSet().add(PREFIX_NOTICE_TYPE_KEY + notice.getProductInstId(), DEFAULT_NOTICE_TYPE2);
                     defaultProductInstIdSet.add(notice.getProductInstId());
@@ -366,7 +388,7 @@ public class InternalService {
                 stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_SUB_TYPE_KEY + request.getProductInstId() + "_" + request.getType(), request.getSubType());
 
                 //设置缺省的type
-                if(!defaultProductInstIdSet.contains(request.getProductInstId())) {
+                if (!defaultProductInstIdSet.contains(request.getProductInstId())) {
                     stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE1);
                     stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE2);
                     stringRedisTemplate.opsForSet().add(PREFIX_REQUEST_TYPE_KEY + request.getProductInstId(), DEFAULT_REQUEST_TYPE3);
