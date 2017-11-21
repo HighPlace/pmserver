@@ -76,6 +76,10 @@ public class ChargeDetailSqlProvider {
             sql.VALUES("property_name", "#{propertyName,jdbcType=VARCHAR}");
         }
         
+        if (record.getBillPeriod() != null) {
+            sql.VALUES("bill_period", "#{billPeriod,jdbcType=VARCHAR}");
+        }
+        
         if (record.getRemark() != null) {
             sql.VALUES("remark", "#{remark,jdbcType=LONGVARCHAR}");
         }
@@ -102,6 +106,7 @@ public class ChargeDetailSqlProvider {
         sql.SELECT("bill_id");
         sql.SELECT("bill_name");
         sql.SELECT("property_name");
+        sql.SELECT("bill_period");
         sql.SELECT("remark");
         sql.FROM("t_charge_detail");
         applyWhere(sql, example, false);
@@ -132,6 +137,7 @@ public class ChargeDetailSqlProvider {
         sql.SELECT("bill_id");
         sql.SELECT("bill_name");
         sql.SELECT("property_name");
+        sql.SELECT("bill_period");
         sql.FROM("t_charge_detail");
         applyWhere(sql, example, false);
         
@@ -201,6 +207,10 @@ public class ChargeDetailSqlProvider {
             sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
         }
         
+        if (record.getBillPeriod() != null) {
+            sql.SET("bill_period = #{record.billPeriod,jdbcType=VARCHAR}");
+        }
+        
         if (record.getRemark() != null) {
             sql.SET("remark = #{record.remark,jdbcType=LONGVARCHAR}");
         }
@@ -226,6 +236,7 @@ public class ChargeDetailSqlProvider {
         sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
         sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
         sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
+        sql.SET("bill_period = #{record.billPeriod,jdbcType=VARCHAR}");
         sql.SET("remark = #{record.remark,jdbcType=LONGVARCHAR}");
         
         ChargeDetailExample example = (ChargeDetailExample) parameter.get("example");
@@ -250,6 +261,7 @@ public class ChargeDetailSqlProvider {
         sql.SET("bill_id = #{record.billId,jdbcType=BIGINT}");
         sql.SET("bill_name = #{record.billName,jdbcType=VARCHAR}");
         sql.SET("property_name = #{record.propertyName,jdbcType=VARCHAR}");
+        sql.SET("bill_period = #{record.billPeriod,jdbcType=VARCHAR}");
         
         ChargeDetailExample example = (ChargeDetailExample) parameter.get("example");
         applyWhere(sql, example, true);
@@ -306,6 +318,10 @@ public class ChargeDetailSqlProvider {
         
         if (record.getPropertyName() != null) {
             sql.SET("property_name = #{propertyName,jdbcType=VARCHAR}");
+        }
+        
+        if (record.getBillPeriod() != null) {
+            sql.SET("bill_period = #{billPeriod,jdbcType=VARCHAR}");
         }
         
         if (record.getRemark() != null) {

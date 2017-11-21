@@ -924,6 +924,76 @@ public class ChargeDetailExample {
             addCriterion("property_name not between", value1, value2, "propertyName");
             return (Criteria) this;
         }
+
+        public Criteria andBillPeriodIsNull() {
+            addCriterion("bill_period is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodIsNotNull() {
+            addCriterion("bill_period is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodEqualTo(String value) {
+            addCriterion("bill_period =", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodNotEqualTo(String value) {
+            addCriterion("bill_period <>", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodGreaterThan(String value) {
+            addCriterion("bill_period >", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodGreaterThanOrEqualTo(String value) {
+            addCriterion("bill_period >=", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodLessThan(String value) {
+            addCriterion("bill_period <", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodLessThanOrEqualTo(String value) {
+            addCriterion("bill_period <=", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodLike(String value) {
+            addCriterion("bill_period like", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodNotLike(String value) {
+            addCriterion("bill_period not like", value, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodIn(List<String> values) {
+            addCriterion("bill_period in", values, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodNotIn(List<String> values) {
+            addCriterion("bill_period not in", values, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodBetween(String value1, String value2) {
+            addCriterion("bill_period between", value1, value2, "billPeriod");
+            return (Criteria) this;
+        }
+
+        public Criteria andBillPeriodNotBetween(String value1, String value2) {
+            addCriterion("bill_period not between", value1, value2, "billPeriod");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

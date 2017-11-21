@@ -38,6 +38,8 @@ public class ChargeDetail {
 
     private String propertyName;
 
+    private String billPeriod;
+
     private String remark;
 
     public Long getDetailId() {
@@ -142,6 +144,14 @@ public class ChargeDetail {
 
     public void setPropertyName(String propertyName) {
         this.propertyName = propertyName == null ? null : propertyName.trim();
+    }
+
+    public String getBillPeriod() {
+        return billPeriod;
+    }
+
+    public void setBillPeriod(String billPeriod) {
+        this.billPeriod = billPeriod == null ? null : billPeriod.trim();
     }
 
     public String getRemark() {

@@ -1073,6 +1073,7 @@ public class ChargeService {
             chargeDetail = new ChargeDetail();
             chargeDetail.setProductInstId(charge.getProductInstId());
             chargeDetail.setChargeId(charge.getChargeId());
+            chargeDetail.setBillPeriod(charge.getBillPeriod());//写入账期
             chargeDetail.setPropertyId(property.getPropertyId());
             chargeDetail.setAmount(propertyAmount);
             chargeDetail.setPayStatus(0); //状态:0:收费中 1:欠费 2:已缴费

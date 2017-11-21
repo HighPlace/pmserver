@@ -37,14 +37,14 @@ public interface ChargeDetailMapper {
         "pay_id, create_time, ",
         "modify_time, bill_id, ",
         "bill_name, property_name, ",
-        "remark)",
+        "bill_period, remark)",
         "values (#{productInstId,jdbcType=VARCHAR}, #{chargeId,jdbcType=BIGINT}, ",
         "#{propertyId,jdbcType=BIGINT}, #{amount,jdbcType=DOUBLE}, ",
         "#{payStatus,jdbcType=INTEGER}, #{payType,jdbcType=INTEGER}, ",
         "#{payId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, ",
         "#{modifyTime,jdbcType=TIMESTAMP}, #{billId,jdbcType=BIGINT}, ",
         "#{billName,jdbcType=VARCHAR}, #{propertyName,jdbcType=VARCHAR}, ",
-        "#{remark,jdbcType=LONGVARCHAR})"
+        "#{billPeriod,jdbcType=VARCHAR}, #{remark,jdbcType=LONGVARCHAR})"
     })
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="detailId", before=false, resultType=Long.class)
     int insert(ChargeDetail record);
@@ -68,6 +68,7 @@ public interface ChargeDetailMapper {
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
         @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
         @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
     })
     List<ChargeDetail> selectByExampleWithBLOBs(ChargeDetailExample example);
@@ -86,14 +87,16 @@ public interface ChargeDetailMapper {
         @Result(column="modify_time", property="modifyTime", jdbcType=JdbcType.TIMESTAMP),
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
         @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
-        @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR)
+        @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR)
     })
     List<ChargeDetail> selectByExample(ChargeDetailExample example);
 
     @Select({
         "select",
         "detail_id, product_inst_id, charge_id, property_id, amount, pay_status, pay_type, ",
-        "pay_id, create_time, modify_time, bill_id, bill_name, property_name, remark",
+        "pay_id, create_time, modify_time, bill_id, bill_name, property_name, bill_period, ",
+        "remark",
         "from t_charge_detail",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
@@ -111,6 +114,7 @@ public interface ChargeDetailMapper {
         @Result(column="bill_id", property="billId", jdbcType=JdbcType.BIGINT),
         @Result(column="bill_name", property="billName", jdbcType=JdbcType.VARCHAR),
         @Result(column="property_name", property="propertyName", jdbcType=JdbcType.VARCHAR),
+        @Result(column="bill_period", property="billPeriod", jdbcType=JdbcType.VARCHAR),
         @Result(column="remark", property="remark", jdbcType=JdbcType.LONGVARCHAR)
     })
     ChargeDetail selectByPrimaryKey(Long detailId);
@@ -141,6 +145,7 @@ public interface ChargeDetailMapper {
           "bill_id = #{billId,jdbcType=BIGINT},",
           "bill_name = #{billName,jdbcType=VARCHAR},",
           "property_name = #{propertyName,jdbcType=VARCHAR},",
+          "bill_period = #{billPeriod,jdbcType=VARCHAR},",
           "remark = #{remark,jdbcType=LONGVARCHAR}",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
@@ -159,7 +164,8 @@ public interface ChargeDetailMapper {
           "modify_time = #{modifyTime,jdbcType=TIMESTAMP},",
           "bill_id = #{billId,jdbcType=BIGINT},",
           "bill_name = #{billName,jdbcType=VARCHAR},",
-          "property_name = #{propertyName,jdbcType=VARCHAR}",
+          "property_name = #{propertyName,jdbcType=VARCHAR},",
+          "bill_period = #{billPeriod,jdbcType=VARCHAR}",
         "where detail_id = #{detailId,jdbcType=BIGINT}"
     })
     int updateByPrimaryKey(ChargeDetail record);
