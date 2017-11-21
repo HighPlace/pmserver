@@ -4,11 +4,14 @@ import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.base.CarMapper;
 import com.highplace.biz.pm.dao.base.CustomerMapper;
 import com.highplace.biz.pm.dao.base.PropertyMapper;
+import com.highplace.biz.pm.dao.charge.BillMapper;
 import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.dao.service.NoticeMapper;
 import com.highplace.biz.pm.dao.service.RequestMapper;
 import com.highplace.biz.pm.domain.base.*;
+import com.highplace.biz.pm.domain.charge.Bill;
+import com.highplace.biz.pm.domain.charge.BillExample;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.Employee;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.highplace.biz.pm.service.ChargeService.PREFIX_BILL_NAME_KEY;
 import static com.highplace.biz.pm.service.CustomerService.*;
 import static com.highplace.biz.pm.service.DepartmentService.PREFIX_DEPARTMENT_NAME_KEY;
 import static com.highplace.biz.pm.service.EmployeeService.*;
@@ -66,6 +70,8 @@ public class InternalService {
     private NoticeMapper noticeMapper;
     @Autowired
     private RequestMapper requestMapper;
+    @Autowired
+    private BillMapper billMapper;
 
     //可能存在多实例的情况，为避免多实例的定时任务重复执行，需要加一个全局锁
     public boolean canRun(String taskName, TASK_PERIOD_ENUM taskPeriod) {
@@ -151,8 +157,18 @@ public class InternalService {
             long totalCount = carMapper.countByExample(new CarExample());
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
+            /*
             //维护一个已经清除了cache的productInstId列表
             Set<String> emptyProductInstIdSet = new HashSet<>();
+            */
+
+            //全量清除cache内容
+            Set<String> keys = stringRedisTemplate.keys(PREFIX_CUSTOMER_PLATENO_KEY + "*");
+            stringRedisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_CUSTOMER_NAME_KEY + "*");
+            stringRedisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_CUSTOMER_PHONE_KEY + "*");
+            stringRedisTemplate.delete(keys);
 
             List<Car> carList;
             for (int i = 1; i <= pages; i++) {
@@ -160,12 +176,13 @@ public class InternalService {
                 OrderByHelper.orderBy("car_id asc");
                 carList = carMapper.selectAllProductInstIdAndPlateNo();
                 for (Car car : carList) {
-
+                    /*
                     //如果已经清除了cache的productInstId列表不包含当前id，则清除cache，并加入到列表中
                     if (!emptyProductInstIdSet.contains(car.getProductInstId())) {
                         stringRedisTemplate.delete(PREFIX_CUSTOMER_PLATENO_KEY + car.getProductInstId());
                         emptyProductInstIdSet.add(car.getProductInstId());
                     }
+                    */
                     stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PLATENO_KEY + car.getProductInstId(), car.getPlateNo());
                 }
             }
@@ -175,8 +192,10 @@ public class InternalService {
             totalCount = customerMapper.countByExample(new CustomerExample());
             pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
+            /*
             //维护一个已经清除了cache的productInstId列表
             emptyProductInstIdSet = new HashSet<>();
+            */
 
             List<Customer> customerList;
             for (int i = 1; i <= pages; i++) {
@@ -184,13 +203,14 @@ public class InternalService {
                 OrderByHelper.orderBy("customer_id asc");
                 customerList = customerMapper.selectAllProductInstIdAndNameAndPhone();
                 for (Customer customer : customerList) {
-
+                    /*
                     //如果已经清除了cache的productInstId列表不包含当前id，则清除cache，并加入到列表中
                     if (!emptyProductInstIdSet.contains(customer.getProductInstId())) {
                         stringRedisTemplate.delete(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId());
                         stringRedisTemplate.delete(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId());
                         emptyProductInstIdSet.add(customer.getProductInstId());
                     }
+                    */
                     stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_NAME_KEY + customer.getProductInstId(), customer.getCustomerName());
                     stringRedisTemplate.opsForSet().add(PREFIX_CUSTOMER_PHONE_KEY + customer.getProductInstId(), customer.getPhone());
                 }
@@ -199,16 +219,15 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 6 17 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
+    @Scheduled(cron = "0 18 1 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
     public void reloadPropertyRedisValue() {
 
-        //if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
-        if (true) {
+        if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
             ///// reload 分区/楼号/单元号 cache ////////
             long totalCount = propertyMapper.countByDistinctIds();
 
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
-            logger.debug("toalcount:" + totalCount + " pages:" + pages);
+            //logger.debug("toalcount:" + totalCount + " pages:" + pages);
 
             /*
             //维护一个已经清除了cache的key列表
@@ -244,7 +263,7 @@ public class InternalService {
                     }
                     */
                     stringRedisTemplate.opsForSet().add(redisKeyForZoneId, property.getZoneId());
-                    logger.debug("add redisKeyForZoneId :" + redisKeyForZoneId + " " + property.getZoneId());
+                    //logger.debug("add redisKeyForZoneId :" + redisKeyForZoneId + " " + property.getZoneId());
                     /*
                     //buildingId
                     if (!emptyZoneBuildingKeySet.contains(redisKeyForBuildId)) {
@@ -254,7 +273,7 @@ public class InternalService {
                     }
                     */
                     stringRedisTemplate.opsForSet().add(redisKeyForBuildId, property.getBuildingId());
-                    logger.debug("add redisKeyForBuildId :" + redisKeyForBuildId + " " + property.getBuildingId());
+                    //logger.debug("add redisKeyForBuildId :" + redisKeyForBuildId + " " + property.getBuildingId());
 
                     /*
                     //unitId
@@ -265,7 +284,7 @@ public class InternalService {
                     }
                     */
                     stringRedisTemplate.opsForSet().add(redisKeyForUnitId, property.getUnitId());
-                    logger.debug("add redisKeyForUnitId :" + redisKeyForUnitId + " " + property.getUnitId());
+                    //logger.debug("add redisKeyForUnitId :" + redisKeyForUnitId + " " + property.getUnitId());
                 }
             }
             logger.info("reload property zoneId buildingId unitId cache success");
@@ -314,16 +333,16 @@ public class InternalService {
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
             //清空所有的position key(包括全量的 和 部门下的)
-            Set<String> keys = redisTemplate.keys(PREFIX_EMPLOYEE_POSITION_KEY + "*");
-            redisTemplate.delete(keys);
+            Set<String> keys = stringRedisTemplate.keys(PREFIX_EMPLOYEE_POSITION_KEY + "*");
+            stringRedisTemplate.delete(keys);
 
             //清空所有的employeeName key
-            keys = redisTemplate.keys(PREFIX_EMPLOYEE_NAME_KEY + "*");
-            redisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_EMPLOYEE_NAME_KEY + "*");
+            stringRedisTemplate.delete(keys);
 
             //清空所有的phone key
-            keys = redisTemplate.keys(PREFIX_EMPLOYEE_PHONE_KEY + "*");
-            redisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_EMPLOYEE_PHONE_KEY + "*");
+            stringRedisTemplate.delete(keys);
 
             List<Employee> employeeList;
             for (int i = 1; i <= pages; i++) {
@@ -356,6 +375,10 @@ public class InternalService {
 
             List<Notice> noticeList = noticeMapper.selectDistinctProductInstIdAndType();
 
+            //全量清除cache内容
+            Set<String> keys = stringRedisTemplate.keys(PREFIX_NOTICE_TYPE_KEY + "*");
+            stringRedisTemplate.delete(keys);
+
             //维护一个已加了缺省值的productInstId列表
             Set<String> defaultProductInstIdSet = new HashSet<>();
             for (Notice notice : noticeList) {
@@ -380,6 +403,12 @@ public class InternalService {
 
             List<Request> requestList = requestMapper.selectDistinctProductInstIdAndTypeAndSubType();
 
+            //全量清除cache内容
+            Set<String> keys = stringRedisTemplate.keys(PREFIX_REQUEST_TYPE_KEY + "*");
+            stringRedisTemplate.delete(keys);
+            keys = stringRedisTemplate.keys(PREFIX_REQUEST_SUB_TYPE_KEY + "*");
+            stringRedisTemplate.delete(keys);
+
             //维护一个已加了缺省值的productInstId列表
             Set<String> defaultProductInstIdSet = new HashSet<>();
             for (Request request : requestList) {
@@ -397,6 +426,23 @@ public class InternalService {
             }
         }
         logger.info("reload request cache success");
+    }
+
+    @Scheduled(cron = "0 43 1 * * ?")   //每天1点43分执行一次，全量账单类型相关内容
+    public void reloadChargeRedisValue() {
+
+        if (canRun("reloadChargeRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+
+            //全量清除cache内容
+            Set<String> keys = redisTemplate.keys(PREFIX_BILL_NAME_KEY + "*");
+            redisTemplate.delete(keys);
+
+            List<Bill> billList = billMapper.selectByExample(new BillExample());
+            for (Bill bill : billList) {
+                redisTemplate.opsForHash().put(PREFIX_BILL_NAME_KEY + bill.getProductInstId(), bill.getBillId(), bill.getBillName());
+            }
+        }
+        logger.info("reload charge cache success");
     }
 
     //定时任务周期
