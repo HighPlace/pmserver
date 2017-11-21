@@ -165,6 +165,14 @@ public class EmployeeService {
             if (onlySysUserFlag) criteria.andSysUsernameIsNotNull();  //没有输入账号查询的话,从员工表中搜索非null的记录
         }
 
+        if(searchBean.getHasSysUser() != null) {
+            if(searchBean.getHasSysUser()){
+                criteria.andSysUsernameIsNotNull();
+            } else {
+                criteria.andSysUsernameIsNull();
+            }
+        }
+
         //如果noPageSortFlag 不为true
         if (!noPageSortFlag) {
             //设置分页参数

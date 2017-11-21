@@ -24,6 +24,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -156,6 +157,7 @@ public class InternalService {
             List<Car> carList;
             for (int i = 1; i <= pages; i++) {
                 PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                OrderByHelper.orderBy("car_id asc");
                 carList = carMapper.selectAllProductInstIdAndPlateNo();
                 for (Car car : carList) {
 
@@ -179,6 +181,7 @@ public class InternalService {
             List<Customer> customerList;
             for (int i = 1; i <= pages; i++) {
                 PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                OrderByHelper.orderBy("customer_id asc");
                 customerList = customerMapper.selectAllProductInstIdAndNameAndPhone();
                 for (Customer customer : customerList) {
 
@@ -196,12 +199,12 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 18 1 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
+    @Scheduled(cron = "0 20 16 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
     public void reloadPropertyRedisValue() {
 
         if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
             ///// reload 分区/楼号/单元号 cache ////////
-            long totalCount = propertyMapper.countByExample(new PropertyExample());
+            long totalCount = propertyMapper.countByDistinctIds();
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
 
             //维护一个已经清除了cache的key列表
@@ -211,7 +214,8 @@ public class InternalService {
 
             List<Property> propertyList;
             for (int i = 1; i <= pages; i++) {
-                PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE); //这里有问题???
+                OrderByHelper.orderBy("property_id asc");
                 propertyList = propertyMapper.selectDistinctProductInstIdAndIDs();
                 for (Property property : propertyList) {
 
@@ -261,6 +265,7 @@ public class InternalService {
             String redisKey;
             for (int i = 1; i <= pages; i++) {
                 PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                OrderByHelper.orderBy("dept_id asc");
                 departmentList = departmentMapper.selectByExample(new DepartmentExample());
                 for (Department department : departmentList) {
 
@@ -300,6 +305,7 @@ public class InternalService {
             List<Employee> employeeList;
             for (int i = 1; i <= pages; i++) {
                 PageHelper.startPage(i, CACHE_RELOAD_BATCH_SIZE);
+                OrderByHelper.orderBy("employee_id asc");
                 employeeList = employeeMapper.selectByExample(new EmployeeExample());
                 for (Employee employee : employeeList) {
 

@@ -184,16 +184,16 @@ public class PropertyService {
         criteria.andProductInstIdEqualTo(productInstId);
 
         //查询条件判断
-        if (searchBean.getZoneId() != null && !searchBean.getZoneId().equals(""))
+        if (StringUtils.isNotEmpty(searchBean.getZoneId()))
             criteria.andZoneIdEqualTo(searchBean.getZoneId());
 
-        if (searchBean.getBuildingId() != null && !searchBean.getBuildingId().equals(""))
+        if (StringUtils.isNotEmpty(searchBean.getBuildingId()))
             criteria.andBuildingIdEqualTo(searchBean.getBuildingId());
 
-        if (searchBean.getUnitId() != null && !searchBean.getUnitId().equals(""))
+        if (StringUtils.isNotEmpty(searchBean.getUnitId()))
             criteria.andUnitIdEqualTo(searchBean.getUnitId());
 
-        if (searchBean.getRoomId() != null && !searchBean.getRoomId().equals(""))
+        if (StringUtils.isNotEmpty(searchBean.getRoomId()))
             criteria.andRoomIdEqualTo(searchBean.getRoomId());
 
         if (searchBean.getStatus() != null)

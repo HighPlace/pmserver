@@ -19,6 +19,10 @@ public interface PropertyMapper {
     })
     List<Property> selectDistinctProductInstIdAndIDs();
 
+
+    @Select("select count(distinct product_inst_id, zone_id, building_id, unit_id) from t_property")
+    long countByDistinctIds();
+
     /*
     //UNIQUE KEY (`product_inst_id`,`property_type`,`zone_id`, `building_id`, `unit_id`, `room_id`)
     // 通过productInstId+property_type+"分区+楼号+单元+房号" 查询房产信息

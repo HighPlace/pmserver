@@ -35,7 +35,7 @@ public class AccountController {
 
     @RequestMapping(path = "/account", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/account;POST','/account;ALL','/account/**;POST','/account/**;ALL','ADMIN')")
-    public Account createDepartment(@Valid @RequestBody Account account,
+    public Account createAccount(@Valid @RequestBody Account account,
                                     Principal principal) throws Exception {
 
         logger.debug("pre account:" + account.toString());
