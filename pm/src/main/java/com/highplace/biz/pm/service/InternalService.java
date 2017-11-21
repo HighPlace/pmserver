@@ -199,10 +199,11 @@ public class InternalService {
         }
     }
 
-    @Scheduled(cron = "0 20 16 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
+    @Scheduled(cron = "0 25 16 * * ?")   //每天1点18分执行一次，全量更新房产资料相关cache内容
     public void reloadPropertyRedisValue() {
 
-        if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+        //if (canRun("reloadPropertyRedisValue", TASK_PERIOD_ENUM.PER_DAY)) {
+            if (true) {
             ///// reload 分区/楼号/单元号 cache ////////
             long totalCount = propertyMapper.countByDistinctIds();
             long pages = (totalCount % CACHE_RELOAD_BATCH_SIZE == 0) ? totalCount / 100 : totalCount / 100 + 1;
