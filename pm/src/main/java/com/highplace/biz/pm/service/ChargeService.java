@@ -1215,20 +1215,10 @@ public class ChargeService {
 
         //获取任务ID
         String taskId = jsonObject.getString(MQService.MSG_KEY_MSGID);
-
         //获取productInstID
         String productInstId = jsonObject.getString(MQService.MSG_KEY_PRODUCTINSTID);
-
         //获取vendor
         Integer vendor = jsonObject.getInteger(MQService.MSG_KEY_VENDOR);
-
-        ChargeDetailSearchBean chargeDetailSearchBean = new ChargeDetailSearchBean();
-        chargeDetailSearchBean.setPayStatus(jsonObject.getInteger("payStatus"));
-        chargeDetailSearchBean.setChargeId(jsonObject.getLong("chargeId"));
-        chargeDetailSearchBean.setBillId(jsonObject.getLong("billId"));
-        chargeDetailSearchBean.setBillPeriod(jsonObject.getString("billPeriod"));
-        chargeDetailSearchBean.setStatus(jsonObject.getInteger("status"));
-
         //设置任务为处理中
         taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.CHARGE_DETAIL,
                 TaskStatusService.TaskTypeEnum.EXPORT,
@@ -1237,24 +1227,31 @@ public class ChargeService {
                 TaskStatusService.TaskStatusEnum.DOING,
                 null);
 
-        //处理结果Map
-        Map<String, Object> result = new HashMap<>();
+        //设置存放的目录和文件名
+        String targetFilename = "chargedetail_" + productInstId + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
+        String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
+        String cosFilePath = cosFolder + targetFilename;
+        String localFilePath = "/tmp/" + targetFilename;
 
-        //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId, vendor, chargeDetailSearchBean);
-        int code = jsonResult.getIntValue("code");
-        if (code != 0) {
-            String errMsg = jsonResult.getString("message");
-            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
+        //获取数据
+        ChargeDetailSearchBean chargeDetailSearchBean = new ChargeDetailSearchBean();
+        chargeDetailSearchBean.setPayStatus(jsonObject.getInteger("payStatus"));
+        chargeDetailSearchBean.setChargeId(jsonObject.getLong("chargeId"));
+        chargeDetailSearchBean.setBillId(jsonObject.getLong("billId"));
+        chargeDetailSearchBean.setBillPeriod(jsonObject.getString("billPeriod"));
+        chargeDetailSearchBean.setStatus(jsonObject.getInteger("status"));
+        Map<String, Object> dataMap = queryChargeDetail(productInstId, chargeDetailSearchBean, true);
+        List<ChargeDetail> chargeDetailList = (List<ChargeDetail>) dataMap.get("data");
 
-            //处理结果为失败
-            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
-            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
-        } else {
-            //处理结果为成功
-            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 0);
-            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, "SUCCESS");
-            result.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, jsonResult.getString(TaskStatusService.TASK_RESULT_FILEURL_KEY));
+        //不按模板导出excel, 基于注解
+        ExcelUtils.getInstance().exportObj2Excel(localFilePath, chargeDetailList, ChargeDetail.class);
+
+        //上传到云OSS,并删除本地文件
+        Map<String, Object> result;
+        if(vendor == 0) {  //腾讯云
+            result = UploadDownloadTool.uploadToQCloud(qCloudConfig, cosFolder, cosFilePath, localFilePath);
+        } else {  //vendor=1 阿里云
+            result = UploadDownloadTool.uploadToAliyun(aliyunConfig, cosFolder, cosFilePath, localFilePath);
         }
 
         //设置任务状态为1：处理完成
@@ -1264,56 +1261,5 @@ public class ChargeService {
                 taskId,
                 TaskStatusService.TaskStatusEnum.DONE,
                 result);
-    }
-
-    //读取房产资料并上传到cos,基于注解方式
-    private JSONObject writeExcelAndUploadCosNew(String productInstId, Integer vendor, ChargeDetailSearchBean chargeDetailSearchBean) {
-
-        String targetFilename = "chargedetail_" + productInstId + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
-        String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
-        String cosFilePath = cosFolder + targetFilename;
-        String localFilePath = "/tmp/" + targetFilename;
-
-        //获取数据
-        Map<String, Object> dataMap = queryChargeDetail(productInstId, chargeDetailSearchBean, true);
-        List<ChargeDetail> chargeDetailList = (List<ChargeDetail>) dataMap.get("data");
-
-        //不按模板导出excel, 基于注解
-        ExcelUtils.getInstance().exportObj2Excel(localFilePath, chargeDetailList, ChargeDetail.class);
-
-        OssHelperInterface ossHelper;
-        String bucketName;
-        if (vendor == 0) {  //腾讯云
-            //创建qcloud cos操作Helper对象
-            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-            bucketName = qCloudConfig.getCosBucketName();
-        } else {  //vendor=1 阿里云
-            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
-            bucketName = aliyunConfig.getBucketName();
-        }
-
-        //创建cos folder
-        ossHelper.createFolder(bucketName, cosFolder);
-        //上传文件
-        JSONObject jsonUploadResult = ossHelper.uploadFile(bucketName, cosFilePath, localFilePath);
-        if (jsonUploadResult.getIntValue("code") == 0) {
-            //生成下载导出结果文件的url
-            String downloadUrl;
-            if (vendor == 0) {
-                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
-            } else {
-                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, null);
-            }
-            jsonUploadResult.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, downloadUrl);
-        }
-
-        // 关闭释放资源
-        ossHelper.releaseCosClient();
-
-        //删除本地文件
-        File localFile = new File(localFilePath);
-        localFile.delete();
-
-        return jsonUploadResult;
     }
 }
