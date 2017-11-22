@@ -3,7 +3,7 @@ package com.highplace.biz.pm.domain.ui;
 import com.highplace.biz.pm.domain.base.Car;
 import com.highplace.biz.pm.domain.base.Customer;
 import com.highplace.biz.pm.domain.base.Relation;
-import com.highplace.biz.pm.service.util.ExcelResources;
+import com.highplace.biz.pm.service.util.excel.ExcelResources;
 
 public class CustomerExcelBean {
 

@@ -16,6 +16,8 @@ import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.*;
+import com.highplace.biz.pm.service.util.cloud.UploadDownloadTool;
+import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -324,35 +326,20 @@ public class EmployeeService {
 
         //处理结果Map
         Map<String, Object> result = new HashMap<>();
-
-        OssHelperInterface ossHelper;
-        String bucketName;
-        if (vendor == 0) {  //腾讯云
-            //创建qcloud cos操作Helper对象
-            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-            bucketName = qCloudConfig.getCosBucketName();
-        } else {  //vendor=1 阿里云
-            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
-            bucketName = aliyunConfig.getBucketName();
+        boolean dlResult;
+        if (vendor == 0) {
+            dlResult = UploadDownloadTool.downloadFromQCloud(qCloudConfig, cosFilePath, localFilePath);
+        } else {
+            dlResult = UploadDownloadTool.downloadFromAliyun(aliyunConfig, cosFilePath, localFilePath);
         }
 
-        //下载文件到本地
-        JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
-        int code = jsonGetFileResult.getIntValue("code");
-
-        if (code != 0) {
-            //写结果数据,返回失败
-            String errMsg = jsonGetFileResult.getString("message");
-            String resultMsg = "获取文件失败(qcloud:" + code + "," + errMsg + ")";
-
+        if (!dlResult) {   //下载文件失败
             //处理结果为失败
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
-            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
+            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, "download failed:" + cosFilePath);
         } else {
-
             //解析本地文件并导入数据库
-            JSONObject jsonResult = readExcel(productInstId, localFilePath);
-            logger.debug("readExcel result:" + jsonResult.toJSONString());
+            JSONObject jsonResult = readEmployeeFromExcel(productInstId, localFilePath);
 
             //从cos应答中获取处理结果
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
@@ -361,9 +348,6 @@ public class EmployeeService {
             //删除本地文件
             File localFile = new File(localFilePath);
             localFile.delete();
-
-            //删除远程的文件
-            ossHelper.deleteFile(bucketName, cosFilePath);
         }
 
         //设置任务状态为1：处理完成
@@ -373,13 +357,10 @@ public class EmployeeService {
                 taskId,
                 TaskStatusService.TaskStatusEnum.DONE,
                 result);
-
-        // 关闭释放资源
-        ossHelper.releaseCosClient();
     }
 
     //读取Excel文件
-    public JSONObject readExcel(String productInstID, String localFilePath) {
+    public JSONObject readEmployeeFromExcel(String productInstID, String localFilePath) {
 
         //初始化输入流
         InputStream is = null;
@@ -648,38 +629,7 @@ public class EmployeeService {
                 TaskStatusService.TaskStatusEnum.DOING,
                 null);
 
-        //处理结果Map
-        Map<String, Object> result = new HashMap<>();
-
-        //读取到excel并上传到cos
-        JSONObject jsonResult = writeExcelAndUploadCosNew(productInstId, vendor);
-        int code = jsonResult.getIntValue("code");
-        if (code != 0) {
-            String errMsg = jsonResult.getString("message");
-            String resultMsg = "上传文件失败(qcloud:" + code + "," + errMsg + ")";
-
-            //处理结果为失败
-            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 20000);
-            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, resultMsg);
-        } else {
-            //处理结果为成功
-            result.put(TaskStatusService.TASK_RESULT_CODE_KEY, 0);
-            result.put(TaskStatusService.TASK_RESULT_MESSAGE_KEY, "SUCCESS");
-            result.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, jsonResult.getString(TaskStatusService.TASK_RESULT_FILEURL_KEY));
-        }
-
-        //设置任务状态为1：处理完成
-        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.EMPLOYEE,
-                TaskStatusService.TaskTypeEnum.EXPORT,
-                productInstId,
-                taskId,
-                TaskStatusService.TaskStatusEnum.DONE,
-                result);
-    }
-
-    //读取房产资料并上传到cos,基于注解方式
-    private JSONObject writeExcelAndUploadCosNew(String productInstId, Integer vendor) {
-
+        //设置存放的目录和文件名
         String targetFilename = "employee_" + productInstId + "-" + new SimpleDateFormat("ddHHmmssS").format(new Date()) + ".xls";
         String cosFolder = "/" + new SimpleDateFormat("yyyyMM").format(new Date()) + "/";
         String cosFilePath = cosFolder + targetFilename;
@@ -695,48 +645,20 @@ public class EmployeeService {
         //不按模板导出excel, 基于注解
         ExcelUtils.getInstance().exportObj2Excel(localFilePath, employeeList, Employee.class);
 
-        //按模板导出excel
-        //Map<String, String> map = new HashMap<String, String>();
-        //map.put("title", "房产档案");
-        //map.put("total", propertyList.size()+" 条");
-        //map.put("date", new SimpleDateFormat("yyyy年MM月dd日").format(new Date()));
-        //ExcelUtils.getInstance().exportObj2ExcelByTemplate(map, "default-template.xls", localFilePath, propertyList, Property.class, true);
-
-        OssHelperInterface ossHelper;
-        String bucketName;
+        //上传到云OSS,并删除本地文件
+        Map<String, Object> result;
         if (vendor == 0) {  //腾讯云
-            //创建qcloud cos操作Helper对象
-            ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-            bucketName = qCloudConfig.getCosBucketName();
+            result = UploadDownloadTool.uploadToQCloud(qCloudConfig, cosFolder, cosFilePath, localFilePath);
         } else {  //vendor=1 阿里云
-            ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
-            bucketName = aliyunConfig.getBucketName();
+            result = UploadDownloadTool.uploadToAliyun(aliyunConfig, cosFolder, cosFilePath, localFilePath);
         }
 
-        //创建cos folder
-        ossHelper.createFolder(bucketName, cosFolder);
-        //上传文件
-        JSONObject jsonUploadResult = ossHelper.uploadFile(bucketName, cosFilePath, localFilePath);
-        if (jsonUploadResult.getIntValue("code") == 0) {
-            //生成下载导出结果文件的url
-            String downloadUrl;
-            if (vendor == 0) {
-                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, jsonUploadResult.getJSONObject("data").getString("source_url"));
-            } else {
-                downloadUrl = ossHelper.getDownLoadUrl(bucketName, cosFilePath, null);
-            }
-            jsonUploadResult.put(TaskStatusService.TASK_RESULT_FILEURL_KEY, downloadUrl);
-        }
-
-        // 关闭释放资源
-        ossHelper.releaseCosClient();
-
-        //删除本地文件
-        File localFile = new File(localFilePath);
-        localFile.delete();
-
-        return jsonUploadResult;
+        //设置任务状态为1：处理完成
+        taskStatusService.setTaskStatus(TaskStatusService.TaskTargetEnum.EMPLOYEE,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                productInstId,
+                taskId,
+                TaskStatusService.TaskStatusEnum.DONE,
+                result);
     }
-
-
 }

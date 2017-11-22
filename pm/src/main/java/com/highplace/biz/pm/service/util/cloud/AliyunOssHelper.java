@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.service.util;
+package com.highplace.biz.pm.service.util.cloud;
 
 import com.alibaba.fastjson.JSONObject;
 import com.aliyun.oss.OSSClient;

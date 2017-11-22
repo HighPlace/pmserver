@@ -152,7 +152,7 @@ public class NoticeService {
         //对于position,如果传入了deptId，则查对应deptId下的position
         if (entity.equals("type")) {
             redisKey = PREFIX_NOTICE_TYPE_KEY + productInstId;
-            if(!stringRedisTemplate.hasKey(redisKey)){  //如果key不存在,加入缺省type
+            if (!stringRedisTemplate.hasKey(redisKey)) {  //如果key不存在,加入缺省type
                 stringRedisTemplate.opsForSet().add(redisKey, DEFAULT_NOTICE_TYPE1);
                 stringRedisTemplate.opsForSet().add(redisKey, DEFAULT_NOTICE_TYPE2);
             }

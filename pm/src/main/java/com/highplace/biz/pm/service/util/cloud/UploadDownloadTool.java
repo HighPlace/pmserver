@@ -1,4 +1,4 @@
-package com.highplace.biz.pm.service.util;
+package com.highplace.biz.pm.service.util.cloud;
 
 import com.alibaba.fastjson.JSONObject;
 import com.highplace.biz.pm.config.AliyunConfig;
@@ -58,6 +58,51 @@ public class UploadDownloadTool {
         localFile.delete();
         return UploadDownloadTool.jsonObjectToTaskResultMap(jsonUploadResult);
     }
+
+    //从腾讯云下载文件到本地,然后删除云端文件
+    public static boolean downloadFromQCloud(QCloudConfig qCloudConfig, String cosFilePath, String localFilePath) {
+
+        boolean result;
+        OssHelperInterface ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
+        String bucketName  = qCloudConfig.getCosBucketName();
+
+        //下载文件到本地
+        JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
+        int code = jsonGetFileResult.getIntValue("code");
+        if (code != 0) {
+            result = false;
+        }else{
+            result = true;
+            //删除远程的文件
+            ossHelper.deleteFile(bucketName, cosFilePath);
+        }
+        // 关闭释放资源
+        ossHelper.releaseCosClient();
+        return result;
+    }
+
+    //从阿里云下载文件到本地,然后删除云端文件
+    public static boolean downloadFromAliyun(AliyunConfig aliyunConfig, String cosFilePath, String localFilePath) {
+
+        boolean result;
+        OssHelperInterface ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
+        String bucketName = aliyunConfig.getBucketName();
+
+        //下载文件到本地
+        JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
+        int code = jsonGetFileResult.getIntValue("code");
+        if (code != 0) {
+            result = false;
+        }else{
+            result = true;
+            //删除远程的文件
+            ossHelper.deleteFile(bucketName, cosFilePath);
+        }
+        // 关闭释放资源
+        ossHelper.releaseCosClient();
+        return result;
+    }
+
 
     //将JSONObject转换为任务结果需要的Map结构
     private static Map<String, Object> jsonObjectToTaskResultMap(JSONObject jsonResult) {

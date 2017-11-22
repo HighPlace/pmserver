@@ -73,7 +73,6 @@ public class AccountService {
         return stringRedisTemplate.opsForSet().isMember(ACCOUNT_USERNAME_KEY, username);
     }
 
-
     //查询员工信息列表
     public Map<String, Object> query(String productInstId, EmployeeSearchBean searchBean, boolean noPageSortFlag) {
 
