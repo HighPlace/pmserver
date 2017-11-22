@@ -2,12 +2,42 @@ package com.highplace.biz.pm.domain.charge;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.highplace.biz.pm.service.util.ExcelResources;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 
 import java.util.Date;
 
 public class ChargeDetail {
+
+
+    //支付状态:0:收费中 1:欠费 2:已缴费
+    public static String transferPayStatusToDesc(int payStatus) {
+
+        if (payStatus == 0) return "收费中";
+        if (payStatus == 1) return "欠费";
+        if (payStatus == 2) return "已缴费";
+        return "未知";
+    }
+
+    //缴费方式:0:银行托收 1:微信缴费
+    public static String transferPayTypeToDesc(int payType) {
+
+        if (payType == 0) return "银行托收";
+        if (payType == 1) return "微信缴费";
+        return "未知";
+    }
+
+    @ExcelResources(title="支付状态",order=6)
+    public String getPayStatusDesc(){
+        return transferPayStatusToDesc(getPayStatus());
+    }
+
+    @ExcelResources(title="缴费方式",order=5)
+    public String getPayTypeDesc(){
+        return transferPayTypeToDesc(getPayType());
+    }
+
     private Long detailId;
 
     private String productInstId;
@@ -74,6 +104,7 @@ public class ChargeDetail {
         this.propertyId = propertyId;
     }
 
+    @ExcelResources(title="金额",order=4)
     public Double getAmount() {
         return amount;
     }
@@ -130,6 +161,7 @@ public class ChargeDetail {
         this.billId = billId;
     }
 
+    @ExcelResources(title="账单类别",order=2)
     public String getBillName() {
         return billName;
     }
@@ -138,6 +170,7 @@ public class ChargeDetail {
         this.billName = billName == null ? null : billName.trim();
     }
 
+    @ExcelResources(title="房产",order=3)
     public String getPropertyName() {
         return propertyName;
     }
@@ -146,6 +179,7 @@ public class ChargeDetail {
         this.propertyName = propertyName == null ? null : propertyName.trim();
     }
 
+    @ExcelResources(title="账期",order=1)
     public String getBillPeriod() {
         return billPeriod;
     }

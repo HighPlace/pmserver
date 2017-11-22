@@ -124,7 +124,7 @@ public class TaskStatusService {
 
     //任务目标 TASK_TARGET_
     public static enum TaskTargetEnum {
-        PROPERTY("PROPERTY"), CUSTOMER("CUSTOMER"), EMPLOYEE("EMPLOYEE"), CHARGE("CHARGE");
+        PROPERTY("PROPERTY"), CUSTOMER("CUSTOMER"), EMPLOYEE("EMPLOYEE"), CHARGE("CHARGE"), CHARGE_DETAIL("CHARGE_DETAIL");
 
         private final String value;
 

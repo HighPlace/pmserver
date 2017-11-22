@@ -18,12 +18,12 @@ public class MQService {
 
     public static final Logger logger = LoggerFactory.getLogger(MQService.class);
 
-    public static String MSG_KEY_MSGID = "msgId";
-    public static String MSG_KEY_PRODUCTINSTID = "productInstId";
-    public static String MSG_KEY_FILEURL = "fileUrl";
-    public static String MSG_KEY_TARGET = "target";
-    public static String MSG_KEY_VENDOR = "vendor";
-    public static String MSG_KEY_CHARGE_ID = "chargeId";
+    public static String MSG_KEY_MSGID = "M_msgId";
+    public static String MSG_KEY_PRODUCTINSTID = "M_productInstId";
+    public static String MSG_KEY_FILEURL = "M_fileUrl";
+    public static String MSG_KEY_TARGET = "M_target";
+    public static String MSG_KEY_VENDOR = "M_vendor";
+    public static String MSG_KEY_CHARGE_ID = "M_chargeId";
 
     @Autowired
     private AmqpTemplate mqTemplate;

@@ -85,6 +85,10 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
                     employeeService.batchExport(jsonObject);
                     break;
 
+                case CHARGE_DETAIL:
+                    chargeService.batchExportChargeDetail(jsonObject);
+                    break;
+
                 default:
                     break;
             }

@@ -258,7 +258,7 @@ public class ChargeController {
     ///////////////////////////出账单明细////////////////////////
     @RequestMapping(path = "/charge/detail", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/detail;GET','/charge/detail;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
-    public Map<String, Object> getCharge(ChargeDetailSearchBean chargeDetailSearchBean, Principal principal) throws Exception {
+    public Map<String, Object> getChargeDetail(ChargeDetailSearchBean chargeDetailSearchBean, Principal principal) throws Exception {
         return chargeService.queryChargeDetail(SecurityUtils.getCurrentProductInstId(principal), chargeDetailSearchBean, false);
     }
 
@@ -269,5 +269,31 @@ public class ChargeController {
                                                           @PathVariable("propertyId") Long propertyId,
                                                           Principal principal) throws Exception {
         return chargeService.rapidGetChargePropertyBillDetail(SecurityUtils.getCurrentProductInstId(principal), chargeId, propertyId);
+    }
+
+    @RequestMapping(path = "/charge/detail/export", method = RequestMethod.POST)
+    @PreAuthorize("hasAnyAuthority('/charge/detail/export;POST','/charge/detail/export;ALL','/charge/**;POST','/charge/**;ALL','ADMIN')")
+    public Map<String, Object> exportChargeDetail(ChargeDetailSearchBean chargeDetailSearchBean, Principal principal) {
+
+        //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
+        if (chargeDetailSearchBean.getVendor() == null) chargeDetailSearchBean.setVendor(0);
+
+        return taskStatusService.sendTaskToMQ(TaskStatusService.TaskTargetEnum.CHARGE_DETAIL,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                null,
+                chargeDetailSearchBean.getVendor(),
+                chargeDetailSearchBean.toMap());
+    }
+
+    @RequestMapping(path = "/charge/detail/export", method = RequestMethod.GET)
+    @PreAuthorize("hasAnyAuthority('/charge/detail/export;GET','/charge/detail/export;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
+    public Map<Object, Object> getExportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
+                                                   Principal principal) {
+
+        return taskStatusService.getTaskStatus(TaskStatusService.TaskTargetEnum.CHARGE_DETAIL,
+                TaskStatusService.TaskTypeEnum.EXPORT,
+                SecurityUtils.getCurrentProductInstId(principal),
+                taskId);
     }
 }
