@@ -286,7 +286,7 @@ public class PropertyService {
         int num = propertyMapper.updateByExampleSelective(property, example);
         if (num == 1) {
             //更新redis
-            addRedisValue(property);
+            addRedisValue(propertyMapper.selectByPrimaryKey(property.getPropertyId()));
         }
         return num;
     }
