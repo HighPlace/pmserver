@@ -16,8 +16,8 @@ import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
-import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import com.highplace.biz.pm.service.util.cloud.UploadDownloadTool;
+import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -157,7 +157,7 @@ public class CustomerService {
             try {
                 propertyList = (List<Property>) (propertyService.query(productInstId, (PropertySearchBean) searchBean, true).get("data"));
             } catch (ClassCastException e) {
-                logger.error("propertyService.query cast data key to List<Property> failed:" + e.getMessage());
+                logger.error("propertyService.query cast data key to List<Property> failed:{}" , e.getMessage());
                 e.printStackTrace();
                 return queryEmpty();
             }
@@ -181,7 +181,7 @@ public class CustomerService {
                 customerIdListByProperty.add(relation.getCustomerId());
             }
             hasCustomerIdListByProperty = true;
-            logger.debug("customerIdListByProperty: " + customerIdListByProperty);
+            logger.debug("customerIdListByProperty: {}" ,customerIdListByProperty);
         }
 
         //如果有传入汽车相关查询信息,查出对应的客户ID List
@@ -198,7 +198,7 @@ public class CustomerService {
                 customerIdListByCar.add(car.getRelation().getCustomerId());
             }
             hasustomerIdListByCar = true;
-            logger.debug("customerIdListByCar: " + customerIdListByCar);
+            logger.debug("customerIdListByCar: {}" ,customerIdListByCar);
         }
 
         //加入客户ID List的and条件查询
@@ -562,7 +562,7 @@ public class CustomerService {
                 JSONObject j = new JSONObject();
                 j.put("code", 101);
                 j.put("message", "文件格式错误");
-                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                logger.error("readExcel fail:{}, localFilePath:{}", j.toJSONString() ,localFilePath);
                 return j;
             }
             return loadExcelValue(productInstID, wb);
@@ -572,7 +572,7 @@ public class CustomerService {
             JSONObject j = new JSONObject();
             j.put("code", 102);
             j.put("message", "文件读取错误");
-            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            logger.error("readExcel fail:{}, localFilePath:{}, error:{}" , j.toJSONString() , localFilePath , e.getMessage());
             e.printStackTrace();
             return j;
 
@@ -582,7 +582,7 @@ public class CustomerService {
                     is.close();
                 } catch (IOException e) {
                     is = null;
-                    logger.error("readExcel finally:" + e.getMessage());
+                    logger.error("readExcel finally:{}" , e.getMessage());
                 }
             }
         }
@@ -753,7 +753,7 @@ public class CustomerService {
         if (errorFlag) {
             result.put("code", 103);
             result.put("message", errorMsg);
-            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.error("loadExcelValue error:{}, productInstID:{}" ,result.toJSONString() ,productInstID);
         } else {
             int number = 0;
             CustomerExample example;
@@ -843,7 +843,7 @@ public class CustomerService {
             result.put("message", errorMsg);
             result.put("totalNum", customerExcelBeanList.size());
             result.put("insertNum", number);
-            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.debug("loadExcelValue success:{}, productInstID:{}" ,result.toJSONString() ,productInstID);
         }
 
         return result;

@@ -64,14 +64,14 @@ public class UploadDownloadTool {
 
         boolean result;
         OssHelperInterface ossHelper = new QCloudCosHelper(qCloudConfig.getAppId(), qCloudConfig.getSecretId(), qCloudConfig.getSecretKey());
-        String bucketName  = qCloudConfig.getCosBucketName();
+        String bucketName = qCloudConfig.getCosBucketName();
 
         //下载文件到本地
         JSONObject jsonGetFileResult = ossHelper.getFile(bucketName, cosFilePath, localFilePath);
         int code = jsonGetFileResult.getIntValue("code");
         if (code != 0) {
             result = false;
-        }else{
+        } else {
             result = true;
             //删除远程的文件
             ossHelper.deleteFile(bucketName, cosFilePath);
@@ -93,7 +93,7 @@ public class UploadDownloadTool {
         int code = jsonGetFileResult.getIntValue("code");
         if (code != 0) {
             result = false;
-        }else{
+        } else {
             result = true;
             //删除远程的文件
             ossHelper.deleteFile(bucketName, cosFilePath);

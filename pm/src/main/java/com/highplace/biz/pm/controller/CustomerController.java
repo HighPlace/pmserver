@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,8 +32,8 @@ public class CustomerController {
     public Map<String, Object> getCustomer(@Valid CustomerSearchBean searchBean,
                                            Principal principal) {
 
-        logger.debug("CustomerSearchBean:" + searchBean.toString());
-        logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
+        logger.debug("CustomerSearchBean:{}", searchBean.toString());
+        logger.debug("productInstId:{}" , SecurityUtils.getCurrentProductInstId(principal));
         return customerService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
     }
 
@@ -52,13 +51,13 @@ public class CustomerController {
     public Customer createCustomer(@Valid @RequestBody Customer customer,
                                    Principal principal) throws Exception {
 
-        logger.debug("pre customer:" + customer.toString());
+        logger.debug("pre customer:{}" , customer.toString());
         if (StringUtils.isEmpty(customer.getCustomerName())) throw new Exception("customerName is empty");
 
         //插入记录
         int rows = customerService.insert(SecurityUtils.getCurrentProductInstId(principal), customer);
-        logger.debug("customer insert return num:" + rows);
-        logger.debug("post customer:" + customer.toString());
+        logger.debug("customer insert return num: {}" , rows);
+        logger.debug("post customer: {}" , customer.toString());
         if (rows != 1)
             throw new Exception("create failed, effected num:" + rows);
         return customer;
@@ -75,8 +74,8 @@ public class CustomerController {
 
         //插入记录
         int rows = customerService.update(SecurityUtils.getCurrentProductInstId(principal), customer);
-        logger.debug("customer insert return num:" + rows);
-        logger.debug("post customer:" + customer.toString());
+        logger.debug("customer insert return num: {}" , rows);
+        logger.debug("post customer: {}" , customer.toString());
         if (rows != 1) throw new Exception("change failed, effected num:" + rows);
         return customer;
     }
@@ -88,7 +87,7 @@ public class CustomerController {
 
         //删除客户信息/客户房产关系/客户房产下的车辆信息
         int rows = customerService.delete(SecurityUtils.getCurrentProductInstId(principal), customerId, null, 0);
-        logger.debug("customer delete return num:" + rows);
+        logger.debug("customer delete return num: {}" , rows);
         if (rows != 1) throw new Exception("delete failed, effected num:" + rows);
     }
 
@@ -97,8 +96,8 @@ public class CustomerController {
     @RequestMapping(path = "/customer/import", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/customer/import;POST','/customer/import;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
     public Map<String, Object> importRequest(@RequestParam(value = "fileUrl", required = true) String fileUrl,
-                                                     @RequestParam(value = "vendor", required = false) Integer vendor,
-                                                     Principal principal) {
+                                             @RequestParam(value = "vendor", required = false) Integer vendor,
+                                             Principal principal) {
 
         //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
         if (vendor == null) vendor = new Integer(0);
@@ -114,7 +113,7 @@ public class CustomerController {
     @RequestMapping(path = "/customer/export", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/customer/export;POST','/customer/export;ALL','/customer/**;POST','/customer/**;ALL','ADMIN')")
     public Map<String, Object> exportRequest(@RequestParam(value = "vendor", required = false) Integer vendor,
-                                                     Principal principal) {
+                                             Principal principal) {
 
         //对象存储服务供应商 0: 腾讯云 1:阿里云 ，默认为0
         if (vendor == null) vendor = new Integer(0);
@@ -130,7 +129,7 @@ public class CustomerController {
     @RequestMapping(path = "/customer/import", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/customer/import;GET','/customer/import;ALL','/customer/**;GET','/customer/**;ALL','ADMIN')")
     public Map<Object, Object> getImportTaskResult(@RequestParam(value = "taskId", required = true) String taskId,
-                                                           Principal principal) {
+                                                   Principal principal) {
 
         return taskStatusService.getTaskStatus(TaskStatusService.TaskTargetEnum.CUSTOMER,
                 TaskStatusService.TaskTypeEnum.IMPORT,

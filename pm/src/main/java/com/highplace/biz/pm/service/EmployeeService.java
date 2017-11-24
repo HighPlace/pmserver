@@ -15,7 +15,7 @@ import com.highplace.biz.pm.domain.system.Account;
 import com.highplace.biz.pm.domain.ui.EmployeeSearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
-import com.highplace.biz.pm.service.util.*;
+import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.cloud.UploadDownloadTool;
 import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import org.apache.commons.lang.StringUtils;
@@ -167,8 +167,8 @@ public class EmployeeService {
             if (onlySysUserFlag) criteria.andSysUsernameIsNotNull();  //没有输入账号查询的话,从员工表中搜索非null的记录
         }
 
-        if(searchBean.getHasSysUser() != null) {
-            if(searchBean.getHasSysUser()){
+        if (searchBean.getHasSysUser() != null) {
+            if (searchBean.getHasSysUser()) {
                 criteria.andSysUsernameIsNotNull();
             } else {
                 criteria.andSysUsernameIsNull();
@@ -379,7 +379,7 @@ public class EmployeeService {
                 JSONObject j = new JSONObject();
                 j.put("code", 101);
                 j.put("message", "文件格式错误");
-                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                logger.error("readExcel fail:{}, localFilePath:{}" ,j.toJSONString() ,localFilePath);
                 return j;
             }
             return loadExcelValue(productInstID, wb);
@@ -389,7 +389,7 @@ public class EmployeeService {
             JSONObject j = new JSONObject();
             j.put("code", 102);
             j.put("message", "文件读取错误");
-            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            logger.error("readExcel fail:{}, localFilePath:{}, error:{}" + j.toJSONString() ,localFilePath , e.getMessage());
             e.printStackTrace();
             return j;
 
@@ -399,7 +399,7 @@ public class EmployeeService {
                     is.close();
                 } catch (IOException e) {
                     is = null;
-                    logger.error("readExcel finally:" + e.getMessage());
+                    logger.error("readExcel finally:{}" ,e.getMessage());
                 }
             }
         }
@@ -536,7 +536,7 @@ public class EmployeeService {
                             try {
                                 tempEmployee.setEntryDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
                             } catch (ParseException e) {
-                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:{} ,error msg:{}", cellValue, e.getMessage());
                                 e.printStackTrace();
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
                                 errorFlag = true;
@@ -569,7 +569,7 @@ public class EmployeeService {
         if (errorFlag) {
             result.put("code", 103);
             result.put("message", errorMsg);
-            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.error("loadExcelValue error:{}, productInstID:{}" , result.toJSONString() ,productInstID);
         } else {
             int number = 0;
 
@@ -604,7 +604,7 @@ public class EmployeeService {
             result.put("message", errorMsg);
             result.put("totalNum", employeeList.size());
             result.put("insertNum", number);
-            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.debug("loadExcelValue success:{}, productInstID:{}" , result.toJSONString() , productInstID);
         }
         return result;
     }

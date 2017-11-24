@@ -58,7 +58,7 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
             }
 
         } catch (Exception e) {
-            logger.error("batchImportQueueHandler Process error:" + e.getMessage());
+            logger.error("batchImportQueueHandler Process error:{}" , e.getMessage());
             e.printStackTrace();
         }
 
@@ -94,7 +94,7 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
             }
 
         } catch (Exception e) {
-            logger.error("batchExportQueueHandler Process error:" + e.getMessage());
+            logger.error("batchExportQueueHandler Process error:{}" ,e.getMessage());
             e.printStackTrace();
         }
     }
@@ -106,7 +106,7 @@ public class MQServiceHandlerImpl implements MQServiceHandler {
             JSONObject jsonObject = JSON.parseObject(msg);
             chargeService.chargeCalculate(jsonObject);
         } catch (Exception e) {
-            logger.error("batchExportQueueHandler Process error:" + e.getMessage());
+            logger.error("batchExportQueueHandler Process error:{}" ,e.getMessage());
             e.printStackTrace();
         }
     }

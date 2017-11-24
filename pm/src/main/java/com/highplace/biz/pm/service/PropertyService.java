@@ -14,8 +14,8 @@ import com.highplace.biz.pm.domain.ui.PropertySearchBean;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.CommonUtils;
-import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import com.highplace.biz.pm.service.util.cloud.UploadDownloadTool;
+import com.highplace.biz.pm.service.util.excel.ExcelUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -373,7 +373,7 @@ public class PropertyService {
                 JSONObject j = new JSONObject();
                 j.put("code", 101);
                 j.put("message", "文件格式错误");
-                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                logger.error("readExcel fail:{}, localFilePath:{}" ,j.toJSONString() ,localFilePath);
                 return j;
             }
             return loadExcelValue(productInstID, wb);
@@ -383,7 +383,7 @@ public class PropertyService {
             JSONObject j = new JSONObject();
             j.put("code", 102);
             j.put("message", "文件读取错误");
-            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            logger.error("readExcel fail:{}, localFilePath:{}, error:{}" , j.toJSONString() , localFilePath, e.getMessage());
             e.printStackTrace();
             return j;
 
@@ -393,7 +393,7 @@ public class PropertyService {
                     is.close();
                 } catch (IOException e) {
                     is = null;
-                    logger.error("readExcel finally:" + e.getMessage());
+                    logger.error("readExcel finally:{}" , e.getMessage());
                 }
             }
         }
@@ -491,7 +491,7 @@ public class PropertyService {
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
-                                logger.error("read PropertyArea failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                logger.error("read PropertyArea failed: cellvalue:{}, error:{}" ,cellValue ,e.getMessage());
                                 e.printStackTrace();
                             }
                         } else {
@@ -508,7 +508,7 @@ public class PropertyService {
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
-                                logger.error("read FloorArea failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                logger.error("read FloorArea failed: cellvalue:{}, error:{}" , cellValue ,e.getMessage());
                                 e.printStackTrace();
                             }
                         }
@@ -538,7 +538,7 @@ public class PropertyService {
         if (errorFlag) {
             result.put("code", 103);
             result.put("message", errorMsg);
-            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.error("loadExcelValue error:{}, productInstID:{}" ,result.toJSONString() ,productInstID);
 
         } else {
             int number = 0;
@@ -573,7 +573,7 @@ public class PropertyService {
             result.put("message", errorMsg);
             result.put("totalNum", propertyList.size());
             result.put("insertNum", number);
-            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.debug("loadExcelValue success:{}, productInstID:{}" ,result.toJSONString(),productInstID);
         }
 
         return result;

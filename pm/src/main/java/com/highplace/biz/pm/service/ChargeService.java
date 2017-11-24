@@ -18,7 +18,7 @@ import com.highplace.biz.pm.domain.ui.PageBean;
 import com.highplace.biz.pm.domain.ui.PropertyBillDetail;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
-import com.highplace.biz.pm.service.util.*;
+import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.cloud.AliyunOssHelper;
 import com.highplace.biz.pm.service.util.cloud.OssHelperInterface;
 import com.highplace.biz.pm.service.util.cloud.QCloudCosHelper;
@@ -637,7 +637,7 @@ public class ChargeService {
 
             //解析本地文件并导入数据库
             JSONObject jsonResult = readExcel(productInstId, chargeId, feeDataType, localFilePath);
-            logger.debug("readExcel result:" + jsonResult.toJSONString());
+            logger.debug("readExcel result: {}", jsonResult.toJSONString());
 
             //从cos应答中获取处理结果
             result.put(TaskStatusService.TASK_RESULT_CODE_KEY, jsonResult.getIntValue("code"));
@@ -689,7 +689,7 @@ public class ChargeService {
                 JSONObject j = new JSONObject();
                 j.put("code", 101);
                 j.put("message", "文件格式错误");
-                logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath);
+                logger.error("readExcel fail:{} localFilePath:{}" , j.toJSONString() , localFilePath);
                 return j;
             }
             return loadExcelValue(productInstID, chargeId, feeDataType, wb);
@@ -699,7 +699,7 @@ public class ChargeService {
             JSONObject j = new JSONObject();
             j.put("code", 102);
             j.put("message", "文件读取错误");
-            logger.error("readExcel fail:" + j.toJSONString() + " localFilePath:" + localFilePath + " error:" + e.getMessage());
+            logger.error("readExcel fail:{} localFilePath:{} error:{}" , j.toJSONString() , localFilePath, e.getMessage());
             e.printStackTrace();
             return j;
 
@@ -709,7 +709,7 @@ public class ChargeService {
                     is.close();
                 } catch (IOException e) {
                     is = null;
-                    logger.error("readExcel finally:" + e.getMessage());
+                    logger.error("readExcel finally:{}" , e.getMessage());
                 }
             }
         }
@@ -790,7 +790,7 @@ public class ChargeService {
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
-                                logger.error("read BeginUsage failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                logger.error("read BeginUsage failed: cellvalue:{} err:{}" , cellValue , e.getMessage());
                                 e.printStackTrace();
                             }
                         } else {
@@ -806,7 +806,7 @@ public class ChargeService {
                             } catch (NumberFormatException e) {
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列数据有问题, 请仔细检查;";
                                 errorFlag = true;
-                                logger.error("read EndUsage failed: cellvalue:" + cellValue + " err:" + e.getMessage());
+                                logger.error("read EndUsage failed: cellvalue:{} err:{}" , cellValue , e.getMessage());
                                 e.printStackTrace();
                             }
                         } else {
@@ -820,7 +820,7 @@ public class ChargeService {
                             try {
                                 tempChargeWater.setBeginDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
                             } catch (ParseException e) {
-                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:{}, error msg:{}" , cellValue , e.getMessage());
                                 e.printStackTrace();
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
                                 errorFlag = true;
@@ -833,7 +833,7 @@ public class ChargeService {
                             try {
                                 tempChargeWater.setEndDate(CommonUtils.getDate(cellValue, CommonUtils.FORMAT_DAY));
                             } catch (ParseException e) {
-                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:" + cellValue + ",error msg:" + e.getMessage());
+                                logger.error("SimpleDateFormat(yyyy-MM-dd) parse error, value:{}, error msg:{}" ,cellValue , e.getMessage());
                                 e.printStackTrace();
                                 errorMsg += "第" + (r + 1) + "行" + (c + 1) + "列日期格式应为yyyy-MM-dd,请仔细检查;";
                                 errorFlag = true;
@@ -854,7 +854,7 @@ public class ChargeService {
         if (errorFlag) {
             result.put("code", 103);
             result.put("message", errorMsg);
-            logger.error("loadExcelValue error:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.error("loadExcelValue error:{}, productInstID:{}" ,result.toJSONString() ,productInstID);
         } else {
             int number = 0;
             ChargeWaterExample example;
@@ -889,7 +889,7 @@ public class ChargeService {
             result.put("message", errorMsg);
             result.put("totalNum", chargeWaterList.size());
             result.put("insertNum", number);
-            logger.debug("loadExcelValue success:" + result.toJSONString() + " productInstID:" + productInstID);
+            logger.debug("loadExcelValue success:{}, productInstID:{}" , result.toJSONString(), productInstID);
         }
 
         return result;
@@ -1253,7 +1253,7 @@ public class ChargeService {
 
         //上传到云OSS,并删除本地文件
         Map<String, Object> result;
-        if(vendor == 0) {  //腾讯云
+        if (vendor == 0) {  //腾讯云
             result = UploadDownloadTool.uploadToQCloud(qCloudConfig, cosFolder, cosFilePath, localFilePath);
         } else {  //vendor=1 阿里云
             result = UploadDownloadTool.uploadToAliyun(aliyunConfig, cosFolder, cosFilePath, localFilePath);

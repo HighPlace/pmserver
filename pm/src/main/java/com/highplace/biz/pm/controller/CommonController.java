@@ -105,7 +105,7 @@ public class CommonController {
 
                 return respMap;
             } catch (ClientException e) {
-                logger.error("aliyun sts error:" + e.getErrCode() + ":" + e.getErrMsg());
+                logger.error("aliyun sts error:{}, errorMsg:{}" ,e.getErrCode() , e.getErrMsg());
                 throw new Exception("aliyun sts error:" + e.getErrCode() + ":" + e.getErrMsg());
             }
         }

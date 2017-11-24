@@ -27,7 +27,7 @@ public class NoticeController {
     public Map<String, Object> getNotice(@Valid NoticeSearchBean searchBean,
                                          Principal principal) throws Exception {
 
-        logger.debug("NoticeSearchBean:" + searchBean.toString());
+        logger.debug("NoticeSearchBean: {}" , searchBean.toString());
 
         //注意：公告的信息量比较大，必须设置分页
         if (searchBean.getPageNum() == null) throw new Exception("pageNum is null");
@@ -41,12 +41,12 @@ public class NoticeController {
     public Notice creatNotice(@Valid @RequestBody Notice notice,
                               Principal principal) throws Exception {
 
-        logger.debug("pre service:" + notice.toString());
+        logger.debug("pre service: {}" , notice.toString());
 
         //插入记录
         int rows = noticeService.insert(SecurityUtils.getCurrentProductInstId(principal), notice);
-        logger.debug("service insert return num:" + rows);
-        logger.debug("post service:" + notice.toString());
+        logger.debug("service insert return num: {}" , rows);
+        logger.debug("post service: {}" , notice.toString());
         if (rows != 1) {
             throw new Exception("create failed, effected num:" + rows);
         }
@@ -60,7 +60,7 @@ public class NoticeController {
 
         //删除记录
         int rows = noticeService.delete(SecurityUtils.getCurrentProductInstId(principal), noticeId);
-        logger.debug("service delete return num:" + rows);
+        logger.debug("service delete return num: {}" , rows);
         if (rows != 1) {
             throw new Exception("delete failed, effected num:" + rows);
         }
@@ -73,12 +73,12 @@ public class NoticeController {
 
         if (notice.getNoticeId() == null) throw new Exception("noticeId is null");
 
-        logger.debug("pre service:" + notice.toString());
+        logger.debug("pre service: {}" , notice.toString());
 
         //插入记录
         int rows = noticeService.update(SecurityUtils.getCurrentProductInstId(principal), notice);
-        logger.debug("service insert return num:" + rows);
-        logger.debug("post service:" + notice.toString());
+        logger.debug("service insert return num: {}" , rows);
+        logger.debug("post service: {}" , notice.toString());
         if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }

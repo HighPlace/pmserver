@@ -45,7 +45,7 @@ public class MQService {
         if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
 
         String msg = JSON.toJSONString(msgMap);
-        logger.debug("Send MQ batchImport message: " + msg);
+        logger.debug("Send MQ batchImport message: {}" , msg);
         //发送到消息队列
         mqTemplate.convertAndSend(MQConfig.BATCH_IMPORT_QUEUE_NAME, msg);
     }
@@ -62,7 +62,7 @@ public class MQService {
         if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
 
         String msg = JSON.toJSONString(msgMap);
-        logger.debug("Send MQ batchExport message: " + msg);
+        logger.debug("Send MQ batchExport message: {}" , msg);
         //发送到消息队列
         mqTemplate.convertAndSend(MQConfig.BATCH_EXPORT_QUEUE_NAME, msg);
     }
@@ -78,7 +78,7 @@ public class MQService {
         if(extraMap != null ) msgMap.putAll(extraMap);  //加入额外数据
 
         String msg = JSON.toJSONString(msgMap);
-        logger.debug("Send MQ batchImport message: " + msg);
+        logger.debug("Send MQ batchImport message: {}" , msg);
         //发送到消息队列
         mqTemplate.convertAndSend(MQConfig.CHARGE_CALCULATE_QUEUE_NAME, msg);
     }
@@ -91,19 +91,19 @@ public class MQService {
     //每个应用定义一个唯一的分组名，不好和其他应用重复
     @RabbitListener(queues="batchImportQueue")    //监听器监听指定的Queue
     public void processImport(String msg) {
-        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        logger.debug("Thread:[{}] Receive MQ message:{}" ,Thread.currentThread().getName(), msg);
         mqServiceHandler.batchImportQueueHandler(msg);
     }
 
     @RabbitListener(queues="batchExportQueue")    //监听器监听指定的Queue
     public void processExport(String msg) {
-        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        logger.debug("Thread:[{}] Receive MQ message:{}" ,Thread.currentThread().getName(), msg);
         mqServiceHandler.batchExportQueueHandler(msg);
     }
 
     @RabbitListener(queues="chargeCalculateQueue")    //监听器监听指定的Queue
     public void processChargeCalculate(String msg) {
-        logger.debug("Thread:[" + Thread.currentThread().getName() + "] Receive MQ message:" + msg);
+        logger.debug("Thread:[{}] Receive MQ message:{}" ,Thread.currentThread().getName(), msg);
         mqServiceHandler.chargeCalculateQueueHandler(msg);
     }
 }

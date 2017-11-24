@@ -65,11 +65,11 @@ public class TaskStatusService {
 
     //将批量导入请求通过消息队列发出
     public Map<String, Object> sendTaskToMQ(TaskStatusService.TaskTargetEnum taskTargetEnum,
-                               TaskStatusService.TaskTypeEnum taskTypeEnum,
-                               String productInstId,
-                               String fileUrl,
-                               Integer vendor,
-                               Map<String, Object> extraMap) {
+                                            TaskStatusService.TaskTypeEnum taskTypeEnum,
+                                            String productInstId,
+                                            String fileUrl,
+                                            Integer vendor,
+                                            Map<String, Object> extraMap) {
 
         //生成消息和任务ID，使用同一个ID
         String msgAndTaskId = UUID.randomUUID().toString();

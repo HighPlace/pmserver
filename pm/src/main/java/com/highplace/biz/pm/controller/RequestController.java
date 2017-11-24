@@ -25,9 +25,9 @@ public class RequestController {
     @RequestMapping(path = "/request", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/request;GET','/request;ALL','/request/**;GET','/request/**;ALL','ADMIN')")
     public Map<String, Object> getRequest(@Valid RequestSearchBean searchBean,
-                                         Principal principal) throws Exception {
+                                          Principal principal) throws Exception {
 
-        logger.debug("RequestSearchBean:" + searchBean.toString());
+        logger.debug("RequestSearchBean: {}" , searchBean.toString());
 
         //注意：工单的信息量比较大，必须设置分页
         if (searchBean.getPageNum() == null) throw new Exception("pageNum is null");
@@ -39,14 +39,14 @@ public class RequestController {
     @RequestMapping(path = "/request", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/request;POST','/request;ALL','/request/**;POST','/request/**;ALL','ADMIN')")
     public Request creatRequest(@Valid @RequestBody Request request,
-                              Principal principal) throws Exception {
+                                Principal principal) throws Exception {
 
-        logger.debug("pre service:" + request.toString());
+        logger.debug("pre service: {}" , request.toString());
 
         //插入记录
         int rows = requestService.insert(SecurityUtils.getCurrentProductInstId(principal), request);
-        logger.debug("service insert return num:" + rows);
-        logger.debug("post request:" + request.toString());
+        logger.debug("service insert return num: {}" , rows);
+        logger.debug("post request: {}" , request.toString());
         if (rows != 1) {
             throw new Exception("create failed, effected num:" + rows);
         }
@@ -56,11 +56,11 @@ public class RequestController {
     @RequestMapping(path = "/request", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/request;DELETE','/request;ALL','/request/**;DELETE','/request/**;ALL','ADMIN')")
     public void deleteRequest(@RequestParam(value = "requestId", required = true) Long requestId,
-                             Principal principal) throws Exception {
+                              Principal principal) throws Exception {
 
         //删除记录
         int rows = requestService.delete(SecurityUtils.getCurrentProductInstId(principal), requestId);
-        logger.debug("requestId delete return num:" + rows);
+        logger.debug("requestId delete return num: {}" , rows);
         if (rows != 1) {
             throw new Exception("delete failed, effected num:" + rows);
         }
@@ -69,16 +69,16 @@ public class RequestController {
     @RequestMapping(path = "/request", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/request;PUT','/request;ALL','/request/**;PUT','/request/**;ALL','ADMIN')")
     public Request changeRequest(@RequestBody Request request,
-                               Principal principal) throws Exception {
+                                 Principal principal) throws Exception {
 
         if (request.getRequestId() == null) throw new Exception("requestId is null");
 
-        logger.debug("pre request:" + request.toString());
+        logger.debug("pre request: {}" , request.toString());
 
         //插入记录
         int rows = requestService.update(SecurityUtils.getCurrentProductInstId(principal), request);
-        logger.debug("service insert return num:" + rows);
-        logger.debug("post service:" + request.toString());
+        logger.debug("service insert return num: {}" , rows);
+        logger.debug("post service: {}" , request.toString());
         if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }

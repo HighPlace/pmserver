@@ -55,13 +55,13 @@ public class RequestService {
         if (StringUtils.isNotEmpty(searchBean.getSubType()))
             criteria.andTypeEqualTo(searchBean.getSubType());
 
-        if ( searchBean.getSource() != null)
+        if (searchBean.getSource() != null)
             criteria.andSourceEqualTo(searchBean.getSource());
 
-        if ( searchBean.getStatus() != null)
+        if (searchBean.getStatus() != null)
             criteria.andStatusEqualTo(searchBean.getStatus());
 
-        if ( searchBean.getPriority() != null)
+        if (searchBean.getPriority() != null)
             criteria.andPriorityEqualTo(searchBean.getPriority());
 
         if ((searchBean.getRequestDateFrom() != null) && (searchBean.getRequestDateTo() != null))

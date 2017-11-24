@@ -5,7 +5,6 @@ import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,7 @@ public class DepartmentService {
         criteria.andProductInstIdEqualTo(productInstId);
         criteria.andDeptIdEqualTo(deptId);
         List<Department> departmentList = departmentMapper.selectByExample(example);
-        if(departmentList.size()>0) {
+        if (departmentList.size() > 0) {
             if (departmentList.get(0).getLevel() == 1) {  //一级部门
                 redisKey = PREFIX_DEPARTMENT_NAME_KEY + departmentList.get(0).getProductInstId();
             } else {
@@ -84,7 +83,7 @@ public class DepartmentService {
 
         //产品实例ID，必须填入
         criteria.andProductInstIdEqualTo(productInstId);
-        if( superiorDeptId!=null ) criteria.andSuperiorDeptIdEqualTo(superiorDeptId);
+        if (superiorDeptId != null) criteria.andSuperiorDeptIdEqualTo(superiorDeptId);
 
         //查询结果
         List<Department> departmentList = departmentMapper.selectByExample(example);
@@ -102,14 +101,14 @@ public class DepartmentService {
         department.setProductInstId(productInstId);
 
         //如果有传入superiorDeptId,要先查看superiorDeptId是否存在，并获取到superiorDept的level
-        if( department.getSuperiorDeptId() != null) {
+        if (department.getSuperiorDeptId() != null) {
 
             DepartmentExample departmentExample = new DepartmentExample();
             DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
             dCriteria.andProductInstIdEqualTo(productInstId);
             dCriteria.andDeptIdEqualTo(department.getSuperiorDeptId());
             List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
-            if(departmentList.size() == 0){
+            if (departmentList.size() == 0) {
                 //没有superiorDeptId部门存在
                 return -1;
             } else {
@@ -140,7 +139,7 @@ public class DepartmentService {
         criteria.andDeptIdEqualTo(deptId);
 
         //如果不存在该部门的下级部门，并且不存在该部门下的员工关系，则可以删除
-        if ( departmentMapper.countByExample(departmentExample) == 0 && employeeMapper.countByExample(employeeExample) == 0) {
+        if (departmentMapper.countByExample(departmentExample) == 0 && employeeMapper.countByExample(employeeExample) == 0) {
 
             DepartmentExample example = new DepartmentExample();
             DepartmentExample.Criteria criteria1 = example.createCriteria();
@@ -157,14 +156,14 @@ public class DepartmentService {
     public int update(String productInstId, Department department) {
 
         //如果有传入superiorDeptId,要先查看superiorDeptId是否存在，并获取到superiorDept的level
-        if( department.getSuperiorDeptId() != null) {
+        if (department.getSuperiorDeptId() != null) {
 
             DepartmentExample departmentExample = new DepartmentExample();
             DepartmentExample.Criteria dCriteria = departmentExample.createCriteria();
             dCriteria.andProductInstIdEqualTo(productInstId);
             dCriteria.andDeptIdEqualTo(department.getSuperiorDeptId());
             List<Department> departmentList = departmentMapper.selectByExample(departmentExample);
-            if(departmentList.size() == 0){
+            if (departmentList.size() == 0) {
                 //没有superiorDeptId部门存在
                 return -1;
             } else {

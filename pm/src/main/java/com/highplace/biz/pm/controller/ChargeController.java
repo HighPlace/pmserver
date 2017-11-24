@@ -11,7 +11,6 @@ import com.highplace.biz.pm.service.ChargeService;
 import com.highplace.biz.pm.service.common.MQService;
 import com.highplace.biz.pm.service.common.TaskStatusService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ public class ChargeController {
     @RequestMapping(path = "/charge/subject", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/subject;GET','/charge/subject;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
     public Map<String, Object> getChargeSubject(PageBean pageBean, Principal principal) throws Exception {
-        return chargeService.querySubject(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
+        return chargeService.querySubject(SecurityUtils.getCurrentProductInstId(principal), pageBean, false);
     }
 
     @RequestMapping(path = "/charge/subject", method = RequestMethod.POST)
@@ -52,7 +51,7 @@ public class ChargeController {
 
         //插入记录
         int rows = chargeService.insertSubject(SecurityUtils.getCurrentProductInstId(principal), subject);
-        logger.debug("subject insert return num:" + rows);
+        logger.debug("subject insert return num:{}" ,rows);
         if (rows != 1) {
             throw new Exception("create failed, effected num:" + rows);
         }
@@ -62,11 +61,11 @@ public class ChargeController {
     @RequestMapping(path = "/charge/subject", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/charge/subject;DELETE','/charge/subject;ALL','/charge/**;DELETE','/charge/**;ALL','ADMIN')")
     public void deleteChargeSubject(@RequestParam(value = "subjectId", required = true) Long subjectId,
-                              Principal principal) throws Exception {
+                                    Principal principal) throws Exception {
 
         //删除记录
         int rows = chargeService.deleteSubject(SecurityUtils.getCurrentProductInstId(principal), subjectId);
-        logger.debug("subjectId delete return num:" + rows);
+        logger.debug("subjectId delete return num:{}" ,rows);
         if (rows != 1) {
             throw new Exception("delete failed, effected num:" + rows);
         }
@@ -75,13 +74,13 @@ public class ChargeController {
     @RequestMapping(path = "/charge/subject", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/charge/subject;PUT','/charge/subject;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
     public Subject changeChargeSubject(@RequestBody Subject subject,
-                                 Principal principal) throws Exception {
+                                       Principal principal) throws Exception {
 
         if (subject.getSubjectId() == null) throw new Exception("subjectId is null");
 
         //更新记录
         int rows = chargeService.updateSubject(SecurityUtils.getCurrentProductInstId(principal), subject);
-        logger.debug("post subject:" + subject.toString());
+        logger.debug("post subject:{}" ,subject.toString());
         if (rows != 1) {
             throw new Exception("change failed, effected num:" + rows);
         }
@@ -99,7 +98,7 @@ public class ChargeController {
     @RequestMapping(path = "/charge/bill", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/bill;GET','/charge/bill;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
     public Map<String, Object> getChargeBillType(PageBean pageBean, Principal principal) throws Exception {
-        return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal),pageBean, false);
+        return chargeService.queryBillType(SecurityUtils.getCurrentProductInstId(principal), pageBean, false);
     }
 
     @RequestMapping(path = "/charge/bill", method = RequestMethod.POST)
@@ -107,7 +106,7 @@ public class ChargeController {
     public Bill createChargeBillType(@Valid @RequestBody Bill bill, Principal principal) throws Exception {
         //插入记录
         int rows = chargeService.insertBillType(SecurityUtils.getCurrentProductInstId(principal), bill);
-        logger.debug("bill insert return num:" + rows);
+        logger.debug("bill insert return num: {}" ,rows);
         if (rows != 1) {
             throw new Exception("create failed, effected num:" + rows);
         }
@@ -117,10 +116,11 @@ public class ChargeController {
     @RequestMapping(path = "/charge/bill", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/charge/bill;PUT','/charge/bill;ALL','/charge/**;PUT','/charge/**;ALL','ADMIN')")
     public Bill changeChargeBillType(@RequestBody Bill bill,
-                                   Principal principal) throws Exception {
+                                     Principal principal) throws Exception {
 
         if (bill.getBillId() == null) throw new Exception("billId is null");
-        if (bill.getBillSubjectRelList() == null || bill.getBillSubjectRelList().size()==0) throw new Exception("billSubjectRelList is null");
+        if (bill.getBillSubjectRelList() == null || bill.getBillSubjectRelList().size() == 0)
+            throw new Exception("billSubjectRelList is null");
 
         //插入记录
         int rows = chargeService.updateBillType(SecurityUtils.getCurrentProductInstId(principal), bill);
@@ -133,11 +133,11 @@ public class ChargeController {
     @RequestMapping(path = "/charge/bill", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/charge/bill;DELETE','/charge/bill;ALL','/charge/**;DELETE','/charge/**;ALL','ADMIN')")
     public void deleteChargeBillType(@RequestParam(value = "billId", required = true) Long billId,
-                                    Principal principal) throws Exception {
+                                     Principal principal) throws Exception {
 
         //删除记录
         int rows = chargeService.deleteBillType(SecurityUtils.getCurrentProductInstId(principal), billId);
-        logger.debug("subjectId delete return num:" + rows);
+        logger.debug("subjectId delete return num: {}" ,rows);
         if (rows != 1) {
             throw new Exception("delete failed, effected num:" + rows);
         }
@@ -165,7 +165,7 @@ public class ChargeController {
     @RequestMapping(path = "/charge/importInfo", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/charge/importInfo;GET','/charge/importInfo;ALL','/charge/**;GET','/charge/**;ALL','ADMIN')")
     public Map<String, Object> getChargeImportInfo(@RequestParam(value = "chargeId", required = true) Long chargeId,
-                             Principal principal) throws Exception {
+                                                   Principal principal) throws Exception {
 
         return chargeService.getChargeImportInfo(SecurityUtils.getCurrentProductInstId(principal), chargeId);
     }
@@ -179,8 +179,8 @@ public class ChargeController {
         if (charge.getChargeId() == null) throw new Exception("chargeId is null");
         String productInstId = SecurityUtils.getCurrentProductInstId(principal);
         Integer status = charge.getStatus();
-        if(status != null){
-            if(status != 1 && status != 3) throw new Exception("出账单状态只能修改为1和3");
+        if (status != null) {
+            if (status != 1 && status != 3) throw new Exception("出账单状态只能修改为1和3");
         }
 
         int rows = chargeService.updateCharge(productInstId, charge);
@@ -195,7 +195,7 @@ public class ChargeController {
         }
 
         //如果修改状态为1,则提交消息队列,进行出账计算
-        if(status!= null && status == 1) {
+        if (status != null && status == 1) {
             mqService.sendChargeMessage(UUID.randomUUID().toString(), productInstId, charge.getChargeId(), null);
         }
         return charge;
@@ -205,13 +205,13 @@ public class ChargeController {
     @RequestMapping(path = "/charge", method = RequestMethod.DELETE)
     @PreAuthorize("hasAnyAuthority('/charge;DELETE','/charge;ALL','/charge/**;DELETE','/charge/**;ALL','ADMIN')")
     public void deleteCharge(@RequestParam(value = "chargeId", required = true) Long chargeId,
-                                     Principal principal) throws Exception {
+                             Principal principal) throws Exception {
 
         //删除记录
         int rows = chargeService.deleteCharge(SecurityUtils.getCurrentProductInstId(principal), chargeId);
-        if(rows == -1) {
+        if (rows == -1) {
             throw new Exception("chargeId is error");
-        } else if(rows == -2) {
+        } else if (rows == -2) {
             throw new Exception("非出账中状态,不能删除");
         } else if (rows != 1) {
             throw new Exception("delete failed, effected num:" + rows);

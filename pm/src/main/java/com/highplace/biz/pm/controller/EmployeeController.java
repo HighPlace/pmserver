@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,8 +32,7 @@ public class EmployeeController {
     public Map<String, Object> getEmployee(@Valid EmployeeSearchBean searchBean,
                                            Principal principal) {
 
-        logger.debug("EmployeeSearchBean:" + searchBean.toString());
-        logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
+        logger.debug("EmployeeSearchBean: {}" , searchBean.toString());
         return employeeService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false, false);
     }
 
@@ -53,13 +51,13 @@ public class EmployeeController {
     public Employee createEmployee(@Valid @RequestBody Employee employee,
                                    Principal principal) throws Exception {
 
-        logger.debug("pre employee:" + employee.toString());
+        logger.debug("pre employee: {}" ,employee.toString());
         if (StringUtils.isEmpty(employee.getEmployeeName())) throw new Exception("employeeName is empty");
 
         //插入记录
         int rows = employeeService.insert(SecurityUtils.getCurrentProductInstId(principal), employee);
-        logger.debug("employee insert return num:" + rows);
-        logger.debug("post employee:" + employee.toString());
+        logger.debug("employee insert return num: {}" , rows);
+        logger.debug("post employee: {}" , employee.toString());
         if (rows == -1)
             throw new Exception("部门id不存在,请检查");
         else if (rows != 1)
@@ -74,7 +72,7 @@ public class EmployeeController {
 
         //删除记录
         int rows = employeeService.delete(SecurityUtils.getCurrentProductInstId(principal), employeeId);
-        logger.debug("employee delete return num:" + rows);
+        logger.debug("employee delete return num: {}" , rows);
         if (rows != 1) {
             if (rows == -1)
                 throw new Exception("不能删除该员工资料,请检查该员工资料是否存在,并且是否已离职");
@@ -90,12 +88,12 @@ public class EmployeeController {
 
         if (employee.getEmployeeId() == null) throw new Exception("employeeId is null");
 
-        logger.debug("pre department:" + employee.toString());
+        logger.debug("pre department: {}" , employee.toString());
 
         //插入记录
         int rows = employeeService.update(SecurityUtils.getCurrentProductInstId(principal), employee);
-        logger.debug("employee insert return num:" + rows);
-        logger.debug("post employee:" + employee.toString());
+        logger.debug("employee insert return num: {}" , rows);
+        logger.debug("post employee: {}" , employee.toString());
         if (rows == -1)
             throw new Exception("部门id不存在,请检查");
         else if (rows != 1)

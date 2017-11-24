@@ -32,8 +32,7 @@ public class PropertyController {
     public Map<String, Object> getProperty(@Valid PropertySearchBean searchBean,
                                            Principal principal) {
 
-        logger.debug("PropertySearchBean:" + searchBean.toString());
-        logger.debug("productInstId:" + SecurityUtils.getCurrentProductInstId(principal));
+        logger.debug("PropertySearchBean: {}" , searchBean.toString());
         return propertyService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
 
     }
@@ -49,8 +48,8 @@ public class PropertyController {
 
         //插入记录
         int rows = propertyService.insert(SecurityUtils.getCurrentProductInstId(principal), property);
-        logger.debug("property insert return num:" + rows);
-        logger.debug("post property:" + property.toString());
+        logger.debug("property insert return num: {}" , rows);
+        logger.debug("post property: {}" , property.toString());
         if (rows != 1)
             throw new Exception("create failed, effected num:" + rows);
         return property;
@@ -63,12 +62,12 @@ public class PropertyController {
 
         if (property.getPropertyId() == null) throw new Exception("propertyId is null");
 
-        logger.debug("pre property:" + property.toString());
+        logger.debug("pre property: {}" , property.toString());
 
         //插入记录
         int rows = propertyService.update(SecurityUtils.getCurrentProductInstId(principal), property);
-        logger.debug("property insert return num:" + rows);
-        logger.debug("post property:" + property.toString());
+        logger.debug("property insert return num: {}" , rows);
+        logger.debug("post property: {}" , property.toString());
         if (rows != 1) throw new Exception("change failed, effected num:" + rows);
         return property;
     }
@@ -80,7 +79,7 @@ public class PropertyController {
 
         //删除记录
         int rows = propertyService.delete(SecurityUtils.getCurrentProductInstId(principal), propertyId);
-        logger.debug("property delete return num:" + rows);
+        logger.debug("property delete return num: {}" , rows);
         if (rows != 1) {
             if (rows == -1)
                 throw new Exception("该房产存在客户关系,请先删除客户关系");

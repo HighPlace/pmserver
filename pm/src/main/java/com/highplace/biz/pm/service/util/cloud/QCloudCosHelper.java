@@ -53,7 +53,7 @@ public class QCloudCosHelper implements OssHelperInterface {
         getFileLocalRequest.setUseCDN(false);
         getFileLocalRequest.setReferer("*.myweb.cn");
         String getFileResult = cosClient.getFileLocal(getFileLocalRequest);
-        logger.info("qcloud getFileResult: " + getFileResult); //{"code":0,"message":"SUCCESS"}
+        logger.info("qcloud getFileResult: {}" ,getFileResult); //{"code":0,"message":"SUCCESS"}
         return JSON.parseObject(getFileResult);
     }
 
@@ -64,7 +64,7 @@ public class QCloudCosHelper implements OssHelperInterface {
         if (!cosFilePath.startsWith("/")) cosFilePath = "/" + cosFilePath; //必须以"/"开头
         DelFileRequest delFileRequest = new DelFileRequest(bucketName, cosFilePath);
         String delFileResult = cosClient.delFile(delFileRequest);
-        logger.info("qcloud delFileResult: " + delFileResult);
+        logger.info("qcloud delFileResult: {}" ,delFileResult);
         return JSON.parseObject(delFileResult);
     }
 
@@ -77,7 +77,7 @@ public class QCloudCosHelper implements OssHelperInterface {
         uploadFileRequest.setEnableShaDigest(false);
         String uploadFileResult = cosClient.uploadFile(uploadFileRequest);
 
-        logger.info("qcloud uploadFileResult: " + uploadFileResult); // {"code":0,"message":"SUCCESS","request_id":"NTllYjcxMDNfMTliMjk0MGFfMWM4ZV9jYzhiZDE=","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","resource_path":"/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","url":"http://gz.file.myqcloud.com/files/v2/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","vid":"92bd33f0c1bea6680011912f919613f91508602115"}}
+        logger.info("qcloud uploadFileResult: {}" ,uploadFileResult); // {"code":0,"message":"SUCCESS","request_id":"NTllYjcxMDNfMTliMjk0MGFfMWM4ZV9jYzhiZDE=","data":{"access_url":"http://pmugc-1254358905.file.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","resource_path":"/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","source_url":"http://pmugc-1254358905.cosgz.myqcloud.com/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","url":"http://gz.file.myqcloud.com/files/v2/1254358905/pmugc/property_550E8400-E29B-11D4-A716-446655440000-1508602114567.xls","vid":"92bd33f0c1bea6680011912f919613f91508602115"}}
         return JSON.parseObject(uploadFileResult);
     }
     /*
@@ -110,11 +110,11 @@ public class QCloudCosHelper implements OssHelperInterface {
         if (!cosFolderPath.startsWith("/")) cosFolderPath = "/" + cosFolderPath; //必须以"/"开头
         StatFolderRequest statFolderRequest = new StatFolderRequest(bucketName, cosFolderPath);
         String statFolderRet = cosClient.statFolder(statFolderRequest);
-        logger.info("qcloud statFolderResult: " + statFolderRet);
+        logger.info("qcloud statFolderResult: {}" ,statFolderRet);
         if (JSON.parseObject(statFolderRet).getIntValue("code") != 0) {
             CreateFolderRequest createFolderRequest = new CreateFolderRequest(bucketName, cosFolderPath);
             String createFolderRet = cosClient.createFolder(createFolderRequest);
-            logger.info("qcloud createFolderResult: " + createFolderRet);
+            logger.info("qcloud createFolderResult: {}" ,createFolderRet);
         }
     }
 
@@ -127,7 +127,7 @@ public class QCloudCosHelper implements OssHelperInterface {
             String signStr = Sign.getDownLoadSign(bucketName, cosFilePath, credentials, expired);
             return sourceURL + "?sign=" + signStr;
         } catch (AbstractCosException e) {
-            logger.error("getDownLoadSign fail:" + e.getMessage());
+            logger.error("getDownLoadSign fail: {}" ,e.getMessage());
             e.printStackTrace();
         }
         return null;

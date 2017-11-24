@@ -55,7 +55,7 @@ public class AliyunOssHelper implements OssHelperInterface {
             ossClient.putObject(bucketName, cosFilePath, new File(localFilePath));
             return getSuccesJSONObject();
         } catch (Exception e) {
-            logger.error("aliyun upload file error:" + e.getMessage());
+            logger.error("aliyun upload file error:{}" ,e.getMessage());
             e.printStackTrace();
             return getErrorJSONObject(e.getMessage());
         }
@@ -70,7 +70,7 @@ public class AliyunOssHelper implements OssHelperInterface {
             ossClient.getObject(new GetObjectRequest(bucketName, cosFilePath), new File(localFilePath));
             return getSuccesJSONObject();
         } catch (Exception e) {
-            logger.error("aliyun download file error:" + e.getMessage());
+            logger.error("aliyun download file error:{}" ,e.getMessage());
             e.printStackTrace();
             return getErrorJSONObject(e.getMessage());
         }
@@ -85,7 +85,7 @@ public class AliyunOssHelper implements OssHelperInterface {
             ossClient.deleteObject(bucketName, cosFilePath);
             return getSuccesJSONObject();
         } catch (Exception e) {
-            logger.error("aliyun delete file error:" + e.getMessage());
+            logger.error("aliyun delete file error:{}" ,e.getMessage());
             e.printStackTrace();
             return getErrorJSONObject(e.getMessage());
         }
@@ -98,7 +98,7 @@ public class AliyunOssHelper implements OssHelperInterface {
         try {
             ossClient.putObject(bucketName, cosFolderPath, new ByteArrayInputStream(new byte[0]));
         } catch (Exception e) {
-            logger.error("aliyun create folder error:" + e.getMessage());
+            logger.error("aliyun create folder error:{}" ,e.getMessage());
             e.printStackTrace();
         }
     }

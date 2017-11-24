@@ -42,13 +42,13 @@ public class DepartmentController {
     public Department createDepartment(@Valid @RequestBody Department department,
                                        Principal principal) throws Exception {
 
-        logger.debug("pre Department:" + department.toString());
+        logger.debug("pre Department: {}" ,department.toString());
         if (StringUtils.isEmpty(department.getDeptName())) throw new Exception("deptName is empty");
 
         //插入记录
         int rows = departmentService.insert(SecurityUtils.getCurrentProductInstId(principal), department);
-        logger.debug("department insert return num:" + rows);
-        logger.debug("post department:" + department.toString());
+        logger.debug("department insert return num: {}" ,rows);
+        logger.debug("post department: {}" ,department.toString());
         if (rows == -1)
             throw new Exception("上级部门不存在,请检查");
         else if (rows != 1)
@@ -63,12 +63,12 @@ public class DepartmentController {
 
         if (department.getDeptId() == null) throw new Exception("deptId is null");
 
-        logger.debug("pre department:" + department.toString());
+        logger.debug("pre department: {}" , department.toString());
 
         //插入记录
         int rows = departmentService.update(SecurityUtils.getCurrentProductInstId(principal), department);
-        logger.debug("department update return num:" + rows);
-        logger.debug("post department:" + department.toString());
+        logger.debug("department update return num: {}" , rows);
+        logger.debug("post department: {}" , department.toString());
         if (rows == -1)
             throw new Exception("上级部门不存在,请检查");
         else if (rows != 1)
@@ -84,7 +84,7 @@ public class DepartmentController {
 
         //删除记录
         int rows = departmentService.delete(SecurityUtils.getCurrentProductInstId(principal), deptId);
-        logger.debug("department delete return num:" + rows);
+        logger.debug("department delete return num: {}" , rows);
         if (rows != 1) {
             if (rows == -1)
                 throw new Exception("不能删除该部门,请检查该部门是否存在下级部门,或该部门下是否存在员工");

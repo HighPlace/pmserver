@@ -29,16 +29,16 @@ public class AccountController {
     public Map<String, Object> getAccount(@Valid EmployeeSearchBean searchBean,
                                           Principal principal) throws Exception {
 
-        logger.debug("AccountSearchBean:" + searchBean.toString());
+        logger.debug("AccountSearchBean:{}" , searchBean.toString());
         return accountService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
     }
 
     @RequestMapping(path = "/account", method = RequestMethod.POST)
     @PreAuthorize("hasAnyAuthority('/account;POST','/account;ALL','/account/**;POST','/account/**;ALL','ADMIN')")
     public Account createAccount(@Valid @RequestBody Account account,
-                                    Principal principal) throws Exception {
+                                 Principal principal) throws Exception {
 
-        logger.debug("pre account:" + account.toString());
+        logger.debug("pre account: {}" ,account.toString());
         int rows = accountService.insert(SecurityUtils.getCurrentProductInstId(principal), account);
         if (rows == -1)
             throw new Exception("员工id不存在,请检查");
@@ -52,10 +52,10 @@ public class AccountController {
     @RequestMapping(path = "/account", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyAuthority('/account;PUT','/account;ALL','/account/**;PUT','/account/**;ALL','ADMIN')")
     public Account changeDepartment(@RequestBody Account account,
-                                       Principal principal) throws Exception {
+                                    Principal principal) throws Exception {
 
-        if ( StringUtils.isEmpty(account.getUsername())) throw new Exception("username is null");
-        logger.debug("pre account:" + account.toString());
+        if (StringUtils.isEmpty(account.getUsername())) throw new Exception("username is null");
+        logger.debug("pre account:{}" ,account.toString());
 
         //插入记录
         accountService.update(SecurityUtils.getCurrentProductInstId(principal), account);
@@ -67,17 +67,17 @@ public class AccountController {
     public Map<String, Object> getEntityList(@RequestParam(value = "input", required = true) String input,
                                              Principal principal) {
 
-        return accountService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal),input);
+        return accountService.rapidSearch(SecurityUtils.getCurrentProductInstId(principal), input);
     }
 
     @RequestMapping(path = "/account/checkUsername", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/account;GET','/account;ALL','/account/**;GET','/account/**;ALL','ADMIN')")
-    public Map<String, Object>  checkUsernameValid(@RequestParam(value = "input", required = true) String input,
-                                             Principal principal) {
+    public Map<String, Object> checkUsernameValid(@RequestParam(value = "input", required = true) String input,
+                                                  Principal principal) {
 
-        boolean isExist = accountService.checkUsernameExists(SecurityUtils.getCurrentProductInstId(principal),input);
+        boolean isExist = accountService.checkUsernameExists(SecurityUtils.getCurrentProductInstId(principal), input);
 
-        if(!isExist)
+        if (!isExist)
             return Collections.<String, Object>singletonMap("result", true);
         else
             return Collections.<String, Object>singletonMap("result", false);
