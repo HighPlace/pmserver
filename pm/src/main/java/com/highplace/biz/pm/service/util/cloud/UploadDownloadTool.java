@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.highplace.biz.pm.config.AliyunConfig;
 import com.highplace.biz.pm.config.QCloudConfig;
 import com.highplace.biz.pm.service.common.TaskStatusService;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -101,6 +102,17 @@ public class UploadDownloadTool {
         // 关闭释放资源
         ossHelper.releaseCosClient();
         return result;
+    }
+
+    //从阿里云获取外网下载文件url
+    public static String getDownloadUrlFromAliyun(AliyunConfig aliyunConfig, String bucketName, String cosFilePath) {
+
+        if(StringUtils.isEmpty(bucketName)) bucketName = aliyunConfig.getBucketName(); //如果传入的bucketName为空,使用默认配置的
+        OssHelperInterface ossHelper = new AliyunOssHelper(aliyunConfig.getEndpoint(), aliyunConfig.getAccessKeyId(), aliyunConfig.getAccessKeySecret());
+        String url = ossHelper.getDownLoadUrl(bucketName, cosFilePath, null);
+        // 关闭释放资源
+        ossHelper.releaseCosClient();
+        return url;
     }
 
 

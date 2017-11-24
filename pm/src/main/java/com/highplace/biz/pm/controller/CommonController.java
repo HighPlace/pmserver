@@ -8,22 +8,25 @@ import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
+import com.highplace.biz.pm.config.AliyunConfig;
+import com.highplace.biz.pm.service.util.cloud.UploadDownloadTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Collections.singletonMap;
 
 @RestController
 public class CommonController {
@@ -52,19 +55,20 @@ public class CommonController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private AliyunConfig aliyunConfig;
+
     //获取临时token，用于从页面直接上传文件到阿里云oss
     @RequestMapping(path = "/aliyun/ossTempToken", method = RequestMethod.GET)
-    public Map<String, String> getTempTokenFromSTS() throws Exception {
+    public Map<String, String> getTempTokenFromAliyunSTS() throws Exception {
 
         String roleSessionName = "aliyun-oss-temp-token-forall"; //同时作为redis的key,aliyun规定2-32个字符,参考https://help.aliyun.com/document_detail/28763.html
 
         //先从redis获取
         ValueOperations<Object, HashMap<String, String>> valueOperations = redisTemplate.opsForValue();
-        if(redisTemplate.hasKey(roleSessionName)){
+        if (redisTemplate.hasKey(roleSessionName)) {
             return valueOperations.get(roleSessionName);
-
         } else {
-
             long durationSeconds = 900; //有效期
             String policy = "{\n" +
                     "  \"Statement\": [\n" +
@@ -86,9 +90,7 @@ public class CommonController {
                     "  ],\n" +
                     "  \"Version\": \"1\"\n" +
                     "}";
-
             ProtocolType protocolType = ProtocolType.HTTPS;
-
             try {
                 final AssumeRoleResponse stsResponse = assumeRole(accessKeyId, accessKeySecret, roleArn, roleSessionName,
                         policy, protocolType, durationSeconds);
@@ -98,17 +100,26 @@ public class CommonController {
                 respMap.put("stsToken", stsResponse.getCredentials().getSecurityToken());
                 respMap.put("endpoint", endpoint);
                 respMap.put("bucket", bucket);
-
                 //写入cache
                 valueOperations.set(roleSessionName, respMap);
-                redisTemplate.expire(roleSessionName, durationSeconds - 60 , TimeUnit.SECONDS); //cache有效期,设置为比aliyun oss少一分钟
-
+                redisTemplate.expire(roleSessionName, durationSeconds - 60, TimeUnit.SECONDS); //cache有效期,设置为比aliyun oss少一分钟
                 return respMap;
             } catch (ClientException e) {
-                logger.error("aliyun sts error:{}, errorMsg:{}" ,e.getErrCode() , e.getErrMsg());
+                logger.error("aliyun sts error:{}, errorMsg:{}", e.getErrCode(), e.getErrMsg());
                 throw new Exception("aliyun sts error:" + e.getErrCode() + ":" + e.getErrMsg());
             }
         }
+    }
+
+    //获取批量导入的模板文件, entity支持property/customer/employee
+    @RequestMapping(path = "/aliyun/sampleUrl/{entity}", method = RequestMethod.GET)
+    public Map<String, Object> getSampleUrlFromAliyun(@PathVariable String entity) throws Exception {
+
+        String cosFilePath = "sample/" + entity + "-sample.xls";
+        String url = UploadDownloadTool.getDownloadUrlFromAliyun(aliyunConfig, null, cosFilePath);
+        return Collections.<String, Object>singletonMap("fileUrl",
+                url);
+
     }
 
     protected AssumeRoleResponse assumeRole(String accessKeyId, String accessKeySecret, String roleArn,

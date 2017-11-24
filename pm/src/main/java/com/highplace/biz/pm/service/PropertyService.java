@@ -134,46 +134,6 @@ public class PropertyService {
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("zoneIdList", zoneList);
         return result;
-
-        /*
-        String[] strarrays = new String[]{"一区","二区","三区","四区","玫瑰苑"};
-
-        stringRedisTemplate.opsForSet().add(redisKeyForZondId, strarrays);
-        Set<String> s = stringRedisTemplate.opsForSet().members(redisKeyForZondId);
-        //long size = stringRedisTemplate.opsForSet().size(redisKeyForZondId);
-        //List<String> l = stringRedisTemplate.opsForSet().randomMembers(redisKeyForZondId, size);
-        List<String> l = new ArrayList<>(s);
-        Collections.sort(l);
-        return l;
-        */
-
-        /*
-        ZSetOperations.TypedTuple<String> objectTypedTuple1 = new DefaultTypedTuple<String>("玫瑰苑",0.0);
-        ZSetOperations.TypedTuple<String> objectTypedTuple2 = new DefaultTypedTuple<String>("菊花苑",1.0);
-        Set<ZSetOperations.TypedTuple<String>> tuples = new HashSet<ZSetOperations.TypedTuple<String>>();
-        tuples.add(objectTypedTuple1);
-        tuples.add(objectTypedTuple2);
-        stringRedisTemplate.opsForZSet().add(PREFIX_PROPERTY_ZONEID_KEY + productInstId, tuples);
-        */
-
-        //template.opsForSet().isMember("setTest","ccc")
-        /*
-        template.opsForList().rightPush("listRight","java");
-
-        String[] stringarrays = new String[]{"1","2","3"};
-        template.opsForList().rightPushAll("listarrayright",stringarrays);
-        System.out.println(template.opsForList().range("listarrayright",0,-1));
-        结果:[1, 2, 3]
-
-        List<Object> strings = new ArrayList<Object>();
-        strings.add("1");
-        strings.add("2");
-        strings.add("3");
-        template.opsForList().rightPushAll("listcollectionright", strings);
-        System.out.println(template.opsForList().range("listcollectionright",0,-1));
-
-        template.opsForList().remove("listRight",1,"setValue");//将删除列表中存储的列表中第一次次出现的“setValue”。
-        */
     }
 
     //查询房产信息列表
