@@ -116,9 +116,17 @@ public class CommonController {
     public Map<String, Object> getSampleUrlFromAliyun(@PathVariable String entity) throws Exception {
 
         String cosFilePath = "sample/" + entity + "-sample.xls";
-        String url = UploadDownloadTool.getDownloadUrlFromAliyun(aliyunConfig, null, cosFilePath);
+        String fileUrl;
+        if(redisTemplate.hasKey(cosFilePath)){
+            fileUrl = (String)redisTemplate.opsForValue().get(cosFilePath);
+        } else {
+            fileUrl = UploadDownloadTool.getDownloadUrlFromAliyun(aliyunConfig, null, cosFilePath);
+            if(fileUrl != null) {
+                redisTemplate.opsForValue().set(cosFilePath, fileUrl, 55, TimeUnit.MINUTES); //下载url有效期是1小时,所以cache过期设置为55分钟
+            }
+        }
         return Collections.<String, Object>singletonMap("fileUrl",
-                url);
+                fileUrl);
 
     }
 
