@@ -2,7 +2,10 @@ package com.highplace.service.oauth.service;
 
 import com.highplace.service.oauth.dao.ModuleDao;
 import com.highplace.service.oauth.dao.UserDao;
-import com.highplace.service.oauth.domain.*;
+import com.highplace.service.oauth.domain.Action;
+import com.highplace.service.oauth.domain.Module;
+import com.highplace.service.oauth.domain.MyGrantedAuthority;
+import com.highplace.service.oauth.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +58,7 @@ public class ProductInstanceUserService implements UserDetailsService {
 
         //为增加验证码功能，用户名(用户名、邮箱、手机号)和验证以 name|code 的方式传入
         //如果是openid登录，则没有code
-        logger.info("XXXXXXXXXXXXX  username | verifycode:" + username);
+        logger.info("username | verifycode: {}" , username);
 
         String[] str = username.split("\\|");
 
@@ -65,12 +68,10 @@ public class ProductInstanceUserService implements UserDetailsService {
 
         if (user != null) {
 
-            logger.debug("XXXXXXXXXXXXX  userid:" + user.getUserId());
-            logger.debug("XXXXXXXXXXXXX  product_inst_id:" + user.getProductInstId());
-            logger.debug("XXXXXXXXXXXXX  super_user_flag:" + user.getSuperUserFlag());
+            logger.debug("userid:{}, productInstId:{}, superUserFlag:{}" ,user.getUserId(),user.getProductInstId(),user.getSuperUserFlag());
 
             //如果是超级管理员,要另外获取产品实例对应的所有模块
-            if(user.getSuperUserFlag()){
+            if (user.getSuperUserFlag()) {
 
                 List<Module> modules = moduleDao.findByProductInstId(user.getProductInstId());
                 user.setModules(modules);
@@ -79,24 +80,24 @@ public class ProductInstanceUserService implements UserDetailsService {
             boolean checkVerifyCodeFlag = false;
 
             //用户名和邮箱登录，必须要图形验证码
-            if(str[0].equals(user.getUsername()) || str[0].equals(user.getEmail())) {
-                if(str.length == 1){
+            if (str[0].equals(user.getUsername()) || str[0].equals(user.getEmail())) {
+                if (str.length == 1) {
                     throw new UsernameNotFoundException("Verify code do not exist!");
                 } else {
                     checkVerifyCodeFlag = true;
                 }
             }
             //手机号登录，有可能是通过手机验证码（作为密码传入），所以需要判断usernmae是否包含了图形验证码，如果包含了，则验证
-            else if(str[0].equals(user.getMobileNo())){
-                if(str.length > 1) {
+            else if (str[0].equals(user.getMobileNo())) {
+                if (str.length > 1) {
                     checkVerifyCodeFlag = true;
                 }
             }
 
-            if(checkVerifyCodeFlag) {
+            if (checkVerifyCodeFlag) {
                 String codeFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_VERIFY_CODE_NAME_INSESSION + str[1]);
                 if (codeFromRedis == null || !codeFromRedis.equals(str[1])) {
-                    logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromUsername=" + str[1]);
+                    logger.debug("codeFromRedis={}, codeFromUsername+{}" , codeFromRedis , str[1]);
                     throw new UsernameNotFoundException("验证码错误");
                 }
                 //删除验证码
@@ -106,7 +107,7 @@ public class ProductInstanceUserService implements UserDetailsService {
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
             //超级用户直接写ADMIN角色
-            if(user.getSuperUserFlag()){
+            if (user.getSuperUserFlag()) {
 
                 GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(ADMIN_ROLE);
                 grantedAuthorities.add(grantedAuthority);

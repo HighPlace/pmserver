@@ -133,7 +133,7 @@ public class WechatLoginService {
         }
         */
         String secretStateFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_WX_LOGIN_STATE_KEY + secretState);
-        logger.debug("XXXXXXXXXXXXX secretStateFromRedis: " + secretStateFromRedis);
+        logger.debug("secretStateFromRedis:{} " , secretStateFromRedis);
         if ((secretStateFromRedis == null) || !secretStateFromRedis.equals(secretState)) {
             throw new Exception("State value do not match!");
         }
@@ -144,16 +144,16 @@ public class WechatLoginService {
                 + "&secret=" + wechatConfig.getClientsecret()
                 + "&code=" + code
                 + "&grant_type=authorization_code";
-        logger.debug("XXXXXXXXXXXXX accesstokenUrl: " + accessTokenUrl);
+        logger.debug("accesstokenUrl: {}" , accessTokenUrl);
 
         WechatAccessToken wechatAccessToken = restTemplate().getForObject(accessTokenUrl, WechatAccessToken.class);
 
         if (null == wechatAccessToken || !wechatAccessToken.valid()) {
-            logger.error("getWechatAccessToken invalid: " + wechatAccessToken);
+            logger.error("getWechatAccessToken invalid: {}" , wechatAccessToken);
             throw new Exception("获取微信AccessToken失败");
         }
 
-        logger.debug("XXXXXXXXXXXXX wechatAccessToken: " + wechatAccessToken);
+        logger.debug("wechatAccessToken: {}" , wechatAccessToken);
 
         /*
         //获取用户信息

@@ -82,7 +82,7 @@ public class UserController {
     @RequestMapping(path = "/user", method = RequestMethod.PUT)
     @Transactional
     public void modifyUser(@RequestBody User user) throws Exception {
-        if(StringUtils.isEmpty(user.getUsername())) throw new Exception("username is null");
+        if (StringUtils.isEmpty(user.getUsername())) throw new Exception("username is null");
         User existing = userDao.findByUsernameAndProductInstId(user.getUsername(), user.getProductInstId());
         Assert.notNull(existing, "user not exists: " + user.getUsername());
 
@@ -170,7 +170,7 @@ public class UserController {
 
         String codeFromRedis = stringRedisTemplate.opsForValue().get(PREFIX_VERIFY_CODE_NAME_INSESSION + verifyCode);
         if (codeFromRedis == null || !codeFromRedis.equals(verifyCode)) {
-            logger.debug("XXXXXXXXXXXXXXX codeFromRedis=" + codeFromRedis + "codeFromRequest=" + verifyCode);
+            logger.debug("codeFromRedis= {}, codeFromRequest={}" , codeFromRedis ,verifyCode);
             throw new Exception("验证码错误");
         }
     }

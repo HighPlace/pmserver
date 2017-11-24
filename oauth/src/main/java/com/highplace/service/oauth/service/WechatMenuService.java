@@ -45,6 +45,7 @@ public class WechatMenuService {
         String result = restTemplate.getForObject(url, String.class);
         return JSON.parseObject(result.toString());
     }
+
     /**
      * 创建菜单(替换旧菜单)
      *
@@ -66,7 +67,7 @@ public class WechatMenuService {
             if (0 != jsonObject.getInteger("errcode")) {
                 result = jsonObject.getInteger("errcode");
                 logger.error("创建菜单失败 errcode:{} errmsg:{}", jsonObject.getInteger("errcode"), jsonObject.getString("errmsg"));
-                logger.error("****"+jsonMenu+"****");
+                logger.error("****" + jsonMenu + "****");
             }
         }
         return result;
@@ -100,40 +101,40 @@ public class WechatMenuService {
     /**
      * 组装菜单数据
      */
-    public static Map<String, Object> getFirstMenu(){
+    public static Map<String, Object> getFirstMenu() {
         //第一栏菜单
-        WechatMenu menu1=new WechatMenu();
+        WechatMenu menu1 = new WechatMenu();
         menu1.setId("1");
         menu1.setName("第一栏");
         menu1.setType("click");
         menu1.setKey("1");
 
-        WechatMenu menu11=new WechatMenu();
+        WechatMenu menu11 = new WechatMenu();
         menu11.setId("11");
         menu11.setName("第一栏的第一个v3");
         menu11.setType("click");
         menu11.setKey("11");
 
-        WechatMenu menu12=new WechatMenu();
+        WechatMenu menu12 = new WechatMenu();
         menu12.setId("12");
         menu12.setName("第一栏的第二个");
         menu12.setType("click");
         menu12.setKey("12");
 
         //第二栏
-        WechatMenu menu2=new WechatMenu();
+        WechatMenu menu2 = new WechatMenu();
         menu2.setId("2");
         menu2.setName("第二栏");
         menu2.setType("click");
         menu2.setKey("2");
 
-        WechatMenu menu21=new WechatMenu();
+        WechatMenu menu21 = new WechatMenu();
         menu21.setId("21");
         menu21.setName("第二栏的第一个");
         menu21.setType("click");
         menu21.setKey("21");
 
-        WechatMenu menu3=new WechatMenu();
+        WechatMenu menu3 = new WechatMenu();
         menu3.setId("3");
         menu3.setName("第三栏");
         menu3.setType("view");
@@ -153,19 +154,19 @@ public class WechatMenuService {
 
 
         //第一栏第一个
-        menuMap11.put("name",menu11.getName());
-        menuMap11.put("type",menu11.getType());
-        menuMap11.put("key",menu11.getKey());
+        menuMap11.put("name", menu11.getName());
+        menuMap11.put("type", menu11.getType());
+        menuMap11.put("key", menu11.getKey());
         subMenuMapList1.add(menuMap11);
 
         //第二栏第二个
-        menuMap12.put("name",menu12.getName());
-        menuMap12.put("type",menu12.getType());
-        menuMap12.put("key",menu12.getKey());
+        menuMap12.put("name", menu12.getName());
+        menuMap12.put("type", menu12.getType());
+        menuMap12.put("key", menu12.getKey());
         subMenuMapList1.add(menuMap12);
 
-        menuMap1.put("name",menu1.getName());
-        menuMap1.put("sub_button",subMenuMapList1);
+        menuMap1.put("name", menu1.getName());
+        menuMap1.put("sub_button", subMenuMapList1);
 
         //包装第二栏
         Map<String, Object> menuMap2 = new HashMap<String, Object>();
@@ -173,29 +174,29 @@ public class WechatMenuService {
         List<Map<String, Object>> subMenuMapList2 = new ArrayList<Map<String, Object>>();
 
         //第二栏第一个
-        menuMap21.put("name",menu21.getName());
-        menuMap21.put("type",menu21.getType());
-        menuMap21.put("key",menu21.getKey());
+        menuMap21.put("name", menu21.getName());
+        menuMap21.put("type", menu21.getType());
+        menuMap21.put("key", menu21.getKey());
         subMenuMapList2.add(menuMap21);
 
-        menuMap2.put("name",menu2.getName());
-        menuMap2.put("sub_button",subMenuMapList2);
+        menuMap2.put("name", menu2.getName());
+        menuMap2.put("sub_button", subMenuMapList2);
 
         //包装第三栏
         Map<String, Object> menuMap3 = new HashMap<String, Object>();
         List<Map<String, Object>> subMenuMapList3 = new ArrayList<Map<String, Object>>();
 
-        menuMap3.put("name",menu3.getName());
-        menuMap3.put("type",menu3.getType());
-        menuMap3.put("url",menu3.getUrl());
-        menuMap3.put("sub_button",subMenuMapList3);
+        menuMap3.put("name", menu3.getName());
+        menuMap3.put("type", menu3.getType());
+        menuMap3.put("url", menu3.getUrl());
+        menuMap3.put("sub_button", subMenuMapList3);
 
 
         wechatMenuMapList.add(menuMap1);
         wechatMenuMapList.add(menuMap2);
         wechatMenuMapList.add(menuMap3);
-        wechatMenuMap.put("button",wechatMenuMapList);
-        return  wechatMenuMap;
+        wechatMenuMap.put("button", wechatMenuMapList);
+        return wechatMenuMap;
     }
 
 }
