@@ -115,7 +115,7 @@ public class CommonController {
     @RequestMapping(path = "/aliyun/sampleUrl/{entity}", method = RequestMethod.GET)
     public Map<String, Object> getSampleUrlFromAliyun(@PathVariable String entity) throws Exception {
 
-        String cosFilePath = "sample/" + entity + "-sample.xls";
+        String cosFilePath = "sample/" + entity + "-sample.xls"; //以该名称存放在阿里云oss上
         String fileUrl;
         if(redisTemplate.hasKey(cosFilePath)){
             fileUrl = (String)redisTemplate.opsForValue().get(cosFilePath);
