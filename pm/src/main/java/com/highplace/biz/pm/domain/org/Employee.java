@@ -124,13 +124,13 @@ public class Employee {
     private String gender;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date entryDate;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date leaveDate;
 
     @JsonSerialize(using = DateTimeJsonSerializer.class)
