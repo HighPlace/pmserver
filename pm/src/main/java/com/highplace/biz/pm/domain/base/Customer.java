@@ -3,8 +3,6 @@ package com.highplace.biz.pm.domain.base;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
-import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.apache.commons.lang.StringUtils;
@@ -51,8 +49,9 @@ public class Customer {
         }
         return 0;
     }
+
     @JsonIgnore
-    public String getIdentityTypeDesc(){
+    public String getIdentityTypeDesc() {
         return transferIdentityTypeToDesc(getIdentityType());
     }
 
@@ -90,18 +89,18 @@ public class Customer {
     private String gender;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date birth;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date identStartDate;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date identEndDate;
 
     private String identPic;

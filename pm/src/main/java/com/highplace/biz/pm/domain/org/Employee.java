@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.highplace.biz.pm.service.util.CommonUtils;
 import com.highplace.biz.pm.service.util.excel.ExcelResources;
-import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
-import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.apache.commons.lang.StringUtils;
@@ -21,7 +19,7 @@ public class Employee {
 
     private String deptName;   //员工所属的部门信息
 
-    @ExcelResources(title=" 部门 ",order=2)
+    @ExcelResources(title = " 部门 ", order = 2)
     public String getDeptName() {
         return deptName;
     }
@@ -167,7 +165,7 @@ public class Employee {
         this.deptId = deptId;
     }
 
-    @ExcelResources(title="姓名",order=1)
+    @ExcelResources(title = "姓名", order = 1)
     public String getEmployeeName() {
         return employeeName;
     }
@@ -176,7 +174,7 @@ public class Employee {
         this.employeeName = employeeName == null ? null : employeeName.trim();
     }
 
-    @ExcelResources(title=" 电话 ",order=4)
+    @ExcelResources(title = " 电话 ", order = 4)
     public String getPhone() {
         return phone;
     }
@@ -193,7 +191,7 @@ public class Employee {
         this.sysUsername = sysUsername == null ? null : sysUsername.trim();
     }
 
-    @ExcelResources(title="工号",order=6)
+    @ExcelResources(title = "工号", order = 6)
     public String getEmployeeCode() {
         return employeeCode;
     }
@@ -202,7 +200,7 @@ public class Employee {
         this.employeeCode = employeeCode == null ? null : employeeCode.trim();
     }
 
-    @ExcelResources(title=" 岗位 ",order=3)
+    @ExcelResources(title = " 岗位 ", order = 3)
     public String getPosition() {
         return position;
     }
@@ -215,7 +213,7 @@ public class Employee {
         return status;
     }
 
-    @ExcelResources(title="状态",order=11)
+    @ExcelResources(title = "状态", order = 11)
     @JsonIgnore
     public String getStatusDesc() {
         return Employee.transferStatusToDesc(getStatus());
@@ -242,13 +240,13 @@ public class Employee {
     }
 
     //@ExcelResources(title="证件类型(居民身份证/护照/港澳回乡证/台胞证)",order=)
-    @ExcelResources(title="证件类型",order=7)
+    @ExcelResources(title = "证件类型", order = 7)
     @JsonIgnore
-    public String getIdentityTypeDesc(){
+    public String getIdentityTypeDesc() {
         return Employee.transferIdentityTypeToDesc(getIdentityType());
     }
 
-    @ExcelResources(title="证件号码",order=8)
+    @ExcelResources(title = "证件号码", order = 8)
     public String getIdentityNo() {
         return identityNo;
     }
@@ -265,7 +263,7 @@ public class Employee {
         this.identPic = identPic == null ? null : identPic.trim();
     }
 
-    @ExcelResources(title="电子邮箱",order=12)
+    @ExcelResources(title = "电子邮箱", order = 12)
     public String getEmail() {
         return email;
     }
@@ -282,7 +280,7 @@ public class Employee {
         this.wechat = wechat == null ? null : wechat.trim();
     }
 
-    @ExcelResources(title="备用电话",order=5)
+    @ExcelResources(title = "备用电话", order = 5)
     public String getBackupPhone1() {
         return backupPhone1;
     }
@@ -315,7 +313,7 @@ public class Employee {
         this.emergencyContactPhone = emergencyContactPhone == null ? null : emergencyContactPhone.trim();
     }
 
-    @ExcelResources(title="性别",order=9)
+    @ExcelResources(title = "性别", order = 9)
     public String getGender() {
         return gender;
     }
@@ -324,10 +322,10 @@ public class Employee {
         this.gender = gender == null ? null : gender.trim();
     }
 
-    @ExcelResources(title="入职日期",order=10)
+    @ExcelResources(title = "入职日期", order = 10)
     @JsonIgnore
     public String getFormatEntryDate() {
-        return (entryDate!=null)? CommonUtils.getTimeString(entryDate, CommonUtils.FORMAT_DAY):null;
+        return (entryDate != null) ? CommonUtils.getTimeString(entryDate, CommonUtils.FORMAT_DAY) : null;
     }
 
     public Date getEntryDate() {

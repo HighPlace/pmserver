@@ -2,8 +2,6 @@ package com.highplace.biz.pm.domain.service;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.highplace.biz.pm.service.util.json.DateJsonDeserializer;
-import com.highplace.biz.pm.service.util.json.DateJsonSerializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonDeserializer;
 import com.highplace.biz.pm.service.util.json.DateTimeJsonSerializer;
 import org.hibernate.validator.constraints.Length;
@@ -40,24 +38,24 @@ public class Request {
 
     private Integer priority;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date startTime;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date assignTime;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date acceptTime;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date finishTime;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     //@JsonIgnore
     private Date rateTime;
 

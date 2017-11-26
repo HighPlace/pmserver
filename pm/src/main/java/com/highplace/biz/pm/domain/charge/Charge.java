@@ -46,8 +46,8 @@ public class Charge {
     @NotNull
     private String billPeriod;
 
-    @JsonSerialize(using = DateTimeJsonSerializer.class)
-    @JsonDeserialize(using = DateTimeJsonDeserializer.class)
+    //@JsonSerialize(using = DateTimeJsonSerializer.class)
+    //@JsonDeserialize(using = DateTimeJsonDeserializer.class)
     private Date billDate;
 
     private Integer status;

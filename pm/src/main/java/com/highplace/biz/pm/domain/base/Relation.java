@@ -67,13 +67,13 @@ public class Relation {
     private Integer status;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date startDate;
 
     //@DateTimeFormat(pattern="yyyy-MM-dd")
-    @JsonSerialize(using = DateJsonSerializer.class)
-    @JsonDeserialize(using = DateJsonDeserializer.class)
+    //@JsonSerialize(using = DateJsonSerializer.class)
+    //@JsonDeserialize(using = DateJsonDeserializer.class)
     private Date endDate;
 
     @JsonSerialize(using = DateTimeJsonSerializer.class)
