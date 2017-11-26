@@ -26,7 +26,7 @@ public class DepartmentController {
     @PreAuthorize("hasAnyAuthority('/department/catalog;GET','/department/catalog;ALL','/department/**;GET','/department/**;ALL','ADMIN')")
     public Map<String, Object> getDepartmentCatalog(Principal principal) {
 
-        return departmentService.rapidSearchDepartmentTree(SecurityUtils.getCurrentProductInstId(principal));
+        return departmentService.rapidSearchDepartmentTreeNew(SecurityUtils.getCurrentProductInstId(principal));
     }
 
     @RequestMapping(path = "/department", method = RequestMethod.GET)

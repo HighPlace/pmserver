@@ -54,27 +54,6 @@ public class DepartmentService {
         }
     }
 
-    //从redis中查询所有部门名称，以树形结构返回
-    public Map<String, Object> rapidSearchDepartmentTree(String productInstId) {
-
-        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId;
-        Map<Long, String> topLevelDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
-
-        List<Object> topList = new ArrayList<>();
-        for (Map.Entry<Long, String> entry : topLevelDepartmentMap.entrySet()) {
-
-            Map<String, Object> topDepartmentMap = new HashMap<>();
-            topDepartmentMap.put(MAP_DEPARTMENT_ID, entry.getKey());
-            topDepartmentMap.put(MAP_DEPARTMENT_NAME, entry.getValue());
-            getSubDepartment(topDepartmentMap, productInstId, entry.getKey());
-            topList.add(topDepartmentMap);
-        }
-
-        Map<String, Object> result = new HashMap<String, Object>();
-        result.put("data", topList);
-        return result;
-    }
-
     //查询部门信息列表
     public Map<String, Object> query(String productInstId, Long superiorDeptId) {
 
@@ -183,6 +162,80 @@ public class DepartmentService {
             addRedisValue(productInstId, department.getDeptId());
         }
         return num;
+    }
+
+    //从redis中查询所有部门名称，以树形结构返回
+    public Map<String, Object> rapidSearchDepartmentTree(String productInstId) {
+
+        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId;
+        Map<Long, String> topLevelDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
+
+        List<Object> topList = new ArrayList<>();
+        for (Map.Entry<Long, String> entry : topLevelDepartmentMap.entrySet()) {
+
+            Map<String, Object> topDepartmentMap = new HashMap<>();
+            topDepartmentMap.put(MAP_DEPARTMENT_ID, entry.getKey());
+            topDepartmentMap.put(MAP_DEPARTMENT_NAME, entry.getValue());
+            getSubDepartment(topDepartmentMap, productInstId, entry.getKey());
+            topList.add(topDepartmentMap);
+        }
+
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("data", topList);
+        return result;
+    }
+
+    //从redis中查询所有部门名称，以二维数组结构返回
+    public Map<String, Object> rapidSearchDepartmentTreeNew(String productInstId) {
+
+        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId;
+        Map<Long, String> topLevelDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
+
+        List<Object> dataList = new LinkedList<>();
+        Map<String, Object> dptMap;
+        for (Map.Entry<Long, String> entry : topLevelDepartmentMap.entrySet()) {
+
+            dptMap = new LinkedHashMap<>();
+            dptMap.put(MAP_DEPARTMENT_ID, entry.getKey());
+            dptMap.put(MAP_DEPARTMENT_NAME, entry.getValue());
+            dataList.add(dptMap);
+            getSubDepartmentNew(dataList, productInstId, entry.getKey(), 1);
+        }
+
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("data", dataList);
+        return result;
+    }
+
+    private void getSubDepartmentNew(List<Object> dataList, String productInstId, Long superiorDeptId, int level) {
+
+        String redisKey = PREFIX_DEPARTMENT_NAME_KEY + productInstId + "_" + superiorDeptId;
+        level = level + 1;
+        String prefix = ""; //部门名前面加空格，以示区别是几级部门
+        for(int i=0; i<level-1; i++){
+            prefix = prefix + " ";
+        }
+
+        //取下一级所有的部门
+        Map<Long, String> subDepartmentMap = (Map<Long, String>) redisTemplate.opsForHash().entries(redisKey);
+        if (subDepartmentMap == null) {
+            //如果没有下级部门，则返回
+            return;
+
+        } else {
+            Map<String, Object> dptMap;
+            for (Map.Entry<Long, String> entry : subDepartmentMap.entrySet()) {
+
+                dptMap = new LinkedHashMap<>();
+                dptMap.put(MAP_DEPARTMENT_ID, entry.getKey());
+                dptMap.put(MAP_DEPARTMENT_NAME, prefix + entry.getValue());
+                dataList.add(dptMap);
+
+                //取该部门的再下级部门
+                getSubDepartmentNew(dataList, productInstId, entry.getKey(), level);
+            }
+        }
+
     }
 
     private void getSubDepartment(Map<String, Object> superiorDepartmentMap, String productInstId, Long superiorDeptId) {
