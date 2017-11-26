@@ -86,7 +86,7 @@ public class DepartmentService {
         if (superiorDeptId != null) criteria.andSuperiorDeptIdEqualTo(superiorDeptId);
 
         //查询结果
-        List<Department> departmentList = departmentMapper.selectByExample(example);
+        List<Department> departmentList = departmentMapper.selectByExampleWithBLOBs(example);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalCount", departmentList.size());
