@@ -1,6 +1,7 @@
 package com.highplace.biz.pm.controller;
 
 import com.highplace.biz.pm.domain.org.Department;
+import com.highplace.biz.pm.domain.ui.DepartmentSearchBean;
 import com.highplace.biz.pm.service.DepartmentService;
 import com.highplace.biz.pm.service.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,10 +32,10 @@ public class DepartmentController {
 
     @RequestMapping(path = "/department", method = RequestMethod.GET)
     @PreAuthorize("hasAnyAuthority('/department;GET','/department;ALL','/department/**;GET','/department/**;ALL','ADMIN')")
-    public Map<String, Object> getDepartment(@RequestParam(value = "superiorDeptId", required = false) Long superiorDeptId,
+    public Map<String, Object> getDepartment(@Valid DepartmentSearchBean searchBean,
                                              Principal principal) {
 
-        return departmentService.query(SecurityUtils.getCurrentProductInstId(principal), superiorDeptId);
+        return departmentService.query(SecurityUtils.getCurrentProductInstId(principal), searchBean, false);
     }
 
     @RequestMapping(path = "/department", method = RequestMethod.POST)

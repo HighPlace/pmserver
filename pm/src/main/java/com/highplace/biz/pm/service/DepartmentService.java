@@ -1,15 +1,20 @@
 package com.highplace.biz.pm.service;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.highplace.biz.pm.dao.org.DepartmentMapper;
 import com.highplace.biz.pm.dao.org.EmployeeMapper;
 import com.highplace.biz.pm.domain.org.Department;
 import com.highplace.biz.pm.domain.org.DepartmentExample;
 import com.highplace.biz.pm.domain.org.EmployeeExample;
+import com.highplace.biz.pm.domain.ui.DepartmentSearchBean;
+import com.highplace.biz.pm.service.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import tk.mybatis.orderbyhelper.OrderByHelper;
 
 import java.util.*;
 
@@ -55,20 +60,46 @@ public class DepartmentService {
     }
 
     //查询部门信息列表
-    public Map<String, Object> query(String productInstId, Long superiorDeptId) {
+    public Map<String, Object> query(String productInstId, DepartmentSearchBean searchBean, boolean noPageSortFlag) {
 
         DepartmentExample example = new DepartmentExample();
         DepartmentExample.Criteria criteria = example.createCriteria();
 
         //产品实例ID，必须填入
         criteria.andProductInstIdEqualTo(productInstId);
-        if (superiorDeptId != null) criteria.andSuperiorDeptIdEqualTo(superiorDeptId);
+        if (searchBean.getSuperiorDeptId() != null) criteria.andSuperiorDeptIdEqualTo(searchBean.getSuperiorDeptId());
+
+        //如果noPageSortFlag 不为true
+        if (!noPageSortFlag) {
+            //设置分页参数
+            if (searchBean.getPageNum() != null && searchBean.getPageSize() != null)
+                PageHelper.startPage(searchBean.getPageNum(), searchBean.getPageSize());
+
+            //设置排序字段,注意前端传入的是驼峰风格字段名,需要转换成数据库下划线风格字段名
+            if (searchBean.getSortField() != null) {
+                if (searchBean.getSortType() == null) {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " asc"); //默认升序
+                } else {
+                    OrderByHelper.orderBy(CommonUtils.underscoreString(searchBean.getSortField()) + " " + searchBean.getSortType());
+                }
+            }
+        }
 
         //查询结果
         List<Department> departmentList = departmentMapper.selectByExampleWithBLOBs(example);
 
+        //总记录数
+        long totalCount;
+
+        //判断是否有分页
+        if (!noPageSortFlag && searchBean.getPageNum() != null && searchBean.getPageSize() != null) {
+            totalCount = ((Page) departmentList).getTotal();
+        } else {
+            totalCount = departmentList.size();
+        }
+
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("totalCount", departmentList.size());
+        result.put("totalCount", totalCount);
         result.put("data", departmentList);
         return result;
     }
