@@ -16,6 +16,16 @@ public class NoticeSearchBean extends PageBean {
     @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date publishDateTo;
 
+    private Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -55,6 +65,7 @@ public class NoticeSearchBean extends PageBean {
                 ", type='" + type + '\'' +
                 ", publishDateFrom=" + publishDateFrom +
                 ", publishDateTo=" + publishDateTo +
+                ", status=" + status +
                 '}' +
                 super.toString();
     }

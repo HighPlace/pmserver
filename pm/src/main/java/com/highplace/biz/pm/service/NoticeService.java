@@ -49,6 +49,9 @@ public class NoticeService {
         if (StringUtils.isNotEmpty(searchBean.getType()))
             criteria.andTypeEqualTo(searchBean.getType());
 
+        if (searchBean.getStatus() != null)
+            criteria.andStatusEqualTo(searchBean.getStatus());
+
         if (StringUtils.isNotEmpty(searchBean.getTitle()))
             criteria.andTitleLike("%" + searchBean.getTitle() + "%");
 
