@@ -175,7 +175,8 @@ public class NoticeService {
                 result.put("data", sEntity);
             } else {
                 List<String> dataList = new ArrayList();
-                Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
+                //Pattern pattern = Pattern.compile(searchValue, Pattern.CASE_INSENSITIVE); //大小写不敏感
+                Pattern pattern = Pattern.compile(searchValue);
                 int i = 0;
                 for (String entityValue : sEntity) {
                     i++;
