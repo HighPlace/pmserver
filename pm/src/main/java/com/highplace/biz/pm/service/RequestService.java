@@ -53,7 +53,7 @@ public class RequestService {
             criteria.andTypeEqualTo(searchBean.getType());
 
         if (StringUtils.isNotEmpty(searchBean.getSubType()))
-            criteria.andTypeEqualTo(searchBean.getSubType());
+            criteria.andSubTypeEqualTo(searchBean.getSubType());
 
         if (searchBean.getSource() != null)
             criteria.andSourceEqualTo(searchBean.getSource());
