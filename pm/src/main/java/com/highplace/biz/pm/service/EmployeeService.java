@@ -161,8 +161,8 @@ public class EmployeeService {
         if (searchBean.getStatus() != null)
             criteria.andStatusEqualTo(searchBean.getStatus());
 
-        if (StringUtils.isNotEmpty(searchBean.getSysUsername())) {
-            criteria.andSysUsernameLike("%" + searchBean.getSysUsername() + "%"); //模糊查询
+        if (StringUtils.isNotEmpty(searchBean.getUsername())) {
+            criteria.andSysUsernameLike("%" + searchBean.getUsername() + "%"); //模糊查询
         } else {
             if (onlySysUserFlag) criteria.andSysUsernameIsNotNull();  //没有输入账号查询的话,从员工表中搜索非null的记录
         }

@@ -7,7 +7,7 @@ public class EmployeeSearchBean extends PageBean {
     private String employeeName; //员工姓名
     private String phone;        //联系电话
     private Integer status;      //员工状态: 0:在岗 1:不在岗 2:离职
-    private String sysUsername;  //员工在it系统中的用户名,若有创建用户
+    private String username;  //员工在it系统中的用户名,若有创建用户
     private Boolean hasSysUser;  //是否有平台账号
 
 
@@ -19,12 +19,12 @@ public class EmployeeSearchBean extends PageBean {
         this.hasSysUser = hasSysUser;
     }
 
-    public String getSysUsername() {
-        return sysUsername;
+    public String getUsername() {
+        return username;
     }
 
-    public void setSysUsername(String sysUsername) {
-        this.sysUsername = sysUsername;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public Long getDeptId() {
@@ -75,7 +75,7 @@ public class EmployeeSearchBean extends PageBean {
                 ", employeeName='" + employeeName + '\'' +
                 ", phone='" + phone + '\'' +
                 ", status=" + status +
-                ", sysUsername='" + sysUsername + '\'' +
+                ", username='" + username + '\'' +
                 ", hasSysUser=" + hasSysUser +
                 '}';
     }
